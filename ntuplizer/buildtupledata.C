@@ -203,7 +203,7 @@ void updatePbPbBtriggerweight(TString filename, vector<float> w)
     bw->Fill();
   }
 
-  nt->Write();
+  nt->Write("nt",TObject::kOverwrite);
   f->Close();
 
 
@@ -232,7 +232,7 @@ void updateweight(TString filename)
     bw->Fill();
   }
 
-  nt->Write();
+  nt->Write("nt",TObject::kOverwrite);
   f->Close();
 
 
@@ -589,15 +589,15 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   }
   
   foutevt->cd();
-  ntevt->Write();
+  ntevt->Write("nt",TObject::kOverwrite);
   foutevt->Close();
 
   foutdj->cd();
-  ntdj->Write();
+  ntdj->Write("nt",TObject::kOverwrite);
   foutdj->Close();
 
   foutinc->cd();
-  ntinc->Write();
+  ntinc->Write("nt",TObject::kOverwrite);
   foutinc->Close();
 
   cout<<endl;

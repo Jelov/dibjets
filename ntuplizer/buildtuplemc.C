@@ -364,7 +364,7 @@ void do_buildtuplemc(TString code)
   int totentries = 0;
 
   //put only pthat weight
-  TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:bProdCode:dijet:bkgLeadingJet:")+
+  TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:bProdCode:cProdCode:dijet:bkgLeadingJet:")+
       "genpt1:geneta1:genphi1:gensubid:"+
       "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
       "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
@@ -375,7 +375,7 @@ void do_buildtuplemc(TString code)
       "SignalSLord:subidSignalSL:refptSignalSL:rawptSignalSL:jtptSignalSL:jtphiSignalSL:jtetaSignalSL:discr_csvV1_SignalSL:refparton_flavorForBSignalSL:refparton_flavorProcessSignalSL:svtxmSignalSL:discr_probSignalSL:svtxdlsSignalSL:svtxptSignalSL:svtxntrkSignalSL:nsvtxSignalSL:nselIPtrkSignalSL:dphiSignalSL1:pairCodeSignalSL1";
 
 
-  TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1_:")
+  TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:cProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1_:")
       +"refparton_flavorForB:isPrimary:refparton_flavorProcess:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
   //now fill histos
@@ -431,11 +431,13 @@ void do_buildtuplemc(TString code)
       refparton_isGSP = new TTreeReaderArray<bool>(reader, "refparton_isGSP");
     TTreeReaderArray<int> *refparton_flavorProcess = 0;
     TTreeReaderValue<int> *bProdCode = 0;
+    TTreeReaderValue<int> *cProdCode = 0;
 
 
 
     if (newFlavorProcess) {
       bProdCode = new TTreeReaderValue<int>(reader, "bProdCode");
+      cProdCode = new TTreeReaderValue<int>(reader, "cProdCode");
       if (sample!="qcs")
         refparton_flavorProcess = new TTreeReaderArray<int>(reader, "refparton_flavorProcess");
     }
@@ -524,7 +526,7 @@ void do_buildtuplemc(TString code)
 
           //for inclusive plots, subid==0 everywhere
           if (isSignal(j)) {
-            vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF,
+            vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF,
               (float)subid[j], refpt[j], rawpt[j],jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],
               (float)refparton_flavorForB[j], getFlavorProcess(refparton_isGSP,refparton_flavorProcess,j),
               svtxm[j],discr_prob[j],svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
@@ -593,6 +595,7 @@ void do_buildtuplemc(TString code)
       vdj = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80,
         *pthat,(float)pthats[i], (float)evCounter-1, (float)weights[getind(*pthat)], (float)*bin, *vz,*hiHF,
         newFlavorProcess ? (float)*(*bProdCode) : NaN,
+        newFlavorProcess ? (float)*(*cProdCode) : NaN,
         foundJ1 && foundJ2 ? (float)1 : (float)0, (float)bkgJ1,
 
 	genmaxind!=-1 ? genpt[genmaxind] : NaN,
@@ -749,15 +752,17 @@ void do_buildtuplemc(TString code)
   }
   
   foutevt->cd();
-  ntevt->Write();
+  //reason for overwrite: AutoSave already saved tree in some intermediate version
+  //without overwrite file has 2 copies
+  ntevt->Write("nt",TObject::kOverwrite);
   foutevt->Close();
 
   foutdj->cd();
-  ntdj->Write();
+  ntdj->Write("nt",TObject::kOverwrite);
   foutdj->Close();
 
   foutinc->cd();
-  ntinc->Write();
+  ntinc->Write("nt",TObject::kOverwrite);
   foutinc->Close();
 
   cout<<endl;
@@ -805,7 +810,8 @@ void update(TString filename, TF1 * fcentrWeight, TF1 *fvertexWeight, bool bfc =
     vw->Fill();
   }
 
-  nt->Write();
+  //  nt->Write();
+  nt->Write("nt",TObject::kOverwrite);
 
   f->Close();
 
@@ -878,8 +884,8 @@ void buildtuplemc(TString code)
   }
 
 
-   update(outputfilenamedj,fcentrWeight,fvertexweight);
-   update(outputfilenameinc,fcentrWeight,fvertexweight);
-   update(outputfilenameevt,fcentrWeight,fvertexweight);
+  update(outputfilenamedj,fcentrWeight,fvertexweight);
+  update(outputfilenameinc,fcentrWeight,fvertexweight);
+  update(outputfilenameevt,fcentrWeight,fvertexweight);
 
 }
