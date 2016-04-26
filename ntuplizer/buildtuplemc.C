@@ -364,7 +364,8 @@ void do_buildtuplemc(TString code)
   int totentries = 0;
 
   //put only pthat weight
-  TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:bProdCode:cProdCode:dijet:bkgLeadingJet:")+
+  TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:")+
+      "bProdCode:cProdCode:dijet:bkgLeadingJet:numTagged:"
       "genpt1:geneta1:genphi1:gensubid:"+
       "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
       "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
@@ -515,6 +516,7 @@ void do_buildtuplemc(TString code)
       bool foundJ1=false, foundJ2 = false, foundSignalJ2 = false, foundJ3 = false, foundSL = false, foundSignalSL = false, foundSB = false; //found/not found yet, for convenience
       bool bkgJ1 = false; // is leading jet coming from background?
 
+      int numTagged = 0;
       int genmaxind = *ngen>0 ? 0 : -1;
 
 
@@ -532,7 +534,7 @@ void do_buildtuplemc(TString code)
               svtxm[j],discr_prob[j],svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
 
               ntinc->Fill(&vinc[0]);
-	  }
+	        }
 
             //if background jumped above signal (or highest signal is outside acceptance) - then it's a "bad" event
             //this condition is propagated on every clause b/c we still need to loop jets for inclusive ntuple above
@@ -582,6 +584,9 @@ void do_buildtuplemc(TString code)
               foundSignalSL = true;
             }
 
+            if ((*csvv1)[j]>0.9) numTagged++;
+
+
           }
 
 	for (int ig=0;ig<*ngen;ig++)
@@ -597,11 +602,12 @@ void do_buildtuplemc(TString code)
         newFlavorProcess ? (float)*(*bProdCode) : NaN,
         newFlavorProcess ? (float)*(*cProdCode) : NaN,
         foundJ1 && foundJ2 ? (float)1 : (float)0, (float)bkgJ1,
+        numTagged,
 
-	genmaxind!=-1 ? genpt[genmaxind] : NaN,
-	genmaxind!=-1 ? geneta[genmaxind] : NaN,
-	genmaxind!=-1 ? genphi[genmaxind] : NaN,
-	genmaxind!=-1 ? (float)gensubid[genmaxind] : NaN,
+	      genmaxind!=-1 ? genpt[genmaxind] : NaN,
+	      genmaxind!=-1 ? geneta[genmaxind] : NaN,
+	      genmaxind!=-1 ? genphi[genmaxind] : NaN,
+	      genmaxind!=-1 ? (float)gensubid[genmaxind] : NaN,
 
         foundJ1 ? (float)subid[ind1] : NaN,
         foundJ1 ? refpt[ind1] : NaN,

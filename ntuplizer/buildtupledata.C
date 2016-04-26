@@ -256,6 +256,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
   TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltPFJet60:hltPFJet80:dijet:")+
       "hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
+      "numTagged:"
       "rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
       "rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:"+
       "rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:"+
@@ -443,6 +444,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       bool foundJ1=false, foundJ2 = false, foundJ3 = false, foundSL = false; //found/not found yet, for convenience
 
       bool triggermatched = false;
+      int numTagged = 0;
+
 
       if (goodevent)
         for (int j=0;j<*nref;j++) {
@@ -458,12 +461,12 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
               ind1 = j;
               foundJ1=true;
 
-	      if (PbPb) {
-		indTrigCSV60 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv60pt, *csv60phi, *csv60eta);
-		indTrigCSV80 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv80pt, *csv80phi, *csv80eta);
-		indTrigCalo60 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo60pt, *calo60phi, *calo60eta);
-		indTrigCalo80 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo80pt, *calo80phi, *calo80eta);
-	      }
+	        if (PbPb) {
+		         indTrigCSV60 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv60pt, *csv60phi, *csv60eta);
+		         indTrigCSV80 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv80pt, *csv80phi, *csv80eta);
+		         indTrigCalo60 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo60pt, *calo60phi, *calo60eta);
+		         indTrigCalo80 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo80pt, *calo80phi, *calo80eta);
+	        }
              
 	      triggermatched = !PbPb || indTrigCSV60!=-1 || indTrigCSV80!=-1;
 	  } else
@@ -486,7 +489,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
               foundSL = true;
             }  
 
-
+            if (discr_csvV1[j]>0.9) numTagged++;
 
 
           //at this point foundLJ = true always, so triggermatched is determined
@@ -519,7 +522,9 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         indTrigCSV80!=-1  ? (float)(*csv80pt)[indTrigCSV80] : NaN,
         indTrigCSV80!=-1  ? (float)(*csv80phi)[indTrigCSV80] : NaN,
         indTrigCSV80!=-1  ? (float)(*csv80eta)[indTrigCSV80] : NaN,
-                                
+                 
+        numTagged,
+                       
         foundJ1 ? rawpt[ind1] : NaN,
         foundJ1 ? jtpt[ind1] : NaN,
         foundJ1 ? jtphi[ind1] : NaN,
