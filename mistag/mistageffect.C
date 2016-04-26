@@ -96,8 +96,11 @@ void effect(TString prefix, TString bfafile, TString qcdfile)
   SetData({hmcppxJTrue});
   Draw({hmcppxJTrue,hmcppxJMistag,hmcppxJTotal});
 
+  plotlegendpos = None;
+  //aktstring="";
   plotputmean = false;
   plotymax = 1.;
+  RenameBinLabelsX(purity, {"BB","CC","BC","BL","CL/LL"});
   Draw({purity},"bar");
 
 
@@ -121,8 +124,8 @@ void mistageffect()
 
   // loadTagEffCorrections();
 
-  effect("wFEXpp","mcppbfa","mcppqcd");
-  effect("wFEXPbPb","mcPbbfa","mcPbqcd");
+  effect("pp","mcppbfa","mcppqcd");
+  effect("PbPb","mcPbbfa","mcPbqcd");
 
   // findtruthPbPb(60,200);
   // findtruthPbPb(20,60); 

@@ -9,7 +9,7 @@ void RenameBinLabelsX(TH1 *h)
 
 void RenameBinLabelsX(TH1 *h, vector<TString> labels)
 {
-  if (h->GetNbinsX()!=labels.size()) cout<<" wrong number of labels/bins"<<endl;
+  if (h->GetNbinsX()!=(int)labels.size()) cout<<" wrong number of labels/bins"<<endl;
 
   for (int i=1;i<=h->GetNbinsX();i++)
     h->GetXaxis()->SetBinLabel(i,labels[i-1]);
@@ -23,7 +23,7 @@ void RenameBinLabelsY(TH1 *h)
 
 void RenameBinLabelsY(TH1 *h, vector<TString> labels)
 {
-    if (h->GetNbinsY()!=labels.size()) cout<<" wrong number of labels/bins"<<endl;
+    if (h->GetNbinsY()!=(int)labels.size()) cout<<" wrong number of labels/bins"<<endl;
   for (int i=1;i<=h->GetNbinsY();i++)
     h->GetYaxis()->SetBinLabel(i,labels[i-1]);
 }
@@ -33,7 +33,9 @@ void wtfisbkg()
   auto fmcpp = new TFile(config.getFileName_djt("mcppbfa"));
   auto nt = (TTree *)fmcpp->Get("nt");
 
-  buildh(4,0,4);
+  buildh(4,0,4,4,0,4);
+
+  auto bcprodcode = geth2d("bcprodcode","B-C;bProdCode;cProdCode");
 
   auto bprodcode45 = geth("bprodcode45","C-B;bProdCode");
   auto bprodcode54 = geth("bprodcode54","B-C;bProdCode");
@@ -55,6 +57,8 @@ void wtfisbkg()
   nt->Project("flavproc45_1", "refparton_flavorProcessSL:refparton_flavorProcess1","weight*(bProdCode==1 && abs(refparton_flavorForB1)==4 && abs(refparton_flavorForBSL)==5 && jtpt1>100 && refpt1>50 && pthat>50 && jtptSL>40 && dphiSL1>2.1 && discr_csvV1_1>0.9)");
   nt->Project("flavproc45_2", "refparton_flavorProcessSL:refparton_flavorProcess1","weight*(bProdCode==2 && abs(refparton_flavorForB1)==4 && abs(refparton_flavorForBSL)==5 && jtpt1>100 && refpt1>50 && pthat>50 && jtptSL>40 && dphiSL1>2.1 && discr_csvV1_1>0.9)");
 
+  nt->Project("bcprodcode", "cProdCode:bProdCode","weight*(pairCodeSL1==2 && jtpt1>100 && refpt1>50 && pthat>50 && jtptSL>40 && dphiSL1>2.1 && discr_csvV1_1>0.9)");
+
 
   RenameBinLabelsX(bprodcode45,{"GSP","FCR","FEX","FEX2"});
   RenameBinLabelsX(bprodcode54,{"GSP","FCR","FEX","FEX2"});
@@ -73,8 +77,19 @@ void wtfisbkg()
   RenameBinLabelsY(flavproc45_2,{"","prim","","interm","interm","final","final"});
 
 
-  aktstring = "";
+  RenameBinLabelsX(bcprodcode,{"GSP","FCR","FEX","FEX2"});
+  RenameBinLabelsY(bcprodcode,{"GSP","FCR","FEX","FEX2"});
 
+
+
+  aktstring = "BC production mechanisms (pp)";
+  plottextposy = 0.9;
+  plottextposx = 0.4;
+  plotlegendpos = None;
+  Draw({bcprodcode},"colz");
+
+  plotlegendpos = TopRight;
+  aktstring = "";
   Draw({bprodcode45,bprodcode54});
 
   Draw({flavproc54_0},"colz");
