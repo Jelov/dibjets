@@ -106,7 +106,7 @@ void mergeFCRandBJT(TString fcrsample, TString bjtsample, TString outsample)
   }
 
 
-  nt->Write();
+  nt->Write("nt",TObject::kOverwrite);
 
   f->Close();
 
