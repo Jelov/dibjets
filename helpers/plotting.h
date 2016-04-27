@@ -258,6 +258,13 @@ TCanvas *Draw(vector<TH1 *> hists,TString options = "E1")
  if (plotthirdline!="")
    Tl->DrawLatexNDC(plottextposx, plottextposy-0.15,plotthirdline);
 
+  if (plotyline!=9999) {
+    TLine *line = new TLine(hists[0]->GetXaxis()->GetXmin(), plotyline, hists[0]->GetXaxis()->GetXmax(), plotyline);
+    line->SetLineStyle(2);
+    line->Draw();
+  }
+
+
 
   if (plotlegend)
     l->Draw();
