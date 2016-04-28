@@ -159,6 +159,8 @@ void findtruthpp()
   xjmcbjtmeanerror.push_back(  hmcppxJAS->GetMeanError());
 }
 
+bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
+
 
 void findtruthPbPb(int binMin, int binMax)
 {
@@ -312,7 +314,7 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 
-  Fill(fmc,{"weight","pthat","bProdCode","vz","bin","jtpt1","refpt1","discr_csvV1_1","jtptSL","dphiSL1","jteta1","jtetaSL","subidSL","pairCodeSL1",
+  Fill(fmc,{"weight","pthat","bProdCode","vz","bin","jtpt1","refpt1","discr_csvV1_1","jtptSL","dphiSL1","jteta1","jtetaSL","subidSL","refptSL","pairCodeSL1",
             "jtptSignal2","discr_csvV1_Signal2","Signal2ord","SLord","dphiSignal21","refparton_flavorForBSL","refparton_flavorForB1"},[&] (dict &m) {
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["pthat"]<80) return; /////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -356,10 +358,10 @@ void findtruthPbPb(int binMin, int binMax)
       if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23)
         hasd[i]->Fill(m["jtptSL"]/m["jtpt1"], abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);//wbkg); ///////WRONG POTENTIALLY!
 
-      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]<PI13 && m["subidSL"]!=0)
+      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]<PI13 && !IsSignal(m))
         hhyj[i]->Fill(m["jtptSL"]/m["jtpt1"],wbkg);
 
-      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23 && m["subidSL"]==0) {//&& m["pairCodeSL1"]==0) {
+      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23 && IsSignal(m)) {//&& m["pairCodeSL1"]==0) {
           hsig[i]->Fill(m["jtptSL"]/m["jtpt1"], abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
 
       }
@@ -368,9 +370,9 @@ void findtruthPbPb(int binMin, int binMax)
       if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut
 //           && m["dphiSL1"]<PI13) {
            && ((dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1))) {
-        hbkg[i]->Fill(m["jtptSL"]/m["jtpt1"],wbkg);
+        hbkg[i]->Fill(m["jtptSL"]/m["jtpt1"],abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);//wbkg);?????????????
         hptNS[i]->Fill(m["jtptSL"], abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
-        if (m["subidSL"]==0) 
+        if (IsSignal(m))
           hptNSsig[i]->Fill(m["jtptSL"], abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
       }
 
@@ -410,7 +412,7 @@ void findtruthPbPb(int binMin, int binMax)
           hmcxJASsig->Fill(m["jtptSL"]/m["jtpt1"],wb);
 
         //signal-like pairCode (for MC purity)
-        if (m["subidSL"]==0)
+        if (IsSignal(m))//m["subidSL"]==0)
           hPairCodeBFA->Fill(m["pairCodeSL1"],wb);////////////////////////////////there were w0 here
       }
 
@@ -455,7 +457,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 &&
 
   });
 
-  Fill(fmcinc,{"weight","jtpt1","refpt1","jtpt2","dphi21","bin","jteta1","jteta2","pairCodeSL1","discr_csvV1_1","jtptSL","dphiSL1","pthat","subidSL","subid2"},[&] (dict &m) {
+  Fill(fmcinc,{"weight","jtpt1","refpt1","jtpt2","dphi21","bin","jteta1","jteta2","pairCodeSL1","discr_csvV1_1","jtptSL","dphiSL1","pthat","subidSL","refptSL","subid2"},[&] (dict &m) {
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["pthat"]<65) return;
 
@@ -510,7 +512,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 &&
     }
 
     if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23) {
-      if (m["pairCodeSL1"]<4 && m["subidSL"]==0)
+      if (m["pairCodeSL1"]<4 && IsSignal(m))//m["subidSL"]==0)
         hPairCodeQCD->Fill(m["pairCodeSL1"],w);
     }
 
@@ -537,7 +539,15 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 &&
   hdtINCxJASSubEars->Add(hdtINCxJAS,hdtINCxJEars,1,-1);
   hmcINCxJASSubEars->Add(hmcINCxJAS,hmcINCxJEars,1,-1);
 
-  vector<float> coef = {0.85,0.43,0.01};//{0.7, 0.24, 0.02};
+  //Ideal Hydjet+"Signal" subtraction:
+  //vector<float> coef = {0.755140, 0.261050, 0.0134587};
+  //calculated by simple dphi
+  //vector<float> coef = {0.850222,0.435748,0.010241};
+  //calculated by fancy
+  vector<float> coef = {0.869067,0.42076,0};
+
+  //"quenched" away-side by 10%
+  //vector<float> coef = {0.864643,0.490077,0.105538};
 
   for (int i=0;i<Nb;i++) {
     hsub[i]->Add(hasd[i],hbkg[i],1,-1*coef[i]);
@@ -620,7 +630,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 &&
 
 for (int i=0;i<Nb;i++)
   cout<<"Amount of background in the subtraction "<<binnames[i]<<" : "<<
-      setprecision(2)<<(1-hptNSsig[i]->Integral()/(float)hptNS[i]->Integral())*100<<" % "<<endl;;
+      setprecision(2)<<(1-hptNSsig[i]->Integral(0,hptNSsig[i]->GetNbinsX()+1)/(float)hptNS[i]->Integral(0,hptNS[i]->GetNbinsX()+1))*100<<" % "<<endl;;
 
 
 
@@ -639,7 +649,7 @@ Normalize({hptNSsig[0],hptNSsig[1],hptNSsig[2],hptNS[0],hptNS[1],hptNS[2]});
   plotputmean = false;
   Draw({hcentrSubSIG, hcentrSubASD, hcentrSubCLS,hcentrSubHJS});
 
-return;
+
 
   Draw({hcentrSubSIGinc, hcentrSubASDinc, hcentrSubCLSinc});
 
