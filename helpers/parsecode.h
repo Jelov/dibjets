@@ -1,3 +1,6 @@
+#ifndef PARSECODE_H
+#define PARSECODE_H
+
 #include "TString.h"
 #include "TTree.h"
 #include "TFile.h"
@@ -174,3 +177,6 @@ void PutInCbins(TString outputfolder, TString code, vector<vector<int> > cbins)
   }
 
 }
+
+
+#endif

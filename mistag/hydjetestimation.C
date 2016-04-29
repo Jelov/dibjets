@@ -1,40 +1,7 @@
 #include "../helpers/plotting.h"
 #include "../helpers/looptuple.h"
 #include "../helpers/config.h"
-
-vector<float> bins = {0,20,60,200};
-vector<TString> binnames = {"0-10%", "10-30%", "30-100%"}; 
-
-int getbinindex(float bin)
-{
-  for(unsigned i=0;i<bins.size();i++)
-    if (bins[i]>bin) return i-1;
-  return bins.size()-2;
-}
-
-
-float weight1SL(dict d)
-{
-  float w = d["weight"];
-  if (d["pairCodeSL1"]==0) w*=processweight((int)d["bProdCode"]);
-  return w;
-}
-
-bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
-
-bool NearSide(dict d)
-{
-  // return d["dphiSL1"]<PI23;
-
-  float dphi = d["dphiSL1"];
-  float deta = abs(d["jteta1"]-d["jtetaSL"]); 
-  return (dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1);
-}
-
-bool AwaySide(dict d)
-{
-  return d["dphiSL1"]>PI23;
-}
+#include "../helpers/physics.h"
 
 void dphisignalconsistency()
 {
@@ -146,13 +113,7 @@ void dphisignalconsistency()
 
     x.push_back(xx_*PbPb1);
 
-cout<<"pp1 = "<<pp1*1E9<<endl;
-cout<<"pp3 = "<<pp3*1E9<<endl;
-cout<<"PbPb1 = "<<PbPb1*1E9<<endl;
-cout<<"PbPb3 = "<<PbPb3*1E9<<endl;
-cout<<" H = "<<xx_*PbPb1*1E9<<endl;
-cout<<"PbPb1-H = "<<PbPb1*1E9-xx_*PbPb1*1E9<<endl;
-cout<<"PbPb3-H = "<<PbPb3*1E9-xx_*PbPb1*1E9<<endl;
+    bkgfractionInNearSide[i] = xx_;
   }
 
 
@@ -209,10 +170,18 @@ cout<<"PbPb3-H = "<<PbPb3*1E9-xx_*PbPb1*1E9<<endl;
   plotymax = 0.15;
   Draw({hNSASratio});
 
+
+  cout<<" bkgfractionInNearSide : ";
+  for (auto f:coef) {
+    cout<<(f < 0 ? 0: f)<<",";
+  }
+  cout<<endl;
+
 }
 
 void hydjetestimation()
 {
+  macro m("hydjetestimation",true);
   //looptupledryrun = true;
   dphisignalconsistency();
 }

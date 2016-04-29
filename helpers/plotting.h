@@ -1,3 +1,6 @@
+#ifndef PLOTTINH_H
+#define PLOTTINH_H
+
 #include "TH1F.h"
 #include "TH2F.h"
 #include "THStack.h"
@@ -61,6 +64,9 @@ void buildh(int nbins=20, float xmin=0, float xmax=1, int nbinsy=20, float ymin=
 
 }
 
+bool firstRunMacro = true;
+TString histoutputfilename;
+
 void buildh(vector<float> &binsvector)
 {
   buildFromVector = true;
@@ -73,13 +79,24 @@ TString buildTitlesuffix = "";
 
 TH1F *geth(TString hname, TString htitle)
 {
-  TH1F *h;
-  if (buildFromVector)
-    h = new TH1F(hname+buildNamesuffix, buildTitlesuffix+htitle,buildvector.size()-1,&buildvector[0]);
-  else
-    h = new TH1F(hname+buildNamesuffix, buildTitlesuffix+htitle, buildnbins, buildxmin, buildxmax);
-  allhists.push_back(h);
-  return h;
+  if (firstRunMacro) {
+    TH1F *h;
+    if (buildFromVector)
+      h = new TH1F(hname+buildNamesuffix, buildTitlesuffix+htitle,buildvector.size()-1,&buildvector[0]);
+    else
+      h = new TH1F(hname+buildNamesuffix, buildTitlesuffix+htitle, buildnbins, buildxmin, buildxmax);
+    allhists.push_back(h);
+    return h;
+  } else {
+    TFile *f = new TFile(histoutputfilename);
+    auto h=(TH1F*)f->Get(hname);
+    if (!h)
+      cout << "histogram "<<hname<<" not found in file "<<histoutputfilename<<endl;
+    else
+      h->SetDirectory(0);
+    f->Close();
+    return h;
+  }
 }
 
 TH1F *geth(TString hnametitle)
@@ -89,10 +106,21 @@ TH1F *geth(TString hnametitle)
 
 TH2F *geth2d(TString hname, TString htitle)
 {
-  TH2F *h;
-  h = new TH2F(hname+buildNamesuffix, buildTitlesuffix+htitle, buildnbins, buildxmin, buildxmax, buildnbinsy, buildymin, buildymax);
-  allhists.push_back(h);
-  return h;
+  if (firstRunMacro) {
+    TH2F *h;
+    h = new TH2F(hname+buildNamesuffix, buildTitlesuffix+htitle, buildnbins, buildxmin, buildxmax, buildnbinsy, buildymin, buildymax);
+    allhists.push_back(h);
+    return h;
+  } else {
+    TFile *f = new TFile(histoutputfilename);
+    auto h=(TH2F*)f->Get(hname);
+    if (!h)
+      cout << "histogram "<<hname<<" not found in file "<<histoutputfilename<<endl;
+    else
+      h->SetDirectory(0);
+    f->Close();
+    return h;
+  }
 }
 
 TH2F *geth2d(TString hnametitle)
@@ -1123,3 +1151,44 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
   c1->SaveAs(Form("%s/Compare_%s_%s.pdf",plotsfolder.Data(),h1->GetTitle(),h2->GetTitle()));
 
 }
+
+
+
+
+class macro
+{
+  TString macroname;
+  bool firstRun;
+  TString filename;
+public:
+  TString getname() { return macroname;}
+  macro(TString name, bool firstrun = true) 
+  {
+    firstRun = firstrun;
+    macroname = name;
+    filename = Form("%s_hists.root",macroname.Data());
+    firstRunMacro = firstrun;
+    histoutputfilename = filename;
+    cout<<"Starting macro "<<macroname<<"!"<<endl;
+  }
+  ~macro() 
+  {
+    if (!firstRun) return;
+    cout<<"Writing histograms to the file "<<filename<<endl;
+    TFile *f = new TFile(filename,"recreate");
+    for (auto x:allhists)
+      x->Write();
+    f->Close();
+    cout<<"done!"<<endl;
+  }
+};
+
+// macro StartMacro(TString macroName)
+// {
+//   macro m(macroName);
+//   return m;
+// }
+
+
+#endif
+

@@ -1,5 +1,10 @@
+#ifndef LOOPTUPLE_H
+#define LOOPTUPLE_H
+
+
 #include <functional>
 #include <map>
+#include "plotting.h"
 
 //#define dict map<TString,float>
 
@@ -56,6 +61,10 @@ bool looptupledryrun = false;
 void Fill(TFile *f, vector<TString> varsNeeded, const std::function<void(dict &)> & func, float processFraction = 1)
 {
   if (looptupledryrun) processFraction = 0.01;
+  if (!firstRunMacro) {
+    cout<<" histograms have been read from file, skipping Fill function."<<endl;
+    return;
+  }
 
   //  for (auto x:varsNeeded) cout<<"\""<<x<<"\",";  cout<<endl;
 	TTreeReader reader("nt",f);
@@ -102,3 +111,7 @@ vector<TString> concat(vector<TString> a, vector<TString> b)
 	return v;
 }
  
+
+
+#endif
+

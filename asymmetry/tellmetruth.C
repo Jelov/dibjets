@@ -1,6 +1,7 @@
 #include "../helpers/plotting.h"
 #include "../helpers/looptuple.h"
 #include "../helpers/config.h"
+#include "../helpers/physics.h"
 
 // const float pt1cut = 100;
 // const float pt2cut = 40;
@@ -159,7 +160,7 @@ void findtruthpp()
   xjmcbjtmeanerror.push_back(  hmcppxJAS->GetMeanError());
 }
 
-bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
+//bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
 
 
 void findtruthPbPb(int binMin, int binMax)
@@ -533,8 +534,13 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 &&
 
   //hdtxJASSub->Add(hdtxJAS,hdtxJNS,1,-1);
   //hmcxJASSub->Add(hmcxJAS,hmcxJNS,1,-1);
-  hdtxJASSubEars->Add(hdtxJAS,hdtxJEars,1,-1);
-  hmcxJASSubEars->Add(hmcxJAS,hmcxJEars,1,-1);
+
+  //TODO: fix bin handling
+  float coef = bkgfractionInNearSide[getbinindex((binMin+binMax)/2)];
+  hdtxJASSubEars->Add(hdtxJAS,hdtxJEars,1,-1*coef);
+  hmcxJASSubEars->Add(hmcxJAS,hmcxJEars,1,-1*coef);
+
+  cout<<"   Fraction of data left after subtraction in bin "<<binMin/2<<" - "<<binMax/2<<" = "<<hdtxJASSubEars->Integral()/hdtxJAS->Integral()<<endl;
 
   hdtINCxJASSubEars->Add(hdtINCxJAS,hdtINCxJEars,1,-1);
   hmcINCxJASSubEars->Add(hmcINCxJAS,hmcINCxJEars,1,-1);
@@ -544,13 +550,13 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 &&
   //calculated by simple dphi
   //vector<float> coef = {0.850222,0.435748,0.010241};
   //calculated by fancy
-  vector<float> coef = {0.869067,0.42076,0};
+  //vector<float> coef = {0.869067,0.42076,0};
 
   //"quenched" away-side by 10%
   //vector<float> coef = {0.864643,0.490077,0.105538};
 
   for (int i=0;i<Nb;i++) {
-    hsub[i]->Add(hasd[i],hbkg[i],1,-1*coef[i]);
+    hsub[i]->Add(hasd[i],hbkg[i],1,-1*bkgfractionInNearSide[i]);
     hshj[i]->Add(hasd[i],hhyj[i],1,-1);
   }
   for (int i=0;i<Nbinc;i++) 
@@ -789,10 +795,10 @@ void tellmetruth()
   //loadTagEffCorrections();
 
 
-  //findtruthpp();
-  //findtruthPbPb(60,200);
-  //findtruthPbPb(20,60); 
-  //findtruthPbPb(0,20);
+  findtruthpp();
+  findtruthPbPb(60,200);
+  findtruthPbPb(20,60); 
+  findtruthPbPb(0,20);
   findtruthPbPb(0,200);
 
     //findtruthPbPb(140,200);
