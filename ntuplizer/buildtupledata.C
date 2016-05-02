@@ -523,7 +523,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         indTrigCSV80!=-1  ? (float)(*csv80phi)[indTrigCSV80] : NaN,
         indTrigCSV80!=-1  ? (float)(*csv80eta)[indTrigCSV80] : NaN,
                  
-        numTagged,
+	     (float)numTagged,
                        
         foundJ1 ? rawpt[ind1] : NaN,
         foundJ1 ? jtpt[ind1] : NaN,
