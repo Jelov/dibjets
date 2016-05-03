@@ -2,17 +2,20 @@
 #include "../helpers/parsecode.h"
 #include "TChain.h"
 
+int getpthatind(vector<int> &vpthat, float pthat)
+{
+  for (unsigned i=0;i<vpthat.size();i++)
+    if (pthat<vpthat[i]) return i-1;
+  return vpthat.size()-1;
+}
+
 void mergeFCRandBJT(TString fcrsample, TString bjtsample, TString outsample)
 {
   cout<<"Merging b-jet FCR and filtered samples..."<<endl;
 
-  // //qcd CS
-   //vector<float> CS     = {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
-  // //b-filter efficiency
-  // vector<float> filterefficiency = {6.269e-02,7.557e-02,8.640e-02,8.908e-02,9.265e-02};
+  vector<float> fcrCS = {1.890e-03,1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
+  vector<int> pthats = { 15,   30,   50,   65,   80,   100,     120};
 
-  vector<float> fcrCS = {1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
-  vector<int> pthats = {           30,   50,   65,   80,   100,     120};
 
   TString djtfcrsample(fcrsample);
   djtfcrsample.ReplaceAll("_inc","_djt");
@@ -89,14 +92,8 @@ void mergeFCRandBJT(TString fcrsample, TString bjtsample, TString outsample)
 
     fcrweight = 1;
     if (i<nFCR || bProdCode==1) {
-      if (pthat>30 && pthat<50)  fcrweight = w[0];
-      if (pthat>50 && pthat<65)  fcrweight = w[1];
-      if (pthat>65 && pthat<80)  fcrweight = w[2];
-      if (pthat>80 && pthat<100)  fcrweight = w[3];
-      if (pthat>100 && pthat<120) fcrweight = w[4];
-      if (pthat>120) fcrweight = w[5];      
-      if (fcrweight==1) cout<<"WTF? "<<pthatsample<<" "<<bProdCode<<endl;
-      fcrweight = fcrweight;
+      int ind = getpthatind(pthats,pthat);
+      if (ind!=-1) fcrweight = w[ind];
     } else fcrweight = pthatweight;
 
     if (fcrweight<=0) 
