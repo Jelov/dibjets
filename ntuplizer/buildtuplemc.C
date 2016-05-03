@@ -47,8 +47,6 @@ const int NaN = -999;
 
 void Init()
 {
-  filterefficiency = {1.,1.,1.,1.,1.};
-
   if (PbPb && sample=="qcV") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
     subfoldernames={"qcd30","qcd50","qcd80","qcd100","qcd120"};
@@ -71,22 +69,22 @@ void Init()
 
   else if (PbPb && sample=="qcd") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
-    subfoldernames={"qcd30/puTowerExclLimitV2","qcd50/puTowerExclLimitV2","qcd80/puTowerExclLimitV2","qcd100/puTowerExclLimitV2","qcd120/puTowerExclLimitV2"};
-    pthats = {           30,     50,     80,     100,      120};
-    CS     = {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
+    subfoldernames={"qcd30/puTowerExclLimitV2","qcd50/puTowerExclLimitV2","qcd65/puTowerExclLimitV2", "qcd80/puTowerExclLimitV2","qcd100/puTowerExclLimitV2","qcd120/puTowerExclLimitV2"};
+    pthats = {           30,     50,     65,     80,     100,      120};
+    CS     = {3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
   }
   else if (PbPb && sample=="bfc") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
-    subfoldernames={"bfcr30/puTowerExclLimitV2","bfcr50/puTowerExclLimitV2","bfcr80/puTowerExclLimitV2","bfcr100/puTowerExclLimitV2","bfcr120/puTowerExclLimitV2"};
-    pthats = {           30,     50,     80,  100,   120};
-    CS     = {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
+    subfoldernames={"bfcr30/puTowerExclLimitV2","bfcr50/puTowerExclLimitV2","bfcr65/puTowerExclLimitV2","bfcr80/puTowerExclLimitV2","bfcr100/puTowerExclLimitV2","bfcr120/puTowerExclLimitV2"};
+    pthats = {           30,     50,     65,    80,  100,   120};
+    CS     = {3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
   }
   else  if (PbPb && sample=="bjt") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
-    subfoldernames={"bjet30/puTowerExclLimitV2","bjet50/puTowerExclLimitV2","bjet80/puTowerExclLimitV2","bjet100/puTowerExclLimitV2","bjet120/puTowerExclLimitV2"};
-    pthats =           {           30,     50,     80,  100,   120};
-    CS     =           {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
-    filterefficiency = {6.269e-02,7.557e-02,8.640e-02,8.908e-02,9.265e-02};
+    subfoldernames={"bjet30/puTowerExclLimitV2","bjet50/puTowerExclLimitV2","bjet65/puTowerExclLimitV2","bjet80/puTowerExclLimitV2","bjet100/puTowerExclLimitV2","bjet120/puTowerExclLimitV2"};
+    pthats =           {           30,     50,     65,     80,  100,   120};
+    CS     =           {3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
+    filterefficiency = {6.269e-02,7.557e-02,8.128e-02,8.640e-02,8.908e-02,9.265e-02};
   }
   // else if (PbPb && sample=="qp8") {
   //   samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia8";
@@ -148,6 +146,12 @@ void Init()
 
 
   Npthat = pthats.size();
+
+  //use filter efficiency = 1 in samples with no filter
+  if (filterefficiency.size()==0)
+    for (int i=0;i<Npthat;i++) filterefficiency.push_back(1.);
+
+
 }
 
 TString getfoldername(int binnumber)
@@ -467,11 +471,24 @@ void do_buildtuplemc(TString code)
     TString calojet40triggerv2 = !PbPb ? "HLT_AK4CaloJet40_Eta5p1ForPPRef_v1" : "HLT_HIPuAK4CaloJet40_Eta5p1_v2";
     TString calojet60triggerv2 = !PbPb ? "HLT_AK4CaloJet60_Eta5p1ForPPRef_v1" : "HLT_HIPuAK4CaloJet60_Eta5p1_v2";
     TString calojet80triggerv2 = !PbPb ? "HLT_AK4CaloJet80_Eta5p1ForPPRef_v1" : "HLT_HIPuAK4CaloJet80_Eta5p1_v2";
+    
+    //special for fcr sample
+    if (PbPb && sample=="bfc" && pthats[i]==65) {
+      calojet40triggerv2 = "HLT_HIPuAK4CaloJet40_Eta5p1_v1";
+      calojet60triggerv2 = "HLT_HIPuAK4CaloJet60_Eta5p1_v1";
+      calojet80triggerv2 = "HLT_HIPuAK4CaloJet80_Eta5p1_v1";
+    }
 
     // TString csv60trigger = !PbPb ? "HLT_AK4PFBJetBCSV60_Eta2p1_v1"  : "HLT_HIPuAK4CaloBJetCSV60_Eta2p1_v1";
     // TString csv80trigger = !PbPb ? "HLT_AK4PFBJetBCSV80_Eta2p1_v1"  : "HLT_HIPuAK4CaloBJetCSV80_Eta2p1_v1";
     TString csv60triggerv2 = !PbPb ? "HLT_AK4PFBJetBCSV60_Eta2p1ForPPRef_v1"  : "HLT_HIPuAK4CaloBJetCSV60_Eta2p1_v2";
     TString csv80triggerv2 = !PbPb ? "HLT_AK4PFBJetBCSV80_Eta2p1ForPPRef_v1"  : "HLT_HIPuAK4CaloBJetCSV80_Eta2p1_v2";
+
+    if (PbPb && sample=="bfc" && pthats[i]==65) {
+      csv60triggerv2 = "HLT_HIPuAK4CaloBJetCSV60_Eta2p1_v1";
+      csv80triggerv2 = "HLT_HIPuAK4CaloBJetCSV80_Eta2p1_v1";
+    }
+
 
     TTreeReader readerhlt("hltanalysis/HltTree",f);
     TTreeReaderValue<int> CaloJet40(readerhlt, calojet40triggerv2);
@@ -602,7 +619,7 @@ void do_buildtuplemc(TString code)
         newFlavorProcess ? (float)*(*bProdCode) : NaN,
         newFlavorProcess ? (float)*(*cProdCode) : NaN,
         foundJ1 && foundJ2 ? (float)1 : (float)0, (float)bkgJ1,
-        numTagged,
+	     (float)numTagged,
 
 	      genmaxind!=-1 ? genpt[genmaxind] : NaN,
 	      genmaxind!=-1 ? geneta[genmaxind] : NaN,

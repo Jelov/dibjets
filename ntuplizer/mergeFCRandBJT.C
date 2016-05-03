@@ -11,8 +11,8 @@ void mergeFCRandBJT(TString fcrsample, TString bjtsample, TString outsample)
   // //b-filter efficiency
   // vector<float> filterefficiency = {6.269e-02,7.557e-02,8.640e-02,8.908e-02,9.265e-02};
 
-  vector<float> fcrCS = {1.242e-04,1.348e-05,1.468e-06,4.831e-07,1.889e-07};
-  vector<int> pthats = {           30,   50,   80,   100,     120};
+  vector<float> fcrCS = {1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
+  vector<int> pthats = {           30,   50,   65,   80,   100,     120};
 
   TString djtfcrsample(fcrsample);
   djtfcrsample.ReplaceAll("_inc","_djt");
@@ -90,10 +90,11 @@ void mergeFCRandBJT(TString fcrsample, TString bjtsample, TString outsample)
     fcrweight = 1;
     if (i<nFCR || bProdCode==1) {
       if (pthat>30 && pthat<50)  fcrweight = w[0];
-      if (pthat>50 && pthat<80)  fcrweight = w[1];
-      if (pthat>80 && pthat<100)  fcrweight = w[2];
-      if (pthat>100 && pthat<120) fcrweight = w[3];
-      if (pthat>120) fcrweight = w[4];      
+      if (pthat>50 && pthat<65)  fcrweight = w[1];
+      if (pthat>65 && pthat<80)  fcrweight = w[2];
+      if (pthat>80 && pthat<100)  fcrweight = w[3];
+      if (pthat>100 && pthat<120) fcrweight = w[4];
+      if (pthat>120) fcrweight = w[5];      
       if (fcrweight==1) cout<<"WTF? "<<pthatsample<<" "<<bProdCode<<endl;
       fcrweight = fcrweight;
     } else fcrweight = pthatweight;
