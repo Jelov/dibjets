@@ -102,7 +102,7 @@ double getweight(TString sample, int trig60, int trig80)
   if (sample == subfoldernames[0] && trig60 && !trig80) return weights[0]; //pp_PFLowPt"
   if (sample == subfoldernames[1] && trig80) return 1; //pp_PFHighPt"
 
-  return -999;
+  return 0;
 }
 
 float matchingDistance(float jtphi1, float jteta1, float jtphi2, float jteta2)
