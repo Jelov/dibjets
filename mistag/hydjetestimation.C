@@ -18,7 +18,9 @@ void dphisignalconsistency()
 
   int Nb = bins.size()-1;
 
-  vector<TH1 *>hmcPbdphi(Nb),hmcPbdphiNS(Nb),hmcPbdphiAS(Nb),hmcPbdphiNSall(Nb),hmcPbdphiASall(Nb),hmcPbdphibkg(Nb),hmcPbdphiNSbkg(Nb),hmcPbdphiASbkg(Nb);
+  vector<TH1 *> hmcPbdphi(Nb),hmcPbdphiNS(Nb),hmcPbdphiAS(Nb),hmcPbdphiNSall(Nb),hmcPbdphiASall(Nb),
+                hmcPbdphibkg(Nb),hmcPbdphiNSbkg(Nb),hmcPbdphiASbkg(Nb),hmcPbdphiNSASratio(Nb);
+                
   for (int i=0;i<Nb;i++) {
     buildh(3,0,PI);
     hmcPbdphi[i] = geth(Form("hmcPbdphi%d",i),Form("MC Pb %s;Signal only #Delta#phi",binnames[i].Data()));
@@ -30,42 +32,43 @@ void dphisignalconsistency()
     hmcPbdphiAS[i] = geth(Form("hmcPbdphiAS%d",i),Form("MC AS Signal Pb %s;#Delta#phi",binnames[i].Data()));
     hmcPbdphiASbkg[i] = geth(Form("hmcPbdphiASbkg%d",i),Form("MC AS Background Pb %s;#Delta#phi",binnames[i].Data()));
     hmcPbdphiASall[i] = geth(Form("hmcPbdphiASall%d",i),Form("MC AS ALL Pb %s;#Delta#phi",binnames[i].Data()));
+    hmcPbdphiNSASratio[i] = geth(Form("hmcPbdphiNSASratio%d",i),Form("MC NS AS ratio Pb %s;#Delta#phi",binnames[i].Data()));
   }
 
   Fill(fmcpp,{"pthat","weight","jtpt1","refpt1","bProdCode","jtptSL","dphiSL1","refparton_flavorForB1","pairCodeSL1","discr_csvV1_1","jteta1","jtetaSL"},[&] (dict d) {
-    float w = d["weight"];
-    if (d["pthat"]<80) return;
+    float w = weight1SLpp(d);
+    if (d["pthat"]<pthatcut) return;
     if (d["refpt1"]<50)  return;
 
     if (d["jtpt1"]>pt1cut && abs(d["refparton_flavorForB1"])==5 && d["jtptSL"]>pt2cut) {//&& d["discr_csvV1_1"]>0.9
-      hmcppdphi->Fill(d["dphiSL1"],weight1SL(d));
-      if (NearSide(d)) hmcppdphiNS->Fill(d["dphiSL1"],weight1SL(d));
-      if (AwaySide(d)) hmcppdphiAS->Fill(d["dphiSL1"],weight1SL(d));
+      hmcppdphi->Fill(d["dphiSL1"],w);
+      if (NearSide(d)) hmcppdphiNS->Fill(d["dphiSL1"],w);
+      if (AwaySide(d)) hmcppdphiAS->Fill(d["dphiSL1"],w);
     }
 
   });
 
   Fill(fmcPb,{"pthat","weight","jtpt1","refpt1","bProdCode","jtptSL","refptSL","dphiSL1","refparton_flavorForB1","subidSL","bin","pairCodeSL1","discr_csvV1_1","jteta1","jtetaSL"},[&] (dict d) {
-    float w = d["weight"];
-    if (d["pthat"]<80) return;
+    float w = weight1SLPbPb(d);
+    if (d["pthat"]<pthatcut) return;
     if (d["refpt1"]<50) return;
 
     int b = getbinindex(d["bin"]);
     if (d["jtpt1"]>pt1cut && abs(d["refparton_flavorForB1"])==5 && d["jtptSL"]>pt2cut && IsSignal(d)) { //d["discr_csvV1_1"]>0.9
-      hmcPbdphi[b]->Fill(d["dphiSL1"],weight1SL(d));
-      if (NearSide(d)) hmcPbdphiNS[b]->Fill(d["dphiSL1"],weight1SL(d));
-      if (AwaySide(d)) hmcPbdphiAS[b]->Fill(d["dphiSL1"],weight1SL(d));
+      hmcPbdphi[b]->Fill(d["dphiSL1"],w);
+      if (NearSide(d)) hmcPbdphiNS[b]->Fill(d["dphiSL1"],w);
+      if (AwaySide(d)) hmcPbdphiAS[b]->Fill(d["dphiSL1"],w);
     }
     
     if (d["jtpt1"]>pt1cut && abs(d["refparton_flavorForB1"])==5 && d["jtptSL"]>pt2cut) { //d["discr_csvV1_1"]>0.9
-      if (NearSide(d)) hmcPbdphiNSall[b]->Fill(d["dphiSL1"],weight1SL(d));
-      if (AwaySide(d)) hmcPbdphiASall[b]->Fill(d["dphiSL1"],weight1SL(d));
+      if (NearSide(d)) hmcPbdphiNSall[b]->Fill(d["dphiSL1"],w);
+      if (AwaySide(d)) hmcPbdphiASall[b]->Fill(d["dphiSL1"],w);
     }
 
     if (d["jtpt1"]>pt1cut && abs(d["refparton_flavorForB1"])==5 && d["jtptSL"]>pt2cut && !IsSignal(d)) {
-      hmcPbdphibkg[b]->Fill(d["dphiSL1"],weight1SL(d));
-      if (NearSide(d)) hmcPbdphiNSbkg[b]->Fill(d["dphiSL1"],weight1SL(d));
-      if (AwaySide(d)) hmcPbdphiASbkg[b]->Fill(d["dphiSL1"],weight1SL(d));
+      hmcPbdphibkg[b]->Fill(d["dphiSL1"],w);
+      if (NearSide(d)) hmcPbdphiNSbkg[b]->Fill(d["dphiSL1"],w);
+      if (AwaySide(d)) hmcPbdphiASbkg[b]->Fill(d["dphiSL1"],w);
     }
 
   });
@@ -82,10 +85,12 @@ void dphisignalconsistency()
     float PbPb1 = hmcPbdphiNSall[i]->GetBinContent(1);
     float PbPb3 = hmcPbdphiASall[i]->GetBinContent(1);
 
+    cout<<pp1*1E9<<" "<<pp3*1E9<<" "<<PbPb1*1E9<<" "<<PbPb3*1E9<<endl;
+
 
     buildh(1,0,PI);
-    auto hB = geth("hB");
-    auto hxx = geth("hxx",Form("Estimated background in %s",binnames[i].Data()));
+    auto hB = geth(Form("hB%d",i));
+    auto hxx = geth(Form("hxx%d",i),Form("Estimated background in %s",binnames[i].Data()));
     hB->Divide(hmcppdphiNS,hmcppdphiAS);
     hxx->Divide(hmcPbdphiASall[i],hmcPbdphiNSall[i]);
     hxx->Multiply(hB);
@@ -105,7 +110,7 @@ void dphisignalconsistency()
 
 
     //just for fun... turn on quenching of the away-side by alpha
-    double alpha = 1.1;
+    double alpha = 0.5;
     double Bprime = 1/alpha*B;
     float xalpha_ = (1-PbPb3/PbPb1*Bprime)/(1-Bprime);
     cout<<" bkg fraction in NS = "<<xx_<<", quenched by "<<alpha<<" bkg = "<<xalpha_<<endl;
@@ -123,34 +128,38 @@ void dphisignalconsistency()
   plotyline = x[0];
   Draw({hmcPbdphibkg[0],vhx[0]});
 
-  plotymin = 0; plotymax = 6E-9;
+  plotymin = 0; plotymax = 1E-8;
   plotyline = x[1];
   Draw({hmcPbdphibkg[1],vhx[1]});
 
-  plotymin = -0.5E-9; plotymax = 2E-9;
+  plotymin = -1.E-9; plotymax = 3E-9;
   plotyline = x[2];
   Draw({hmcPbdphibkg[2],vhx[2]});
 
   plotyline = 9999;
   plotymax = 1;
 
-  hmcppdphiNS->Divide(hmcppdphiAS);
+  auto hmcppdphiNSASratio = (TH1F *)hmcppdphiNS->Clone("hmcppdphiNSASratio");
+  hmcppdphiNSASratio->Divide(hmcppdphiAS);
   for (int i=0;i<Nb;i++)
-    hmcPbdphiNS[i]->Divide(hmcPbdphiAS[i]);
+    hmcPbdphiNSASratio[i]->Divide(hmcPbdphiNS[i],hmcPbdphiAS[i]);
+//    hmcPbdphiNS[i]->Divide(hmcPbdphiAS[i]);
+
 
   buildh(Nb+1,0,Nb+1);
   auto hNSASratio = geth("hNSASratio","ratio of NS to AS");
   double e = 0;
-  double integral = hmcppdphiNS->IntegralAndError(1, hmcppdphiNS->GetNbinsX(),e);
+  double integral = hmcppdphiNSASratio->IntegralAndError(1, hmcppdphiNSASratio->GetNbinsX(),e);
   cout<<" ? "<<e<<" "<<integral<<endl;
-  hNSASratio->SetBinContent(1,hmcppdphiNS->GetBinContent(1));
-  hNSASratio->SetBinError(1,hmcppdphiNS->GetBinError(1));
+  hNSASratio->SetBinContent(1,hmcppdphiNSASratio->GetBinContent(1));
+  hNSASratio->SetBinError(1,hmcppdphiNSASratio->GetBinError(1));
   for (int i=0;i<Nb;i++) {
     e = 0;
-    integral = hmcPbdphiNS[i]->IntegralAndError(1, hmcPbdphiNS[i]->GetNbinsX(),e);
-    hNSASratio->SetBinContent(i+2,hmcPbdphiNS[i]->GetBinContent(1));
-    hNSASratio->SetBinError(i+2,hmcPbdphiNS[i]->GetBinError(1));
+    integral = hmcPbdphiNSASratio[i]->IntegralAndError(1, hmcPbdphiNSASratio[i]->GetNbinsX(),e);
+    hNSASratio->SetBinContent(i+2,hmcPbdphiNSASratio[i]->GetBinContent(1));
+    hNSASratio->SetBinError(i+2,hmcPbdphiNSASratio[i]->GetBinError(1));
   }
+  Print(hNSASratio);
 
 
   vector<TString> axnames;
@@ -172,16 +181,15 @@ void dphisignalconsistency()
 
 
   cout<<" bkgfractionInNearSide : ";
-  for (auto f:coef) {
+  for (auto f:bkgfractionInNearSide) {
     cout<<(f < 0 ? 0: f)<<",";
   }
   cout<<endl;
 
 }
 
-void hydjetestimation()
+void hydjetestimation(bool firstRun = true)
 {
-  macro m("hydjetestimation",true);
-  //looptupledryrun = true;
+  macro m("hydjetestimation_upd",firstRun);
   dphisignalconsistency();
 }

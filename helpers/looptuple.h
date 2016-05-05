@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <map>
+#include "TNtuple.h"
 #include "plotting.h"
 
 //#define dict map<TString,float>
@@ -112,6 +113,71 @@ vector<TString> concat(vector<TString> a, vector<TString> b)
 }
  
 
+void WriteToFile(TString filename, vector<TString> varnames, vector<float> values)
+{
+  if (varnames.size()==0) return;
+  TString s=varnames[0];
+  for (unsigned i=1;i<varnames.size();i++) s+=":"+varnames[i];
+
+  auto f = new TFile(filename, "recreate");
+  auto nt = new TNtuple("nt","nt",s);
+  nt->Fill(&values[0]);
+  nt->Write();
+  f->Close();
+
+}
+
+void WriteToFile(TString filename, map<TString, float> m)
+{
+  if (m.size()==0) return;
+  vector<TString> varnames;
+  vector<float> values;
+
+  for (auto i:m) {
+    varnames.push_back(i.first);
+    values.push_back(i.second);
+  }
+
+
+  WriteToFile(filename, varnames, values);
+
+}
+
+map<TString,float> ReadFromFile(TString filename)
+{
+  vector<TString> varnames;
+  map<TString, float> res;
+
+  TFile *f = new TFile(filename);
+  auto nt = (TTree *)f->Get("nt");
+  auto l = nt->GetListOfBranches();
+  for(int i = 0; i < l->GetEntries(); ++i)
+    varnames.push_back(TString(l->At(i)->GetName()));
+
+  TTreeReader reader("nt",f);
+  vector<TTreeReaderValue<float> *> values (varnames.size());
+  for (unsigned i=0;i<varnames.size();i++)
+    values[i] = new TTreeReaderValue<float>(reader,varnames[i]);
+
+  int nev = reader.GetEntries(true);
+
+  if (nev==0) {
+    cout<<"No entries in the file "<<filename<<endl;
+    return res;
+  }
+  if (nev>1) {
+    cout<<"There are more than 1 entry in the file "<<filename<<" ("<<nev<<"). Exiting."<<endl;
+    return res;
+  }
+
+  reader.Next();
+  for (unsigned i=0;i<varnames.size();i++)
+    res[varnames[i]] =*(*(values[i]));
+  
+  return res;
+
+
+}
 
 #endif
 

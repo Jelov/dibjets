@@ -31,13 +31,13 @@ void checkclosure()
   auto fmcPb = config.getfile_djt("mcPbbfa");
 
   Fill(fmcPb,{"pthat","weight","jtpt1","refpt1","bProdCode","jtptSL","refptSL","dphiSL1","refparton_flavorForB1","subidSL","bin","pairCodeSL1","discr_csvV1_1","jteta1","jtetaSL"},[&] (dict d) {
-      if (d["pthat"]<80) return;
+      if (d["pthat"]<pthatcut) return;
       
       if (d["jtpt1"]>pt1cut && d["refpt1"]>50 && abs(d["refparton_flavorForB1"])==5 && d["jtptSL"]>pt2cut) {
         int bin = getbinindex(d["bin"]);
         
         float xj = d["jtptSL"]/d["jtpt1"];
-        float w = weight1SL(d);
+        float w = weight1SLPbPb(d);
         if (AwaySide(d)) hasd[bin]->Fill(xj, w);
         if (AwaySide(d) && IsSignal(d)) hsig[bin]->Fill(xj,w);
 
@@ -77,18 +77,27 @@ void checkclosure()
 
     hcentrSubCLS->SetBinContent(i+1,hsub[i]->GetMean());hcentrSubCLS->SetBinError(i+1,hsub[i]->GetMeanError());
     hcentrSubHJS->SetBinContent(i+1,hshj[i]->GetMean());hcentrSubHJS->SetBinError(i+1,hshj[i]->GetMeanError());
+
+    Draw({hsig[i],hsub[i],hshj[i]});
   }
 
 
-  plotymin = 0.6;//0.4;
-  plotymax = 0.75;//0.8;
+  plotymin = 0.55;//0.4;
+  plotymax = 0.7;//0.8;
   plotlegendpos = BottomRight;
   aktstring = "";
 
 
   plotputmean = false;
   //hcentrSubHJS - hydjet only subtraction
-  SetMC({hcentrSubSIG, hcentrSubBKS, hcentrSubASD, hcentrSubCLS});
+  SetMC({hcentrSubSIG, hcentrSubBKS, hcentrSubASD});
+  SetData({hcentrSubCLS});
+  hcentrSubSIG->SetMarkerColor(TColor::GetColorDark(2)); hcentrSubSIG->SetLineColor(TColor::GetColorDark(2));
+  hcentrSubBKS->SetMarkerColor(TColor::GetColorDark(3)); hcentrSubBKS->SetLineColor(TColor::GetColorDark(3));
+  hcentrSubASD->SetMarkerColor(TColor::GetColorDark(4)); hcentrSubASD->SetLineColor(TColor::GetColorDark(4));
+  hcentrSubCLS->SetMarkerColor(TColor::GetColorDark(3)); hcentrSubCLS->SetLineColor(TColor::GetColorDark(3));
+
+  plotoverwritecolors = false;
   Draw({hcentrSubSIG, hcentrSubBKS, hcentrSubASD, hcentrSubCLS});
 
 
@@ -97,9 +106,9 @@ void checkclosure()
 
 
 
-void hydjetclosure()
+void hydjetclosure(bool firstRun = true)
 {
-  macro m("hydjetclosure");
+  macro m("hydjetclosure_upd",firstRun);
   //looptupledryrun = true;
   checkclosure();
 }

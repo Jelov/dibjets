@@ -6,6 +6,9 @@
 
 
 //PHYSICAL CONSTANTS
+
+const float pthatcut = 65;
+
 const float pt1cut = 100;
 const float pt2cut = 40;
 
@@ -17,6 +20,8 @@ const float NaN = -999;
 
 //process code reweighting: GSP, FCR, FEX, FEX2
 vector<float> processWeights = {1.2,1.,0.04,0.04};
+// vector<float> processWeights = {1.232,1.,0.266,0.04};
+
 float processweight(int bProdCode)
 {
   if (bProdCode>=0 && bProdCode<=4)
@@ -40,16 +45,25 @@ int getbinindex(float bin)
 }
 
 
+//definition of the embedded signal
+bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
+
+
 //physical algo shortcuts
-float weight1SL(dict d)
+float weight1SLpp(dict d)
 {
   float w = d["weight"];
   if (d["pairCodeSL1"]==0) w*=processweight((int)d["bProdCode"]);
   return w;
 }
 
-//definition of the embedded signal
-bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
+float weight1SLPbPb(dict d)
+{
+  float w = d["weight"];
+  if (d["pairCodeSL1"]==0 && IsSignal(d)) w*=processweight((int)d["bProdCode"]);
+  return w;
+}
+
 
 bool NearSide(dict d)
 {
@@ -69,9 +83,22 @@ bool AwaySide(dict d)
 //Hydjet/(Hydjet+Signal) coefficients for NearSide
 //check out mistag/hydjetestimation.C and mistag/hydjetclosure.C for more information
 //fancy subtraction
-vector<float> bkgfractionInNearSide = {0.8690670729,0.4207638502,0.0000000000};
+//for pthat>80
+//vector<float> bkgfractionInNearSide = {0.8690670729,0.4207638502,0.0000000000};
 //simple dphi
 //vector<float> bkgfractionInNearSide = {0.8502221704,0.4357484281,0.010240517};
+
+//for pthat>65
+vector<float> bkgfractionInNearSide = {0.8751199841,0.4663934708,0.0714652613};
+//alpha=2
+//vector<float> bkgfractionInNearSide = { 0.944266,0.7557772994,0.54361};/
+//alpha=0.5
+//vector<float> bkgfractionInNearSide = { 0.756609,0,0};
+
+
+
+bool applyTaggingCorrection = true;
+bool applyTriggerCorr = true;
 
 
 
