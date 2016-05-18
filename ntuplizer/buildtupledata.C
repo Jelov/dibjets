@@ -257,10 +257,11 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltPFJet60:hltPFJet80:dijet:")+
       "hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
       "numTagged:"
-      "rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
-      "rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:"+
-      "rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:"+
-      "SLord:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1";
+      "rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
+      "rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:"+
+      "rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:"+
+      "SLord:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:"+
+      "NSLord:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1";
 
 
 
@@ -296,6 +297,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTreeReaderArray<float> jteta(reader, "jteta");
     TTreeReaderArray<float> jtphi(reader, "jtphi");
     TTreeReaderArray<float> discr_csvV1(reader, "discr_csvV1");
+    TTreeReaderArray<float> ndiscr_csvV1(reader, "ndiscr_csvV1");
 
     TTreeReaderArray<float> discr_prob(reader, "discr_prob");
     TTreeReaderArray<float> svtxm(reader, "svtxm");
@@ -438,10 +440,10 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       if (weight==0) continue;
 
 
-      int ind1=-1, ind2=-1, ind3=-1, indSL=-1; //indices of leading/subleading jets in jet array
+      int ind1=-1, ind2=-1, ind3=-1, indSL=-1, indNSL=-1; //indices of leading/subleading jets in jet array
       int indTrigCSV60=-1, indTrigCSV80=-1, indTrigCalo60=-1, indTrigCalo80=-1;
-      int SLord = 0;
-      bool foundJ1=false, foundJ2 = false, foundJ3 = false, foundSL = false; //found/not found yet, for convenience
+      int SLord = 0, NSLord = 0;
+      bool foundJ1=false, foundJ2 = false, foundJ3 = false, foundSL = false, foundNSL = false; //found/not found yet, for convenience
 
       bool triggermatched = false;
       int numTagged = 0;
@@ -489,12 +491,20 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
               foundSL = true;
             }  
 
+            if (!foundNSL) NSLord++;
+
+            //ind1!=j otherwise SL will be = J1
+            if (foundJ1 && ind1!=j && !foundNSL && ndiscr_csvV1[j]>0.9) {
+              indNSL = j;
+              foundNSL = true;
+            }
+
             if (discr_csvV1[j]>0.9) numTagged++;
 
 
           //at this point foundLJ = true always, so triggermatched is determined
           vector<float> vinc = {weight, (float)triggermatched, (float) *bin, *vz, *hiHF,(float)*CSV60, (float)*CSV80,(float)*CaloJet40, (float)*CaloJet60, (float)*CaloJet80,
-            (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],svtxm[j],discr_prob[j],
+            (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],svtxm[j],discr_prob[j],
             svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
   
           ntinc->Fill(&vinc[0]);
@@ -530,6 +540,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundJ1 ? jtphi[ind1] : NaN,
         foundJ1 ? jteta[ind1] : NaN,
         foundJ1 ? discr_csvV1[ind1] : NaN,
+        foundJ1 ? ndiscr_csvV1[ind1] : NaN,
         foundJ1 ? svtxm[ind1] : NaN,
         foundJ1 ? discr_prob[ind1] : NaN,
         foundJ1 ? svtxdls[ind1] : NaN,
@@ -543,6 +554,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundJ2 ? jtphi[ind2] : NaN,
         foundJ2 ? jteta[ind2] : NaN,
         foundJ2 ? discr_csvV1[ind2] : NaN,
+        foundJ2 ? ndiscr_csvV1[ind2] : NaN,
         foundJ2 ? svtxm[ind2] : NaN,
         foundJ2 ? discr_prob[ind2] : NaN,
         foundJ2 ? svtxdls[ind2] : NaN, 
@@ -557,6 +569,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundJ3 ? jtphi[ind3] : NaN,
         foundJ3 ? jteta[ind3] : NaN,
         foundJ3 ? discr_csvV1[ind3] : NaN,
+        foundJ3 ? ndiscr_csvV1[ind3] : NaN,
         foundJ3 ? svtxm[ind3] : NaN,
         foundJ3 ? discr_prob[ind3] : NaN,
         foundJ3 ? svtxdls[ind3] : NaN, 
@@ -573,6 +586,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundSL ? jtphi[indSL] : NaN,
         foundSL ? jteta[indSL] : NaN,
         foundSL ? discr_csvV1[indSL] : NaN,
+        foundSL ? ndiscr_csvV1[indSL] : NaN,
         foundSL ? svtxm[indSL] : NaN,
         foundSL ? discr_prob[indSL] : NaN,
         foundSL ? svtxdls[indSL] : NaN, 
@@ -580,7 +594,26 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundSL ? (float)svtxntrk[indSL] : NaN,
         foundSL ? (float)nsvtx[indSL] : NaN,
         foundSL ? (float)nselIPtrk[indSL] : NaN,
-        foundSL && foundJ1 ? acos(cos(jtphi[indSL]-jtphi[ind1])) : NaN};
+        foundSL && foundJ1 ? acos(cos(jtphi[indSL]-jtphi[ind1])) : NaN,
+
+        foundNSL ? (float)NSLord : NaN,
+        foundNSL ? rawpt[indNSL] : NaN,
+        foundNSL ? jtpt[indNSL] : NaN,
+        foundNSL ? jtphi[indNSL] : NaN,
+        foundNSL ? jteta[indNSL] : NaN,
+        foundNSL ? discr_csvV1[indNSL] : NaN,
+        foundNSL ? ndiscr_csvV1[indNSL] : NaN,
+        foundNSL ? svtxm[indNSL] : NaN,
+        foundNSL ? discr_prob[indNSL] : NaN,
+        foundNSL ? svtxdls[indNSL] : NaN, 
+        foundNSL ? svtxpt[indNSL] : NaN,
+        foundNSL ? (float)svtxntrk[indNSL] : NaN,
+        foundNSL ? (float)nsvtx[indNSL] : NaN,
+        foundNSL ? (float)nselIPtrk[indNSL] : NaN,
+        foundNSL && foundJ1 ? acos(cos(jtphi[indNSL]-jtphi[ind1])) : NaN
+
+
+      };
 
 
       ntdj->Fill(&vdj[0]);

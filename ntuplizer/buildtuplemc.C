@@ -69,19 +69,19 @@ void Init()
 
   else if (PbPb && sample=="qcd") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
-    subfoldernames={"qcd15/puTowerExclLimitV2","qcd30/puTowerExclLimitV2","qcd50/puTowerExclLimitV2","qcd65/puTowerExclLimitV2", "qcd80/puTowerExclLimitV2","qcd100/puTowerExclLimitV2","qcd120/puTowerExclLimitV2"};
+    subfoldernames={"qcd15/puTowerExclLimitV3","qcd30/puTowerExclLimitV3","qcd50/puTowerExclLimitV3","qcd65/puTowerExclLimitV3", "qcd80/puTowerExclLimitV3","qcd100/puTowerExclLimitV3","qcd120/puTowerExclLimitV3"};
     pthats = {15,           30,     50,     65,     80,     100,      120};
     CS     = {5.314E-01,3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
   }
   else if (PbPb && sample=="bfc") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
-    subfoldernames={"bfcr15/puTowerExclLimitV2","bfcr30/puTowerExclLimitV2","bfcr50/puTowerExclLimitV2","bfcr65/puTowerExclLimitV2","bfcr80/puTowerExclLimitV2","bfcr100/puTowerExclLimitV2","bfcr120/puTowerExclLimitV2"};
+    subfoldernames={"bfcr15/puTowerExclLimitV3","bfcr30/puTowerExclLimitV3","bfcr50/puTowerExclLimitV3","bfcr65/puTowerExclLimitV3","bfcr80/puTowerExclLimitV3","bfcr100/puTowerExclLimitV3","bfcr120/puTowerExclLimitV3"};
     pthats = {15,           30,     50,     65,    80,  100,   120};
     CS     = {1.890e-03,1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
   }
   else  if (PbPb && sample=="bjt") {
     samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
-    subfoldernames={"bjet15/puTowerExclLimitV2","bjet30/puTowerExclLimitV2","bjet50/puTowerExclLimitV2","bjet65/puTowerExclLimitV2","bjet80/puTowerExclLimitV2","bjet100/puTowerExclLimitV2","bjet120/puTowerExclLimitV2"};
+    subfoldernames={"bjet15/puTowerExclLimitV3","bjet30/puTowerExclLimitV3","bjet50/puTowerExclLimitV3","bjet65/puTowerExclLimitV3","bjet80/puTowerExclLimitV3","bjet100/puTowerExclLimitV3","bjet120/puTowerExclLimitV3"};
     pthats =           {15,           30,     50,     65,     80,  100,   120};
     CS     =           {5.314E-01,3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
     filterefficiency = {4.62e-02,6.269e-02,7.557e-02,8.128e-02,8.640e-02,8.908e-02,9.265e-02};
@@ -371,16 +371,17 @@ void do_buildtuplemc(TString code)
   TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:")+
       "bProdCode:cProdCode:dijet:bkgLeadingJet:numTagged:"
       "genpt1:geneta1:genphi1:gensubid:"+
-      "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
-      "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
-      "subid3:refpt3:rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:refparton_flavorForB3:refparton_flavorProcess3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:pairCode31:pairCode32:"+
-      "SLord:subidSL:refptSL:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:refparton_flavorForBSL:refparton_flavorProcessSL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:pairCodeSL1:"+
-      "SBord:subidSB:refptSB:rawptSB:jtptSB:jtphiSB:jtetaSB:discr_csvV1_SB:refparton_flavorForBSB:refparton_flavorProcessSB:svtxmSB:discr_probSB:svtxdlsSB:svtxptSB:svtxntrkSB:nsvtxSB:nselIPtrkSB:dphiSB1:pairCodeSB1:"+
-      "Signal2ord:subidSignal2:refptSignal2:rawptSignal2:jtptSignal2:jtphiSignal2:jtetaSignal2:discr_csvV1_Signal2:refparton_flavorForBSignal2:refparton_flavorProcessSignal2:svtxmSignal2:discr_probSignal2:svtxdlsSignal2:svtxptSignal2:svtxntrkSignal2:nsvtxSignal2:nselIPtrkSignal2:dphiSignal21:pairCodeSignal21:"+
-      "SignalSLord:subidSignalSL:refptSignalSL:rawptSignalSL:jtptSignalSL:jtphiSignalSL:jtetaSignalSL:discr_csvV1_SignalSL:refparton_flavorForBSignalSL:refparton_flavorProcessSignalSL:svtxmSignalSL:discr_probSignalSL:svtxdlsSignalSL:svtxptSignalSL:svtxntrkSignalSL:nsvtxSignalSL:nselIPtrkSignalSL:dphiSignalSL1:pairCodeSignalSL1";
+      "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
+      "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
+      "subid3:refpt3:rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:refparton_flavorForB3:refparton_flavorProcess3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:pairCode31:pairCode32:"+
+      "SLord:subidSL:refptSL:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:refparton_flavorForBSL:refparton_flavorProcessSL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:pairCodeSL1:"+
+      "NSLord:subidNSL:refptNSL:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:refparton_flavorForBNSL:refparton_flavorProcessNSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1:pairCodeNSL1:"+
+      "SBord:subidSB:refptSB:rawptSB:jtptSB:jtphiSB:jtetaSB:discr_csvV1_SB:ndiscr_csvV1_SB:refparton_flavorForBSB:refparton_flavorProcessSB:svtxmSB:discr_probSB:svtxdlsSB:svtxptSB:svtxntrkSB:nsvtxSB:nselIPtrkSB:dphiSB1:pairCodeSB1:"+
+      "Signal2ord:subidSignal2:refptSignal2:rawptSignal2:jtptSignal2:jtphiSignal2:jtetaSignal2:discr_csvV1_Signal2:ndiscr_csvV1_Signal2:refparton_flavorForBSignal2:refparton_flavorProcessSignal2:svtxmSignal2:discr_probSignal2:svtxdlsSignal2:svtxptSignal2:svtxntrkSignal2:nsvtxSignal2:nselIPtrkSignal2:dphiSignal21:pairCodeSignal21:"+
+      "SignalSLord:subidSignalSL:refptSignalSL:rawptSignalSL:jtptSignalSL:jtphiSignalSL:jtetaSignalSL:discr_csvV1_SignalSL:ndiscr_csvV1_SignalSL:refparton_flavorForBSignalSL:refparton_flavorProcessSignalSL:svtxmSignalSL:discr_probSignalSL:svtxdlsSignalSL:svtxptSignalSL:svtxntrkSignalSL:nsvtxSignalSL:nselIPtrkSignalSL:dphiSignalSL1:pairCodeSignalSL1";
 
 
-  TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:cProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1_:")
+  TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:cProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:")
       +"refparton_flavorForB:isPrimary:refparton_flavorProcess:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
   //now fill histos
@@ -424,6 +425,7 @@ void do_buildtuplemc(TString code)
 
 
     TTreeReaderArray<float> * csvv1 = new TTreeReaderArray<float>(reader,sample=="bjV" || sample=="qcV" || sample=="bfV" ? "discr_csvSimple" :"discr_csvV1");
+    TTreeReaderArray<float> ncsvv1(reader,"ndiscr_csvV1");
     //discr_csvV1 in new forests
 
 
@@ -528,9 +530,9 @@ void do_buildtuplemc(TString code)
       ntevt->Fill(&vevt[0]);
 
 
-      int ind1=-1, ind2=-1, indSignal2=-1, ind3=-1, indSL=-1, indSignalSL=-1, indSB=-1; //indices of leading/subleading jets in jet array
-      int SLord = 0, SignalSLord = 0, Signal2ord = 0, SBord = 0;
-      bool foundJ1=false, foundJ2 = false, foundSignalJ2 = false, foundJ3 = false, foundSL = false, foundSignalSL = false, foundSB = false; //found/not found yet, for convenience
+      int ind1=-1, ind2=-1, indSignal2=-1, ind3=-1, indSL=-1, indNSL=-1, indSignalSL=-1, indSB=-1; //indices of leading/subleading jets in jet array
+      int SLord = 0, NSLord = 0, SignalSLord = 0, Signal2ord = 0, SBord = 0;
+      bool foundJ1=false, foundJ2 = false, foundSignalJ2 = false, foundJ3 = false, foundSL = false, foundNSL = false, foundSignalSL = false, foundSB = false; //found/not found yet, for convenience
       bool bkgJ1 = false; // is leading jet coming from background?
 
       int numTagged = 0;
@@ -546,7 +548,7 @@ void do_buildtuplemc(TString code)
           //for inclusive plots, subid==0 everywhere
           if (isSignal(j)) {
             vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF,
-              (float)subid[j], refpt[j], rawpt[j],jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],
+              (float)subid[j], refpt[j], rawpt[j],jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],ncsvv1[j],
               (float)refparton_flavorForB[j], getFlavorProcess(refparton_isGSP,refparton_flavorProcess,j),
               svtxm[j],discr_prob[j],svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
 
@@ -587,6 +589,13 @@ void do_buildtuplemc(TString code)
             if (!bkgJ1 && foundJ1 && !foundSL && ind1!=j && (*csvv1)[j]>0.9) {
               indSL = j;
               foundSL = true;
+            }
+            
+            if (!bkgJ1 && !foundNSL) NSLord++;
+            //ind1!=j otherwise SL will be = J1
+            if (!bkgJ1 && foundJ1 && !foundNSL && ind1!=j && ncsvv1[j]>0.9) {
+              indNSL = j;
+              foundNSL = true;
             }
 
             if (!bkgJ1 && !foundSB) SBord++;
@@ -633,6 +642,7 @@ void do_buildtuplemc(TString code)
         foundJ1 ? jtphi[ind1] : NaN,
         foundJ1 ? jteta[ind1] : NaN,
         foundJ1 ? (*csvv1)[ind1] : NaN,
+        foundJ1 ? ncsvv1[ind1] : NaN,
         foundJ1 ? (float)refparton_flavorForB[ind1] : NaN,
         foundJ1 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,ind1) : NaN,
         foundJ1 ? svtxm[ind1] : NaN,
@@ -650,6 +660,7 @@ void do_buildtuplemc(TString code)
         foundJ2 ? jtphi[ind2] : NaN,
         foundJ2 ? jteta[ind2] : NaN,
         foundJ2 ? (*csvv1)[ind2] : NaN,
+        foundJ2 ? ncsvv1[ind2] : NaN,
         foundJ2 ? (float)refparton_flavorForB[ind2] : NaN,
         foundJ2 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,ind2) : NaN,
         foundJ2 ? svtxm[ind2] : NaN,
@@ -669,6 +680,7 @@ void do_buildtuplemc(TString code)
         foundJ3 ? jtphi[ind3] : NaN,
         foundJ3 ? jteta[ind3] : NaN,
         foundJ3 ? (*csvv1)[ind3] : NaN,
+        foundJ3 ? ncsvv1[ind3] : NaN,
         foundJ3 ? (float)refparton_flavorForB[ind3] : NaN,
         foundJ3 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,ind3) : NaN,
         foundJ3 ? svtxm[ind3] : NaN,
@@ -691,6 +703,7 @@ void do_buildtuplemc(TString code)
         foundSL ? jtphi[indSL] : NaN,
         foundSL ? jteta[indSL] : NaN,
         foundSL ? (*csvv1)[indSL] : NaN,
+        foundSL ? ncsvv1[indSL] : NaN,
         foundSL ? (float)refparton_flavorForB[indSL] : NaN,
         foundSL ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSL) : NaN,
         foundSL ? svtxm[indSL] : NaN,
@@ -703,6 +716,27 @@ void do_buildtuplemc(TString code)
         foundSL && foundJ1 ? acos(cos(jtphi[indSL]-jtphi[ind1])) : NaN,
         foundSL && foundJ1 ? (float)getPairCode(refparton_flavorForB[indSL],refparton_flavorForB[ind1]) : NaN,
 
+        foundNSL ? (float)NSLord : NaN,
+        foundNSL ? (float)subid[indNSL] : NaN,
+        foundNSL ? refpt[indNSL] : NaN,
+        foundNSL ? rawpt[indNSL] : NaN,
+        foundNSL ? jtpt[indNSL] : NaN,
+        foundNSL ? jtphi[indNSL] : NaN,
+        foundNSL ? jteta[indNSL] : NaN,
+        foundNSL ? (*csvv1)[indNSL] : NaN,
+        foundNSL ? ncsvv1[indNSL] : NaN,
+        foundNSL ? (float)refparton_flavorForB[indNSL] : NaN,
+        foundNSL ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indNSL) : NaN,
+        foundNSL ? svtxm[indNSL] : NaN,
+        foundNSL ? discr_prob[indNSL] : NaN,
+        foundNSL ? svtxdls[indNSL] : NaN, 
+        foundNSL ? svtxpt[indNSL] : NaN,
+        foundNSL ? (float)svtxntrk[indNSL] : NaN,
+        foundNSL ? (float)nsvtx[indNSL] : NaN,
+        foundNSL ? (float)nselIPtrk[indNSL] : NaN,
+        foundNSL && foundJ1 ? acos(cos(jtphi[indNSL]-jtphi[ind1])) : NaN,
+        foundNSL && foundJ1 ? (float)getPairCode(refparton_flavorForB[indNSL],refparton_flavorForB[ind1]) : NaN,
+
         foundSB ? (float)SBord : NaN,
         foundSB ? (float)subid[indSB] : NaN,
         foundSB ? refpt[indSB] : NaN,
@@ -711,6 +745,7 @@ void do_buildtuplemc(TString code)
         foundSB ? jtphi[indSB] : NaN,
         foundSB ? jteta[indSB] : NaN,
         foundSB ? (*csvv1)[indSB] : NaN,
+        foundSB ? ncsvv1[indSB] : NaN,
         foundSB ? (float)refparton_flavorForB[indSB] : NaN,
         foundSB ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSB) : NaN,
         foundSB ? svtxm[indSB] : NaN,
@@ -732,6 +767,7 @@ void do_buildtuplemc(TString code)
         foundSignalJ2 ? jtphi[indSignal2] : NaN,
         foundSignalJ2 ? jteta[indSignal2] : NaN,
         foundSignalJ2 ? (*csvv1)[indSignal2] : NaN,
+        foundSignalJ2 ? ncsvv1[indSignal2] : NaN,
         foundSignalJ2 ? (float)refparton_flavorForB[indSignal2] : NaN,
         foundSignalJ2 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSignal2) : NaN,
         foundSignalJ2 ? svtxm[indSignal2] : NaN,
@@ -752,6 +788,7 @@ void do_buildtuplemc(TString code)
         foundSignalSL ? jtphi[indSignalSL] : NaN,
         foundSignalSL ? jteta[indSignalSL] : NaN,
         foundSignalSL ? (*csvv1)[indSignalSL] : NaN,
+        foundSignalSL ? ncsvv1[indSignalSL] : NaN,
         foundSignalSL ? (float)refparton_flavorForB[indSignalSL] : NaN,
         foundSignalSL ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSignalSL) : NaN,
         foundSignalSL ? svtxm[indSignalSL] : NaN,
