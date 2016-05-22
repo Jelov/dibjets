@@ -20,6 +20,8 @@
 #include "TTreeReaderArray.h"
 #include "TStyle.h"
 #include "TSystem.h"
+#include "TGraphErrors.h"
+#include "TMultiGraph.h"
 
 using namespace std;
 
@@ -29,6 +31,7 @@ int darkred = TColor::GetColorDark(2);
 int darkgreen = TColor::GetColorDark(3);
 int darkblue = TColor::GetColorDark(4);
 int lightblue = TColor::GetColorBright(4);
+int darkviolet = TColor::GetColorDark(kMagenta);
 
 bool buildFromVector = false;
 vector<float> buildvector;
@@ -38,6 +41,7 @@ float buildxmax = 1;
 int buildnbinsy = 20;
 float buildymin = 0;
 float buildymax = 1;
+int buildndiv = -1;
 vector<TH1 *> allhists;
 
 
@@ -51,7 +55,28 @@ TCanvas *getc()
 
 }
 
-void buildh(int nbins=20, float xmin=0, float xmax=1, int nbinsy=20, float ymin=0, float ymax=1)
+bool firstRunMacro = true;
+TString plotfoldername;
+TString histoutputfilename;
+
+void SavePlots(TCanvas *c, TString filename)
+{
+  TDatime t;
+  filename+="_"+TString::Itoa(t.GetDate(),10);
+  // filename+="_20160512";
+
+  if (plotfoldername== "") plotfoldername = "plots";
+  gSystem->MakeDirectory(plotfoldername);
+  gSystem->MakeDirectory(plotfoldername+"/C");
+  gSystem->MakeDirectory(plotfoldername+"/pdf");
+  gSystem->MakeDirectory(plotfoldername+"/gif");
+
+  c->SaveAs(plotfoldername+"/C/"+filename+".C");
+  c->SaveAs(plotfoldername+"/gif/"+filename+".gif");
+  c->SaveAs(plotfoldername+"/pdf/"+filename+".pdf");
+}
+
+void seth(int nbins=20, float xmin=0, float xmax=1, int nbinsy=20, float ymin=0, float ymax=1)
 {
   buildFromVector = false;
   buildnbins = nbins;
@@ -60,32 +85,28 @@ void buildh(int nbins=20, float xmin=0, float xmax=1, int nbinsy=20, float ymin=
   buildnbinsy = nbinsy;
   buildymin = ymin;
   buildymax = ymax;
-
-
 }
 
-bool firstRunMacro = true;
-TString plotfoldername;
-TString histoutputfilename;
-
-void SavePlots(TCanvas *c, TString filename)
+void sethint(int nbins=20, float xmin=0, float xmax=1)
 {
-  if (plotfoldername== "") plotfoldername = "plots";
-  gSystem->MakeDirectory(plotfoldername);
-  gSystem->MakeDirectory(plotfoldername+"/C");
-  gSystem->MakeDirectory(plotfoldername+"/pdf");
-  gSystem->MakeDirectory(plotfoldername+"/png");
-
-  c->SaveAs(plotfoldername+"/C/"+filename+".C");
-  c->SaveAs(plotfoldername+"/png/"+filename+".png");
-  c->SaveAs(plotfoldername+"/pdf/"+filename+".pdf");
+  buildFromVector = false;
+  buildnbins = nbins;
+  buildxmin = xmin-0.5;
+  buildxmax = xmax-0.5;
+  buildndiv = xmax-xmin;
 }
 
-void buildh(vector<float> &binsvector)
+void seth(vector<float> &binsvector)
 {
   buildFromVector = true;
   buildvector = binsvector;
 }
+
+vector<TString> buildprefixes;
+void setv(vector<TString> prefixes) {
+  buildprefixes = prefixes;
+}
+
 
 TString buildNamesuffix = "";
 TString buildTitlesuffix = "";
@@ -99,11 +120,12 @@ TH1F *geth(TString hname, TString htitle)
       h = new TH1F(hname+buildNamesuffix, buildTitlesuffix+htitle,buildvector.size()-1,&buildvector[0]);
     else
       h = new TH1F(hname+buildNamesuffix, buildTitlesuffix+htitle, buildnbins, buildxmin, buildxmax);
+    if (buildndiv != -1) h->SetNdivisions(buildndiv);
     allhists.push_back(h);
     return h;
   } else {
     TFile *f = new TFile(histoutputfilename);
-    auto h=(TH1F*)f->Get(hname);
+    auto h=(TH1F*)f->Get(hname+buildNamesuffix);
     if (!h)
       cout << "histogram "<<hname<<" not found in file "<<histoutputfilename<<endl;
     else
@@ -142,23 +164,45 @@ TH2F *geth2d(TString hnametitle)
   return geth2d(hnametitle,hnametitle);
 }
 
+
+vector<TH1F *> getv(TString hname, TString htitle) 
+{
+  vector<TH1F *> res;
+  for (auto p:buildprefixes) {
+    auto h = geth(hname+p,htitle);
+    h->SetTitle(p);
+    res.push_back(h);
+  }
+  return res;
+}
+
+
 void WriteAllHists()
 {
   for (auto h:allhists)
     if (h!=0) h->Write();
 }
 
-void fitdphi(TH1F *h, float &sigma, float &error)
+TF1 *fitdphi(TH1F *h, float &sigma, float &error)
 {
   //  mc_dphi
-  //  TF1 *f = new TF1("myfit","exp((x-3.14216)/[0])/([0]*(1-exp(-3.1416/[0])))", 2./3*3.142, 3.1416);
-  TF1 *f = new TF1("myfit","[1]*exp((x-3.14216)/[0])", 2./3*3.142, 3.1416);
+  // TF1 *f = new TF1("myfit","[1]*exp((x-3.14216)/[0])", 2./3*3.142, 3.1416);
+  // f->SetParameter(0,0.2);
+  // h->Fit(f,"NQ");
+
+  TF1 *f = new TF1("myfit","[1]*exp((x-3.14216)/[0])+[2]", 0, 3.1416);
   f->SetParameter(0,0.2);
+  f->SetParameter(1,h->GetBinContent(h->GetNbinsX()));
+  f->SetParameter(2,h->GetBinContent(0));
+
   h->Fit(f,"NQ");
+
 
   cout<<"sigma = "<<f->GetParameter(0)<<endl;
   sigma = f->GetParameter(0);
   error = f->GetParError(0);
+
+  return f;
 }
 
 
@@ -170,10 +214,10 @@ TString nicemeanstr(TH1F *h)
   return TString::Format("%.3f #pm %.3f",round(mean*1000)/1000,round(std*1000)/1000);
 }
 
-TString nicewidthstr(TH1F *h)
+TString nicewidthstr(TH1F *h, TF1 *&f)
 {
   float s, e;
-  fitdphi(h,s,e);
+  f = fitdphi(h,s,e);
   return TString::Format("%.3f #pm %.3f",round(s*1000)/1000,round(e*1000)/1000);
 }
 
@@ -183,7 +227,7 @@ TString plotsfolder = "plots";
 bool PbPb = true;
 TString plottitle = "";
 TString plotfilenameend = "";
-TString aktstring = "anti-k_{T}";
+TString aktstring = "";//anti-k_{T}";
 TString plotsecondline = "";
 TString plotthirdline = "";
 bool ploteffectiveentries = false;
@@ -196,8 +240,8 @@ TString plotytitle = "Counts";
 bool plotdivide = true;
 bool plotputmean = false;
 bool plotputwidth = false;
-TString plotdatacaption = "data";
-TString plotmccaption = "mc";
+TString plotdatacaption = "Data";
+TString plotmccaption = "MC";
 TString ploth11caption = "h11";
 float plotymin = 9999;
 float plotymin1 = 9999;
@@ -207,13 +251,27 @@ float plotymax1 = 9999;
 float plotymax2 = 9999;
 float plotyline = 9999;
 
+bool plotputgrid = false;
+
 //int ccounter = 0;
 bool plotlegend = true;
 LegendPosition plotlegendpos = TopRight;
+float plotlegenddx = 0;
+float plotlegenddy = 0;
+TString plotlegendheader = "";
+
+
 bool plotylog = false;
 
 float plottextposx = 0.55, plottextposy = 0.79;
 float plotmeanposx = 0.2, plotmeanposy = 0.5;
+
+//for drawcompare
+float textposx = 0.2, textposy = 0.77;
+
+float plotdiffmax = 9999;
+
+vector<int> plotlegendorder = {};
 
 bool plotoverwritecolors = true;
 
@@ -232,26 +290,42 @@ void NormalizeAllHists(vector<TH1 *> except=vector<TH1 *>(0))
       Normalize(allhists);
 }
 
+void MakeOverflowVisibleAll()
+{
+  for (auto h:allhists) {
+    int n = h->GetNbinsX();
+    h->SetBinContent(n,h->GetBinContent(n)+h->GetBinContent(n+1));
+    h->SetBinContent(1,h->GetBinContent(0)+h->GetBinContent(1));    
+  }
+}
+
 TLegend *getLegend()
 {
   TLegend *l;
   if (plotlegendpos==TopRight)
-    l = new TLegend(0.48,0.6,0.85,0.8);
+    l = new TLegend(0.48+plotlegenddx,0.6+plotlegenddy,0.85+plotlegenddx,0.8+plotlegenddy);
   else if (plotlegendpos==BottomRight)
-    l = new TLegend(0.48,0.2,0.85,0.4);
+    l = new TLegend(0.48+plotlegenddx,0.2+plotlegenddy,0.85+plotlegenddx,0.4+plotlegenddy);
   else if (plotlegendpos==TopLeft)
-    l = new TLegend(0.2,0.6,0.55,0.8);
+    l = new TLegend(0.2+plotlegenddx,0.6+plotlegenddy,0.55+plotlegenddx,0.8+plotlegenddy);
   else if (plotlegendpos==BottomLeft)
-    l = new TLegend(0.2,0.2,0.55,0.4);
+    l = new TLegend(0.2+plotlegenddx,0.2+plotlegenddy,0.55+plotlegenddx,0.4+plotlegenddy);
   else 
     l= new TLegend(1,1,1,1);//outside
 
+  if (plotlegendheader!="") l->SetHeader(plotlegendheader);
   //l->SetTextSize(20);
 
   return l;
 }
+TString legendoption(TString drawoption)
+{
+  if (drawoption.Contains("hist")) return "L";
+  else return "P";
+}
 
-TCanvas *Draw(vector<TH1 *> hists,TString options = "E1")
+
+TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
 {
   ccounter++;
   TCanvas *c= new TCanvas(Form("%d",ccounter),Form("%d",ccounter),600,600);
@@ -272,16 +346,19 @@ TCanvas *Draw(vector<TH1 *> hists,TString options = "E1")
       h->SetMarkerColor(TColor::GetColorDark(i+2));
       h->SetLineColor(TColor::GetColorDark(i+2));
     }
-    l->AddEntry(h,h->GetTitle(),"P");
+    l->AddEntry(h,h->GetTitle(),legendoption(options[i]));
+    if (options[i]=="hist") h->SetLineWidth(2);
+
     if (i==0) {
       if (plotymax!=9999) h->SetMaximum(plotymax);
       if (plotymin!=9999) h->SetMinimum(plotymin);
 
-      h->Draw(options);
-    } else h->Draw(options+"same");
+      h->Draw(options[i]);
+    } else h->Draw(options[i]+"same");
     i++;
-    cout<<h->GetTitle()<<" : "<<h->GetEffectiveEntries()<<"("<<h->GetEntries()<<")"<<
-      "mean : "<<h->GetMean()<<"±"<<h->GetMeanError()<<endl;
+    
+    cout<<h->GetName()<<" : \t"<<h->GetMean()<<"±"<<h->GetMeanError()<<endl;
+
     if (plotputmean) {
       Tl->DrawLatexNDC(plotmeanposx, plotmeanposy-i*0.07, Form("%.3f#pm%.3f",h->GetMean(),h->GetMeanError()));
       //TLine *l = new TLine(h->GetMean(),h->GetMinimum(),h->GetMean(),h->GetMaximum());
@@ -306,7 +383,8 @@ TCanvas *Draw(vector<TH1 *> hists,TString options = "E1")
     line->Draw();
   }
 
-
+  if (plotputgrid)
+    c->SetGrid();
 
   if (plotlegend)
     l->Draw();
@@ -320,6 +398,14 @@ TCanvas *Draw(vector<TH1 *> hists,TString options = "E1")
 
 }
 
+
+TCanvas *Draw(vector<TH1 *> hists,TString options = "E1")
+{
+  vector<TString> op;
+  for (unsigned i=0;i<hists.size();i++) op.push_back(options);
+  return Draw(hists,op);
+}
+
 void Print(TH1F *h)
 {
     cout<<"Histogram "<<h->GetName()<<" : "<<h->GetTitle()<<endl;
@@ -327,6 +413,34 @@ void Print(TH1F *h)
     cout<<"   "<<i<<" : "<<h->GetBinContent(i)<<" ± "<<h->GetBinError(i)<<endl;
 }
 
+
+void ShuffleBins(TH1F *h, vector<int> indices)
+{
+  if (indices.size()!=(unsigned)h->GetNbinsX()) {
+    cout<<"numbers of bins in "<<h->GetName()<<" doesnot coincide with # of indices"<<endl;
+    return;
+  }
+
+  vector<float>vh;
+  vector<float>ve;
+  vector<TString> vs;
+
+
+  for (int i=1;i<=h->GetNbinsX();i++) {
+    vh.push_back(h->GetBinContent(indices[i-1]));
+    ve.push_back(h->GetBinError(indices[i-1]));
+    vs.push_back(h->GetXaxis()->GetBinLabel(indices[i-1]));
+  }
+
+for (auto h:vs) cout<<h<<endl;
+
+  for (int i=1;i<=h->GetNbinsX();i++) {
+    h->SetBinContent(i,vh[i-1]);
+    h->SetBinError(i,ve[i-1]);
+    h->GetXaxis()->SetBinLabel(i,vs[i-1]);
+  }
+
+}
 
 void RenameBinLabelsX(TH1 *h)
 {
@@ -359,21 +473,25 @@ void RenameBinLabelsY(TH1 *h, vector<TString> labels)
 
 map<TString, TString> histToStyle;
 
-TString legendoption(TString drawoption)
+
+void SetHist(vector<TH1F *> vh)
 {
-  if (drawoption.Contains("hist")) return "L";
-  else return "P";
+  for (auto h:vh) {
+    histToStyle[h->GetName()] = "hist";
+    h->SetLineWidth(2);
+    h->SetMarkerStyle(kNone);
+    // histToStyle[h->GetName()] = "E1";
+    // h->SetMarkerStyle(kOpenSquare);
+  }
+  //h->SetFillStyle(0);
 }
 
 void SetMC(vector<TH1F *> vh)
 {
   for (auto h:vh) {
-    histToStyle[h->GetName()] = "E1";//hist
-    //h->SetLineWidth(2);
-    //h->SetMarkerStyle(kNone);
+    histToStyle[h->GetName()] = "E1";
     h->SetMarkerStyle(kOpenSquare);
   }
-  //h->SetFillStyle(0);
 }
 
 void SetData(vector<TH1F *> vh)
@@ -414,7 +532,6 @@ void SetTruth(vector<TH1F *> vh)
 
 void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
 {
-  float textposx = 0.2, textposy = 0.77;
   TString title = plotytitle;
   float bw = h1->GetBinWidth(1);
 
@@ -427,6 +544,13 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
   //int color1 = kBlack;
   //int color2 = TColor::GetColor(152,235,230);
 
+  TF1 *fexp1, *fexp2;
+  TString width1, width2;
+  if (plotputwidth) {
+    width1 = nicewidthstr(h1, fexp1);
+    width2 = nicewidthstr(h2, fexp2);
+  }
+
 
   TCanvas *c1 = new TCanvas(title+h1->GetTitle()+h2->GetTitle(),title+h1->GetTitle()+h2->GetTitle(),600,700);
   TPad *pad1 = new TPad("pad1","pad1",0,0.35,1,1);
@@ -436,7 +560,7 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
   if (plotylog)
     pad1->SetLogy();
 
-  float legendx1 = 0.55, legendy1 = 0.68, legendx2 = 0.84, legendy2 = 0.88;
+  float legendx1 = 0.57, legendy1 = 0.68, legendx2 = 0.84, legendy2 = 0.88;
   TLegend *l = new TLegend(legendx1, legendy1, legendx2, legendy2);
   l->SetHeader(centralityLabel);
   l->SetTextFont(h1->GetXaxis()->GetTitleFont());
@@ -454,7 +578,7 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
     h2->SetMaximum(plotymax);
   }
   else {
-    float ymax = plotylog ? pow(max(h1->GetMaximum(),h2->GetMaximum()),1.3):max(h1->GetMaximum(), h2->GetMaximum()) * 1.3;
+    float ymax = plotylog ? max(h1->GetMaximum(),h2->GetMaximum())*10:max(h1->GetMaximum(), h2->GetMaximum()) * 1.3;
     h1->SetMaximum(ymax);
     h2->SetMaximum(h1->GetMaximum());
   }
@@ -481,10 +605,22 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
   //h11->SetLineColor(darkblue);
   //}
 
-  h2->Draw(histToStyle[h2->GetName()]);//"hist");
+  h2->Draw(histToStyle[h2->GetName()]);
+    if (plotputwidth) { //fit has to be below the points
+    fexp1->SetLineWidth(1);
+    fexp2->SetLineWidth(1);
+    fexp1->SetLineColor(kGray+1);
+    fexp2->SetLineColor(kGray);
+
+    fexp1->Draw("same");
+    fexp2->Draw("same");    
+  }
+  h2->Draw(Form("%ssame",histToStyle[h2->GetName()].Data()));
   h1->Draw(Form("%ssame",histToStyle[h1->GetName()].Data()));
   if (h11!=0) h11->Draw(Form("%ssame",histToStyle[h11->GetName()].Data()));
   l->Draw();
+
+
 
 
  TLatex *Tl = new TLatex();
@@ -524,6 +660,11 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
     h3->SetMaximum(2.2);
   } else
     h3->Add(h1,h2,1,-1);
+  if (plotdiffmax!=9999)
+  {
+    h3->SetMaximum(plotdiffmax*1.05);
+    h3->SetMinimum(-plotdiffmax*1.05);
+  }
 
   h3->GetYaxis()->SetTitle(plotdivide ? "ratio" : "difference");
   h3->GetYaxis()->CenterTitle();
@@ -542,9 +683,10 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
       Tl2->DrawLatexNDC(textposx, 0.37, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),ploth11caption.Data())+nicemeanstr(h11));
     
   } else if (plotputwidth) {
-    Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#sigma(%s)^{data} = ",caption.Data())+nicewidthstr(h1));
-    Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#sigma(%s)^{mc} = ",caption.Data())+nicewidthstr(h2));
+    TF1 *f1, *f2;
 
+    Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#sigma(%s)^{data} = ",caption.Data())+width1);
+    Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#sigma(%s)^{mc} = ",caption.Data())+width2);
   }
 
 
@@ -972,16 +1114,18 @@ THStack *stackhists(vector<TH1F *>hists, vector<int> color, TString name, TStrin
 }
 
 
-void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString stupidname = "")
+void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
 {
-  float textposx = 0.2, textposy = 0.77;
+  // float textposx = 0.2, textposy = 0.77;
   TString title = plotytitle;
 
-  //auto h2 = sumstack(hstack, Form("%ssum",hstack->GetTitle()));
   normalizestack(hstack, h1->Integral());
 
-  auto h2 = sumstack(hstack, Form("%ssum%s",hstack->GetName(),stupidname.Data()));
+  auto h2 = sumstack(hstack, Form("%ssum",hstack->GetName()));
+  cout<<"h1 int "<<h1->Integral()<<" h2 int = "<<h2->Integral()<<" #hists" <<hstack->GetNhists()<<endl;
   h2->ResetStats();
+
+
 
   float bw = h2->GetBinWidth(2);
 
@@ -1002,7 +1146,7 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
   if (plotylog)
     pad1->SetLogy();
 
-  float legendx1 = 0.55, legendy1 = 0.68, legendx2 = 0.84, legendy2 = 0.88;
+  float legendx1 = 0.6, legendy1 = 0.6, legendx2 = 0.84, legendy2 = 0.85;
   TLegend *l = new TLegend(legendx1, legendy1, legendx2, legendy2);
   l->SetHeader(centralityLabel);
   l->SetTextFont(h1->GetXaxis()->GetTitleFont());
@@ -1011,22 +1155,17 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
   l->AddEntry(h1, legend1,"P");
 
   auto hhh = getHists(hstack);
-  // if (hhh.size()==3) {
-  //   l->AddEntry(hhh[0], "B", "F");
-  //   l->AddEntry(hhh[1], "C", "F");
-  //   l->AddEntry(hhh[2], "L", "F");
-  // }else
-  // if (hhh.size()==4) {
-  //   l->SetY1(0.58);
-  //   l->AddEntry(hhh[0], "B primary", "F");
-  //   l->AddEntry(hhh[1], "B GSP", "F");
-  //   l->AddEntry(hhh[2], "C", "F");
-  //   l->AddEntry(hhh[3], "L", "F");
-  // }else
-  //   l->AddEntry(hstack, "", "F");
-  
-  for (int i=hhh.size()-1;i>=0;i--)
-    l->AddEntry(hhh[i],hhh[i]->GetTitle(),"F");
+
+  if (plotlegendorder.size()==0) {
+    cout<<"no legend reorder "<<plotlegendorder.size()<<" "<<hhh.size()<<endl;
+    for (int i=hhh.size()-1;i>=0;i--)
+      l->AddEntry(hhh[i],hhh[i]->GetTitle(),"F");
+  }
+  else {
+        cout<<"with legend reorder"<<endl;
+    for (unsigned i=0;i<plotlegendorder.size();i++)
+      l->AddEntry(hhh[hhh.size()-plotlegendorder[i]-1],hhh[hhh.size()-plotlegendorder[i]-1]->GetTitle(),"F");
+  }
 
 
   // float ymax = plotylog ? pow(max(h1->GetMaximum(), h2->GetMaximum()), 1.3) : max(h1->GetMaximum(), h2->GetMaximum()) * 1.3;
@@ -1052,7 +1191,7 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
     hstack->SetMaximum(plotymax);
   }
   else {
-    float ymax = plotylog ? pow(max(h1->GetMaximum(),h2->GetMaximum()),1.3):max(h1->GetMaximum(), h2->GetMaximum()) * 1.3;
+    float ymax = plotylog ? max(h1->GetMaximum(),h2->GetMaximum())*10:max(h1->GetMaximum(), h2->GetMaximum()) * 1.3;
     h1->SetMaximum(ymax);
     h2->SetMaximum(ymax);
     hstack->SetMaximum(ymax);
@@ -1063,7 +1202,14 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
 
     h1->SetMinimum(plotymin);
     h2->SetMinimum(plotymin);
-        hstack->SetMinimum(plotymin);
+    hstack->SetMinimum(plotymin);
+  } else {
+    float m = min(h1->GetMinimum(), h2->GetMinimum());
+    if (m==0)m+=h1->GetMinimum()+h2->GetMinimum();
+    cout<<"min ???? "<<m<<endl;
+    h1->SetMinimum(m/10);
+    h2->SetMinimum(m/10);
+    hstack->SetMinimum(m/10);
   }
 
 
@@ -1081,7 +1227,7 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
   hstack->Draw("hist");
   h1->Draw("P,same");
 
-
+  hstack->GetYaxis()->SetTitle(title);
   hstack->GetXaxis()->SetLabelSize(0);
 
   //h2->Draw();
@@ -1099,9 +1245,9 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
 				 (int)h1->GetEffectiveEntries(),(int)h2->GetEffectiveEntries()));
  if (plotcompatibility)
   Tl->DrawLatexNDC(0.2,0.9,Form("#chi^2 : %.5f, KS : %.5f ",
-    h1->Chi2Test(h2, "UW"),h1->KolmogorovTest(h2)));  
+    h1->Chi2Test(h2, "WW"),h1->KolmogorovTest(h2)));  
 
-  cout<<"Compatibility : chi2 = "<<h1->Chi2Test(h2, "UW")<<", KS = "<<h1->KolmogorovTest(h2)<<endl;
+  cout<<"Compatibility : chi2 = "<<h1->Chi2Test(h2, "WW")<<", KS = "<<h1->KolmogorovTest(h2)<<endl;
 
   pad1->Draw();
   c1->cd();
@@ -1125,8 +1271,15 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
 
   h3->GetYaxis()->SetTitle(plotdivide ? "ratio" : "difference");
   h3->GetYaxis()->CenterTitle();
-  h3->GetXaxis()->SetTitle(caption);
+  if (caption!="")
+    h3->GetXaxis()->SetTitle(caption);
   h3->GetXaxis()->SetTitleOffset(3.5);
+
+  if (plotdiffmax!=9999)
+  {
+    h3->SetMaximum(plotdiffmax*1.05);
+    h3->SetMinimum(-plotdiffmax*1.05);
+  }
   //  drawText(var,0.18,0.8,kBlack,20);
 
   h3->SetMarkerStyle(21);
@@ -1137,8 +1290,9 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
     Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),plotdatacaption.Data())+nicemeanstr(h1));
     Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),plotmccaption.Data())+nicemeanstr(h2));
   } else if (plotputwidth) {
-    Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#sigma(%s)^{%s} = ",caption.Data(),plotdatacaption.Data())+nicewidthstr(h1));
-    Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#sigma(%s)^{%s} = ",caption.Data(),plotmccaption.Data())+nicewidthstr(h2));
+    TF1 *f1, *f2;
+    Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#sigma(%s)^{%s} = ",caption.Data(),plotdatacaption.Data())+nicewidthstr(h1,f1));
+    Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#sigma(%s)^{%s} = ",caption.Data(),plotmccaption.Data())+nicewidthstr(h2,f2));
 
   }
 
@@ -1154,7 +1308,7 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "x_{J}",TString st
 
   c1->cd();
 
-  SavePlots(c1,Form("Compare_%s_%s",h1->GetTitle(),h2->GetTitle()));
+  SavePlots(c1,Form("Compare_%s_%s",h1->GetName(),h2->GetName()));
   //c1->SaveAs(Form("%s/Compare_%s_%s.pdf",plotsfolder.Data(),h1->GetTitle(),h2->GetTitle()));
 
 }
@@ -1175,8 +1329,10 @@ public:
     macroname = name;
     filename = Form("%s_hists.root",macroname.Data());
     firstRunMacro = firstrun;
-    histoutputfilename = filename;
     plotfoldername = name;
+
+    histoutputfilename = plotfoldername+"/"+filename;
+
     cout<<"Starting macro "<<macroname<<"!"<<endl;
   }
   ~macro() 

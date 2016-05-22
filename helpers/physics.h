@@ -7,7 +7,7 @@
 
 //PHYSICAL CONSTANTS
 
-const float pthatcut = 65;
+const float pthatcut = 50;
 
 const float pt1cut = 100;
 const float pt2cut = 40;
@@ -17,6 +17,22 @@ const float PI23 = PI*2/3;
 const float PI13 = PI*1/3;
 
 const float NaN = -999;
+
+
+//DEFINITION OF TAGGER AND PARTNER JET
+TString discr_csvV1_1 = "discr_csvV1_1";
+TString discr_csvV1_2 = "discr_csvV1_2";
+TString discr_csvV1_Signal2 = "discr_csvV1_Signal2";
+TString jtptSL = "jtptSL";
+TString dphiSL1 = "dphiSL1";
+TString jtetaSL = "jtetaSL";
+TString subidSL = "subidSL";
+TString refptSL = "refptSL";
+TString pairCodeSL1 = "pairCodeSL1";
+TString refparton_flavorForBSL = "refparton_flavorForBSL";
+TString SLord = "SLord";
+
+
 
 //process code reweighting: GSP, FCR, FEX, FEX2
 vector<float> processWeights = {1.2,1.,0.04,0.04};
@@ -46,21 +62,21 @@ int getbinindex(float bin)
 
 
 //definition of the embedded signal
-bool IsSignal(dict d) { return d["subidSL"]==0 && d["refptSL"]>20;}
+bool IsSignal(dict d) { return d[subidSL]==0 && d[refptSL]>20;}
 
 
 //physical algo shortcuts
 float weight1SLpp(dict d)
 {
   float w = d["weight"];
-  if (d["pairCodeSL1"]==0) w*=processweight((int)d["bProdCode"]);
+  if (d[pairCodeSL1]==0) w*=processweight((int)d["bProdCode"]);
   return w;
 }
 
 float weight1SLPbPb(dict d)
 {
   float w = d["weight"];
-  if (d["pairCodeSL1"]==0 && IsSignal(d)) w*=processweight((int)d["bProdCode"]);
+  if (d[pairCodeSL1]==0 && IsSignal(d)) w*=processweight((int)d["bProdCode"]);
   return w;
 }
 
@@ -69,31 +85,25 @@ bool NearSide(dict d)
 {
   //return d["dphiSL1"]<PI13;
 
-  float dphi = d["dphiSL1"];
-  float deta = abs(d["jteta1"]-d["jtetaSL"]); 
+  float dphi = d[dphiSL1];
+  float deta = abs(d["jteta1"]-d[jtetaSL]); 
   return (dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1);
 }
 
 bool AwaySide(dict d)
 {
-  return d["dphiSL1"]>PI23;
+  return d[dphiSL1]>PI23;
 }
 
 
-//Hydjet/(Hydjet+Signal) coefficients for NearSide
-//check out mistag/hydjetestimation.C and mistag/hydjetclosure.C for more information
-//fancy subtraction
-//for pthat>80
-//vector<float> bkgfractionInNearSide = {0.8690670729,0.4207638502,0.0000000000};
-//simple dphi
-//vector<float> bkgfractionInNearSide = {0.8502221704,0.4357484281,0.010240517};
+//for pthat>50, fullMC
+// vector<float> bkgfractionInNearSide = {0.8692479730,0.4500232041,0.0801286325};
+vector<float> bkgfractionInNearSide = {0.8726,0.4479,0.0801};
 
-//for pthat>65
-vector<float> bkgfractionInNearSide = {0.8751199841,0.4663934708,0.0714652613};
-//alpha=2
-//vector<float> bkgfractionInNearSide = { 0.944266,0.7557772994,0.54361};/
-//alpha=0.5
-//vector<float> bkgfractionInNearSide = { 0.756609,0,0};
+//true
+// vector<float> bkgfractionInNearSide = {0.8455,0.3612,0.0311};
+
+// vector<float> bkgfractionInNearSide = {0.96,0.55,0.18};
 
 
 

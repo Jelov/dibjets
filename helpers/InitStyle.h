@@ -28,8 +28,7 @@ void InitStyle()
 
 
   gROOT->SetStyle("Plain");
-  gStyle->SetPalette(1);
-  
+  //  gStyle->SetPalette(1);
   
   gStyle->SetStatFont(43);
   gStyle->SetTitleFont(43);
@@ -88,7 +87,7 @@ kpinkLight    = pal->GetColor(255,192,224);
 //gROOT->ProcessLine(".x betterColors.C");	
 
    gStyle->SetErrorX(0);
-   gStyle->SetPalette(1,0);
+   //   gStyle->SetPalette(1,0);
    gStyle->SetPadColor(0);
    gStyle->SetPadBorderSize(0);
    gStyle->SetPadBorderMode(0);
@@ -99,7 +98,7 @@ kpinkLight    = pal->GetColor(255,192,224);
    gStyle->SetFrameLineColor(0);
    gStyle->SetTitleColor(0);
    gStyle->SetTitleBorderSize(0); 
-   gStyle->SetPalette(1,0); 
+   //   gStyle->SetPalette(1,0); 
    gStyle->SetPadTickX(1);
    gStyle->SetPadTickY(1);
    gStyle->SetPadColor(0);
@@ -145,6 +144,9 @@ kpinkLight    = pal->GetColor(255,192,224);
 
    gStyle->SetLegendBorderSize(0);
    gStyle->SetFillStyle(4000);
+
+   gStyle->SetLegendFont(43);
+   gStyle->SetLegendTextSize(20);
 
    gROOT->ForceStyle();
 

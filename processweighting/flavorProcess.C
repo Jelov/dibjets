@@ -20,8 +20,8 @@ bool dphicut(float dphi)
 
 }
 
-float jtpt1min = 100;
-float jtpt2min = 40;
+float jtpt1min = 120;
+float jtpt2min = 30;
 
 void flavorProcessFile(bool mc, TString filename, TString filenameout)
 {
@@ -94,7 +94,7 @@ void flavorProcessFile(bool mc, TString filename, TString filenameout)
 	});
 
 	f2->cd();
-	cout<<"???????"<<h12all->Integral()<<endl;
+
 	h12all->Write();
 	h12fcr->Write();
 	h12fex->Write();

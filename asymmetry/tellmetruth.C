@@ -5,6 +5,7 @@
 #include "TRandom.h"
 #include "../corrections/tageffcorrections.h"
 #include "../corrections/eclipseclosure.C"
+#include "moneyplot.C"
 
 // const float pt1cut = 100;
 // const float pt2cut = 40;
@@ -29,24 +30,8 @@ vector<float> xjmcbjtmean, xjmcbjtmeanerror;
 
 vector<float> xjmcbjtsyslo,xjmcbjtsyshi;
 
-// TF1 *fppEta, *fppPt, *fPbPbCent, *fPbPbEta, *fPbPbPt;
-
 TF1 *ftrigEta, *ftrigCent, *ftrigPt;
 
-// void loadTagEffCorrections()
-// {
-//    TFile *fppFits = new TFile("/Users/istaslis/Documents/CMS/bjet2015/ntuples/offlineTagEff_PP.root");
-   
-//    fppEta = (TF1*) fppFits->Get("fitEta");
-//    fppPt = (TF1*) fppFits->Get("fitPt");
-
-
-//   TFile *fPbPbFits = new TFile("/Users/istaslis/Documents/CMS/bjet2015/ntuples/offlineTagEff_PbPb_take5.root");
-
-//   fPbPbCent = (TF1*) fPbPbFits->Get("fitCent");
-//   fPbPbEta = (TF1*) fPbPbFits->Get("fitEta");
-//   fPbPbPt = (TF1*) fPbPbFits->Get("fitPt");
-// }
 
 void loadTrigEffCorrections()
 {
@@ -57,41 +42,6 @@ void loadTrigEffCorrections()
   ftrigCent = (TF1*) fppFits->Get("fitCent");
 
 }
-
-// float getppcorrection(float leadingjetpt, float leadingjeteta, float partnerjetpt, float partnerjeteta)
-// {
-
-//   if (!applyTaggingCorrection) return 1;
-
-//   double leadingPtTagEffCorr = (leadingjetpt > 200) ? fppPt->Eval(200):fppPt->Eval(leadingjetpt);
-//   double leadingTagEffCorr = 1./fppEta->Eval(leadingjeteta)/leadingPtTagEffCorr;
-
-
-//   double parterPtTagEffCorr = (partnerjetpt > 200) ? fppPt->Eval(200):fppPt->Eval(partnerjetpt);
-//   double partnerTagEffCorr = 1./fppEta->Eval(partnerjeteta)/parterPtTagEffCorr;
-     
-//   // numerical factor will just give an average correction of 1, can omit this
-//   double combinedTagEffCorr =leadingTagEffCorr*partnerTagEffCorr/8.98489;
-//   return combinedTagEffCorr;
-// }
-
-// float getPbPbcorrection(float leadingjetpt, float leadingjeteta, float partnerjetpt, float partnerjeteta, float bin)
-// {
-
-//   if (!applyTaggingCorrection) return 1;
-
-//   double centTagEffCorr = 1./fPbPbCent->Eval(bin/2.)/fPbPbCent->Eval(bin/2.);
-
-//   double leadingPtTagEff = (leadingjetpt > 200) ? fPbPbPt->Eval(200):fPbPbPt->Eval(leadingjetpt);
-//   double leadingTagEffCorr = 1./fPbPbEta->Eval(leadingjeteta)/leadingPtTagEff;
-
-
-//   double parterPtTagEff = (partnerjetpt > 200) ? fPbPbPt->Eval(200):fPbPbPt->Eval(partnerjetpt);
-//   double partnerTagEffCorr = 1./fPbPbEta->Eval(partnerjeteta)/parterPtTagEff;
-
-//   double combinedTagEffCorr =leadingTagEffCorr*partnerTagEffCorr*centTagEffCorr/488.652;
-//   return combinedTagEffCorr;
-// }
 
 float getTrigcorrection(float jetpt, float jeteta, float bin)
 {
@@ -106,56 +56,50 @@ float getTrigcorrection(float jetpt, float jeteta, float bin)
   return centTagEffCorr;
 }
 
-TString discr_csvV1_1 = "discr_csvV1_1";
-TString discr_csvV1_2 = "discr_csvV1_1";
-
-TString jtptSL = "jtptSL";
-TString dphiSL1 = "dphiSL1";
-TString jtetaSL = "jtetaSL";
-
-TString subidSL = "subidSL";
-TString refptSL = "refptSL";
-TString pairCodeSL1 = "pairCodeSL1";
-TString refparton_flavorForBSL = "refparton_flavorForBSL";
-
 
 void findtruthpp(float datafraction = 1.)
 {
   TFile *fdtpp = new TFile(config.getFileName_djt("dtppjpf"));// "/data_CMS/cms/lisniak/bjet2015/dtppjpfak4PF_djt.root");
 
-  buildh(10,0,1);
+  seth(10,0,1);
   auto hdtppxJAS = geth("hdtppxJAS","Data b-jets;x_{J}");
   auto hdtINCppxJAS = geth("hdtINCppxJAS","Data Inclusive;x_{J}");
-  auto hdt12ppxJAS = geth("hdt12ppxJAS","Data b-jets 12;x_{J}");
+  auto hdt12ppxJAS = geth("hdt12ppxJAS","Data b-jets;x_{J}");
 
   auto hmcppxJAS = geth("hmcppxJAS","MC b-jets;x_{J}");
   auto hmcppxJASsigBB = geth("hmcppxJASsigBB","MC b-jets;x_{J}");
   auto hmcppqcdxJAS = geth("hmcppqcdxJAS","MC Inclusive;x_{J}");
   auto hmcppqcdxJASsignal2 = geth("hmcppqcdxJASsignal2","MC Inclusive;x_{J}");
-  auto hmc12ppxJAS = geth("hmc12ppxJAS","MC b-jets 12;x_{J}");
+  auto hmc12ppxJAS = geth("hmc12ppxJAS","MC b-jets;x_{J}");
 
   //dphi
-  buildh(20,0,3.142);
+  seth(20,0,3.142);
   auto hdphippINCdata = geth("hdphippINCdata","Data Inclusive;#Delta#phi");
-  auto hdphippINCmc = geth("hdphippINC,c","MC Inclusive;#Delta#phi");
+  auto hdphippINCmc = geth("hdphippINCmc","MC Inclusive;#Delta#phi");
 
   auto hdphippBJTdata = geth("hdphippBJTdata","Data b-jets;#Delta#phi");
-  auto hdphippBJTmc = geth("hdphippBJTmc,c","MC b-jets;#Delta#phi");
+  auto hdphippBJTmc = geth("hdphippBJTmc","MC b-jets;#Delta#phi");
+  auto hdphippBJT12data = geth("hdphippBJT12data","Data b-jets;#Delta#phi");
+  auto hdphippBJT12mc = geth("hdphippBJT12mc","MC b-jets;#Delta#phi");
 
-  Fill(fdtpp,{"weight","jtpt1","discr_csvV1_1","jtptSL","dphiSL1","jtpt2","dphi21","discr_csvV1_2","jteta1","jtetaSL","numTagged"},[&] (dict &_) {
+
+  Fill(fdtpp,{"weight","jtpt1",discr_csvV1_1,jtptSL,dphiSL1,"jtpt2","dphi21",discr_csvV1_2,"jteta1",jtetaSL,"numTagged"},[&] (dict &_) {
     if (_["numTagged"]>6) return;
     float w = _["weight"];
-    float corr = getppcorrection(_["jtpt1"],_["jteta1"],_["jtptSL"],_["jtetaSL"]);
+    float corr = getppcorrection(_["jtpt1"],_["jteta1"],_[jtptSL],_[jtetaSL]);
     float wb = w*corr;
 
-    if (_["jtpt1"]>pt1cut && _["discr_csvV1_1"]>0.9 && _["jtptSL"]>pt2cut)
-      hdphippBJTdata->Fill(_["dphiSL1"],wb);   
+    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _[jtptSL]>pt2cut)
+      hdphippBJTdata->Fill(_[dphiSL1],wb);   
 
-    if (_["jtpt1"]>pt1cut && _["discr_csvV1_1"]>0.9 && _["jtptSL"]>pt2cut && _["dphiSL1"]>PI23)
-      hdtppxJAS->Fill(_["jtptSL"]/_["jtpt1"],wb);
+    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _[jtptSL]>pt2cut && _[dphiSL1]>PI23)
+      hdtppxJAS->Fill(_[jtptSL]/_["jtpt1"],wb);
 
-    if (_["jtpt1"]>pt1cut && _["discr_csvV1_1"]>0.9 && _["jtpt2"]>pt2cut && _["discr_csvV1_2"]>0.9 && _["dphi21"]>PI23)
+    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _["jtpt2"]>pt2cut && _[discr_csvV1_2]>0.9 && _["dphi21"]>PI23)
       hdt12ppxJAS->Fill(_["jtpt2"]/_["jtpt1"],wb);
+
+    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _["jtpt2"]>pt2cut && _[discr_csvV1_2]>0.9)
+      hdphippBJT12data->Fill(_["dphi21"],w);
 
     if (_["jtpt1"]>pt1cut && _["jtpt2"]>pt2cut && _["dphi21"]>PI23)
       hdtINCppxJAS->Fill(_["jtpt2"]/_["jtpt1"],w);
@@ -166,20 +110,23 @@ void findtruthpp(float datafraction = 1.)
     },datafraction);
 
   TFile *fmcpp = new TFile(config.getFileName_djt("mcppbfa"));//("/data_CMS/cms/lisniak/bjet2015/mcppbfaak4PF_djt.root");
-  Fill(fmcpp,{"pthat","numTagged","weight","jtpt1","refpt1","jteta1","discr_csvV1_1","jtptSL","dphiSL1","bProdCode","jtpt2", "discr_csvV1_2", "dphi21","jtetaSL","pairCodeSL1",
+  Fill(fmcpp,{"pthat","numTagged","weight","jtpt1","refpt1","jteta1",discr_csvV1_1,jtptSL,dphiSL1,"bProdCode","jtpt2", discr_csvV1_2, "dphi21",jtetaSL,pairCodeSL1,
               "refparton_flavorForB1","jtptSB","dphiSB1"},[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["pthat"]<pthatcut) return;
     float w = weight1SLpp(m);//m["weight"]*processWeights[(int)m["bProdCode"]];
     float wSB = m["weight"]*processweight((int)m["bProdCode"]);
-    float corr = getppcorrection(m["jtpt1"],m["jteta1"],m["jtptSL"],m["jtetaSL"]);
+    float corr = getppcorrection(m["jtpt1"],m["jteta1"],m[jtptSL],m[jtetaSL]);
     float wb = w*corr;
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut)
-      hdphippBJTmc->Fill(m["dphiSL1"],wb);
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23)
-      hmcppxJAS->Fill(m["jtptSL"]/m["jtpt1"],wb);
-    if (m["jtpt1"]>pt1cut && m["discr_csvV1_1"]>0.9 && m["jtpt2"]>pt2cut && m["discr_csvV1_2"]>0.9 && m["dphi21"]>PI23)
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut)
+      hdphippBJTmc->Fill(m[dphiSL1],wb);
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23)
+      hmcppxJAS->Fill(m[jtptSL]/m["jtpt1"],wb);
+
+    if (m["jtpt1"]>pt1cut && m[discr_csvV1_1]>0.9 && m["jtpt2"]>pt2cut && m[discr_csvV1_2]>0.9)
+      hdphippBJT12mc->Fill(m["dphi21"],wb);
+    if (m["jtpt1"]>pt1cut && m[discr_csvV1_1]>0.9 && m["jtpt2"]>pt2cut && m[discr_csvV1_2]>0.9 && m["dphi21"]>PI23)
       hmc12ppxJAS->Fill(m["jtpt2"]/m["jtpt1"],wb);
 
 
@@ -205,30 +152,56 @@ void findtruthpp(float datafraction = 1.)
 
   });
 
-  SetData({hdtppxJAS,hdtINCppxJAS,hdt12ppxJAS,hdphippINCdata,hdphippBJTdata});
-  SetMC({hmcppxJAS,hmcppxJASsigBB,hmcppqcdxJAS,hmc12ppxJAS,hdphippINCmc,hdphippBJTmc});
+  SetData({hdtppxJAS,hdtINCppxJAS,hdt12ppxJAS,hdphippINCdata,hdphippBJTdata,hdphippBJT12data});
+  SetMC({hmcppxJAS,hmcppxJASsigBB,hmcppqcdxJAS,hmc12ppxJAS,hdphippINCmc,hdphippBJTmc,hdphippBJT12mc});
   SetInc({hdtINCppxJAS,hmcppqcdxJAS,hdphippINCmc,hdphippINCdata});
-  SetB({hdtppxJAS,hmcppxJAS,hmcppxJASsigBB,hdt12ppxJAS,hmc12ppxJAS,hdphippBJTmc,hdphippBJTdata});
+  SetB({hdtppxJAS,hmcppxJAS,hmcppxJASsigBB,hdt12ppxJAS,hmc12ppxJAS,hdphippBJTmc,hdphippBJT12mc,hdphippBJTdata});
+
+  hdt12ppxJAS->SetMarkerColor(darkviolet);  hdt12ppxJAS->SetLineColor(darkviolet);
+  hmc12ppxJAS->SetMarkerColor(darkviolet);  hmc12ppxJAS->SetLineColor(darkviolet);
+  hdphippBJT12data->SetMarkerColor(darkviolet);hdphippBJT12data->SetLineColor(darkviolet);
+  hdphippBJT12mc->SetMarkerColor(darkviolet);hdphippBJT12mc->SetLineColor(darkviolet);
 
   NormalizeAllHists();
   plotputmean = true;
   plotytitle = "Event fractions";
   plotdivide = false;
   aktstring += "R=0.4 |#eta|<2.0";
-  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2}>%d GeV", (int)pt1cut, (int)pt2cut);
+  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2b}>%d GeV", (int)pt1cut, (int)pt2cut);
   plotthirdline = "#Delta#phi>2/3#pi";
   plotymax = 0.4;
 
-  DrawCompare(hdtppxJAS,hmcppxJAS);
+  plotdiffmax = 0.02;
+  // DrawCompare(hdtppxJAS,hmcppxJAS);
   DrawCompare(hdtppxJAS,hmcppxJASsigBB);
 
+  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2}>%d GeV", (int)pt1cut, (int)pt2cut);
   DrawCompare(hdtINCppxJAS,hmcppqcdxJAS);
-  DrawCompare(hdtINCppxJAS,hmcppqcdxJASsignal2);
-  DrawCompare(hdt12ppxJAS,hmc12ppxJAS); 
-
+  // DrawCompare(hdtINCppxJAS,hmcppqcdxJASsignal2);
+  
+  plotthirdline = "";
+  plotymax = 0.65;
+  plotputmean = false; plotputwidth = true;
+  DrawCompare(hdphippBJT12data,hdphippBJT12mc,"#Delta#phi"); 
+  plotputmean = true; plotputwidth = false;  
   plotymax = 0.4;
-  DrawCompare(hdphippBJTmc,hdphippBJTdata);
-  DrawCompare(hdphippINCmc,hdphippINCdata);
+  plotthirdline = "#Delta#phi>2/3#pi";
+  DrawCompare(hdt12ppxJAS,hmc12ppxJAS);   
+
+
+  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2b}>%d GeV", (int)pt1cut, (int)pt2cut);
+
+  plotymax = 0.65;
+  plotthirdline = "";
+
+  plotputmean = false; plotputwidth = true;
+  plotdiffmax = 0.03;
+  DrawCompare(hdphippBJTdata,hdphippBJTmc,"#Delta#phi");
+
+  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2}>%d GeV", (int)pt1cut, (int)pt2cut);
+  DrawCompare(hdphippINCdata,hdphippINCmc,"#Delta#phi");
+  plotdiffmax = 9999;
+  plotputmean = true; plotputwidth = false;
 
 
   lbinmin.push_back(-1);lbinmax.push_back(-1);
@@ -274,16 +247,16 @@ void findtruthPbPb(int binMin, int binMax)
   //  buildTitlesuffix = TString::Format("%d-%d %%",binMin/2, binMax/2);
 
   //check vertex and centrality first
-  buildh(40,-15,15);
+  seth(40,-15,15);
   auto hdtvz = geth("hdtvz","Data;vz [cm]");
   auto hmcvz = geth("hmcvz","MC;vz [cm]");
 
-  buildh(100,0,200);
+  seth(100,0,200);
   auto hdtbin = geth("hdtbin","Data;bin");
   auto hmcbin = geth("hmcbin","MC;bin"); 
 
   //xJ
-  buildh(10,0,1);
+  seth(10,0,1);
   auto hdtxJAS = geth("hdtxJAS","Data away-side;x_{J}");
   auto hdtxJNS = geth("hdtxJNS","Data near-side;x_{J}");
   auto hdtxJEars = geth("hdtxJEars","Data ears;x_{J}");
@@ -320,7 +293,7 @@ void findtruthPbPb(int binMin, int binMax)
 
 
   //dphi
-  buildh(20,0,3.142);
+  seth(20,0,3.142);
   auto hdphiINCdata = geth("hdphiINCdata","Data Inclusive;#Delta#phi");
   auto hdphiINCall = geth("hdphiINCall","MC Inclusive;#Delta#phi");
   auto hdphiINCsig = geth("hdphiINCsig","MC Inclusive, signal;#Delta#phi");
@@ -331,13 +304,13 @@ void findtruthPbPb(int binMin, int binMax)
 
 
   //pair codes
-  buildh(5,0,5);
+  seth(5,0,5);
   auto hPairCodeQCD = geth("hPairCodeQCD");
   auto hPairCodeBFA = geth("hPairCodeBFA");
   auto hPairCode = geth("hPairCode");
 
   //centrality
-  buildh(10,0,100); //don't forget to divide!!!
+  seth(10,0,100); //don't forget to divide!!!
   auto hbinconfusion12 = geth("hbinconfusion12","12 analysis;bin;Jet Confusion");
   auto hbinconfusionSL = geth("hbinconfusionSL","SL analysis;bin;Jet Confusion");
   auto hbinSignal = geth("hbinSignal");
@@ -348,31 +321,31 @@ void findtruthPbPb(int binMin, int binMax)
   auto hbinSL = geth("hbinSL");
   auto hbinSLisB = geth("hbinSLisB");
 
-  Fill(fdt,{"weight","vz","bin","jtpt1","discr_csvV1_1","jtptSL","dphiSL1","jteta1","jtetaSL","numTagged"},[&] (dict &m) {
+  Fill(fdt,{"weight","vz","bin","jtpt1",discr_csvV1_1,jtptSL,dphiSL1,"jteta1",jtetaSL,"numTagged"},[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["bin"]<binMin || m["bin"]>binMax) return;
 
     float w = m["weight"];
-    float corr = getPbPbcorrection(m["jtpt1"],m["jteta1"],m["jtptSL"],m["jtetaSL"],m["bin"]);
+    float corr = getPbPbcorrection(m["jtpt1"],m["jteta1"],m[jtptSL],m[jtetaSL],m["bin"]);
     float trigcorr = getTrigcorrection(m["jtpt1"],m["jteta1"],m["bin"]); //WRONG! use trigger pt
     float wb = w*corr*trigcorr;
-    float dphi = m["dphiSL1"];
-    float deta = abs(m["jteta1"]-m["jtetaSL"]);
+    float dphi = m[dphiSL1];
+    float deta = abs(m["jteta1"]-m[jtetaSL]);
     hdtvz->Fill(m["vz"],w);
 
 
-    if (m["jtpt1"]>pt1cut && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut) {
+    if (m["jtpt1"]>pt1cut && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut) {
 
       hdtbin->Fill(m["bin"],wb);
-      hdphiBJTdata->Fill(m["dphiSL1"],wb);
+      hdphiBJTdata->Fill(m[dphiSL1],wb);
 
       if (dphi>PI23)
-        hdtxJAS->Fill(m["jtptSL"]/m["jtpt1"],wb);
+        hdtxJAS->Fill(m[jtptSL]/m["jtpt1"],wb);
       if (dphi<PI13)
-        hdtxJNS->Fill(m["jtptSL"]/m["jtpt1"],wb);
+        hdtxJNS->Fill(m[jtptSL]/m["jtpt1"],wb);
 
       if ((dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1))
-        hdtxJEars->Fill(m["jtptSL"]/m["jtpt1"],wb);
+        hdtxJEars->Fill(m[jtptSL]/m["jtpt1"],wb);
 
     }
 
@@ -395,7 +368,7 @@ void findtruthPbPb(int binMin, int binMax)
   vector<TH1F *>hptNS(Nb);
 
   for (int i=0;i<Nb;i++) {
-    buildh(10,0,1);//cbins);//10,0,1);
+    seth(10,0,1);//cbins);//10,0,1);
     hsig[i] = geth(Form("hsig%d",i),Form("Signal away-side %s;x_{J}",binnames[i].Data())) ;
     hasd[i] = geth(Form("hasd%d",i),Form("Measured away-side %s;x_{J}",binnames[i].Data()));
     hbkg[i] = geth(Form("hbkg%d",i),Form("Near-side %s;x_{J}",binnames[i].Data()));
@@ -407,7 +380,7 @@ void findtruthPbPb(int binMin, int binMax)
     // hsigsyshi[i] = geth(Form("hsigsyshi%d",i),Form("Signal sys high %s;x_{J}",binnames[i].Data())) ;
 
 
-    buildh(10,40,100);
+    seth(10,40,100);
     hptNSsig[i] = geth(Form("hptNSsig%d",i),Form("Near-side signal %s;p_{T} [GeV]",binnames[i].Data()));
     hptNS[i] = geth(Form("hptNS%d",i),Form("Near-side total %s;p_{T} [GeV]",binnames[i].Data()));
     hptNSbkg[i] = geth(Form("hptNSbkg%d",i),Form("Near-side bkg %s;p_{T} [GeV]",binnames[i].Data()));
@@ -427,24 +400,24 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 
-  Fill(fmc,{"weight","pthat","bProdCode","vz","bin","jtpt1","refpt1","discr_csvV1_1","jtptSL","dphiSL1","jteta1","jtetaSL","subidSL","refptSL","pairCodeSL1",
-            "jtptSignal2","discr_csvV1_Signal2","Signal2ord","SLord","dphiSignal21","refparton_flavorForBSL","refparton_flavorForB1","numTagged","jtptSB","dphiSB1"},[&] (dict &m) {
+  Fill(fmc,{"weight","pthat","bProdCode","vz","bin","jtpt1","refpt1",discr_csvV1_1,jtptSL,dphiSL1,"jteta1",jtetaSL,subidSL,refptSL,pairCodeSL1,
+            "jtptSignal2",discr_csvV1_Signal2,"Signal2ord","SLord","dphiSignal21",refparton_flavorForBSL,"refparton_flavorForB1","numTagged","jtptSB","dphiSB1"},[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["pthat"]<pthatcut) return; /////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     //at least one of the two jets must be a b-jet
-    if (abs(m["refparton_flavorForB1"])!=5 && abs(m["refparton_flavorForBSL"])!=5) return;
+    if (abs(m["refparton_flavorForB1"])!=5 && abs(m[refparton_flavorForBSL])!=5) return;
 
     //float w0 = m["weight"];
 
 
-    float dphi = m["dphiSL1"];
-    float deta = abs(m["jteta1"]-m["jtetaSL"]);
+    float dphi = m[dphiSL1];
+    float deta = abs(m["jteta1"]-m[jtetaSL]);
 
     float w0=weight1SLPbPb(m);//w0*processWeights[(int)m["bProdCode"]];
 
-    float corr = getPbPbcorrection(m["jtpt1"],m["jteta1"],m["jtptSL"],m["jtetaSL"],m["bin"]);
+    float corr = getPbPbcorrection(m["jtpt1"],m["jteta1"],m[jtptSL],m[jtetaSL],m["bin"]);
     float w = w0*corr;
 
     float wSB = m["weight"]*processweight((int)m["bProdCode"]);
@@ -465,35 +438,35 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 //&& abs(m["refparton_flavorForB1"])==5
-//&& m["discr_csvV1_1"]>0.9
+//&& m[discr_csvV1_1]>0.9
 
 //signal: subidSL==0 on the away side
 //background: subidSL!=0 on the away side
 
-      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23)
-        hasd[i]->Fill(m["jtptSL"]/m["jtpt1"], w);//abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);//wbkg); ///////WRONG POTENTIALLY!
+      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23)
+        hasd[i]->Fill(m[jtptSL]/m["jtpt1"], w);//abs(m[refparton_flavorForBSL])==5  ?  wb : wbkg);//wbkg); ///////WRONG POTENTIALLY!
 
-      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]<PI13 && !IsSignal(m))
-        hhyj[i]->Fill(m["jtptSL"]/m["jtpt1"], w);//wbkg);
+      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSL]>pt2cut && m[dphiSL1]<PI13 && !IsSignal(m))
+        hhyj[i]->Fill(m[jtptSL]/m["jtpt1"], w);//wbkg);
 
-      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23 && IsSignal(m)) {//&& m["pairCodeSL1"]==0) {
-          hsig[i]->Fill(m["jtptSL"]/m["jtpt1"], w);//abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
-          // float pt2lo = gRandom->Uniform() < 0.1 ? pt2cut     : m["jtptSL"];
-          // float pt2hi = gRandom->Uniform() > 0.9 ? m["jtpt1"] : m["jtptSL"];
+      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23 && IsSignal(m)) {//&& m[pairCodeSL1]==0) {
+          hsig[i]->Fill(m[jtptSL]/m["jtpt1"], w);//abs(m[refparton_flavorForBSL])==5  ?  wb : wbkg);
+          // float pt2lo = gRandom->Uniform() < 0.1 ? pt2cut     : m[jtptSL];
+          // float pt2hi = gRandom->Uniform() > 0.9 ? m["jtpt1"] : m[jtptSL];
           // hsigsyslo[i]->Fill(pt2lo/m["jtpt1"], w);
           // hsigsyshi[i]->Fill(pt2hi/m["jtpt1"], w);
       }
       
 
-      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSL"]>pt2cut
-//           && m["dphiSL1"]<PI13) {
+      if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSL]>pt2cut
+//           && m[dphiSL1]<PI13) {
            && ((dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1))) {
-        hbkg[i]->Fill(m["jtptSL"]/m["jtpt1"],w);//abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);//wbkg);?????????????
-        hptNS[i]->Fill(m["jtptSL"], w);//abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
+        hbkg[i]->Fill(m[jtptSL]/m["jtpt1"],w);//abs(m[refparton_flavorForBSL])==5  ?  wb : wbkg);//wbkg);?????????????
+        hptNS[i]->Fill(m[jtptSL], w);//abs(m[refparton_flavorForBSL])==5  ?  wb : wbkg);
         if (IsSignal(m))
-          hptNSsig[i]->Fill(m["jtptSL"], w);//abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
+          hptNSsig[i]->Fill(m[jtptSL], w);//abs(m[refparton_flavorForBSL])==5  ?  wb : wbkg);
         else
-          hptNSbkg[i]->Fill(m["jtptSL"], w);//abs(m["refparton_flavorForBSL"])==5  ?  wb : wbkg);
+          hptNSbkg[i]->Fill(m[jtptSL], w);//abs(m[refparton_flavorForBSL])==5  ?  wb : wbkg);
       }
 
     }
@@ -501,17 +474,17 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 //NOT CORRECTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9 && m["jtptSignal2"]>pt2cut && m["discr_csvV1_Signal2"]>0.9) { //&& m["dphiSignal21"]>PI23 
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m["jtptSignal2"]>pt2cut && m[discr_csvV1_Signal2]>0.9) { //&& m["dphiSignal21"]>PI23 
       hbinSignal->Fill(m["bin"]/2,w);
       if (m["Signal2ord"]==2)
         hbinSignalFound12->Fill(m["bin"]/2,w);
-      if (m["Signal2ord"]==m["SLord"])
+      if (m["Signal2ord"]==m[SLord])
         hbinSignalFoundSL->Fill(m["bin"]/2,w);
     }
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23) {
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23) {
       hbinSL->Fill(m["bin"],w);//wb);
-      if (abs(m["refparton_flavorForBSL"])==5)
+      if (abs(m[refparton_flavorForBSL])==5)
         hbinSLisB->Fill(m["bin"],w);//wb);
     }
 
@@ -519,32 +492,32 @@ void findtruthPbPb(int binMin, int binMax)
     if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSB"]>pt2cut && m["dphiSB1"]>PI23)
       hmcxJASsigBB->Fill(m["jtptSB"]/m["jtpt1"],wSB);
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut) {
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut) {
       hmcbin->Fill(m["bin"],w);//wb);
-      hdphiBJTall->Fill(m["dphiSL1"],w);//wb);
+      hdphiBJTall->Fill(m[dphiSL1],w);//wb);
 
-      if (m["pairCodeSL1"]==0)
-        hdphiBJTsig->Fill(m["dphiSL1"],w);//wb);
+      if (m[pairCodeSL1]==0)
+        hdphiBJTsig->Fill(m[dphiSL1],w);//wb);
 
-      if (m["dphiSL1"]>PI23) {
-        hmcxJAS->Fill(m["jtptSL"]/m["jtpt1"], w);//m["pairCodeSL1"]==0 ? wb : wbkg);
+      if (m[dphiSL1]>PI23) {
+        hmcxJAS->Fill(m[jtptSL]/m["jtpt1"], w);//m[pairCodeSL1]==0 ? wb : wbkg);
 
         //signal xJ
-        if (m["pairCodeSL1"]==0) {
-          hmcxJASsig->Fill(m["jtptSL"]/m["jtpt1"],w);//wb);
-          float pt2lo = gRandom->Uniform() < 0.05 ? pt2cut     : m["jtptSL"];
-          float pt2hi = gRandom->Uniform() > 0.95 ? m["jtpt1"] : m["jtptSL"];
+        if (m[pairCodeSL1]==0) {
+          hmcxJASsig->Fill(m[jtptSL]/m["jtpt1"],w);//wb);
+          float pt2lo = gRandom->Uniform() < 0.05 ? pt2cut     : m[jtptSL];
+          float pt2hi = gRandom->Uniform() > 0.95 ? m["jtpt1"] : m[jtptSL];
           hmcxJASsigsyslo->Fill(pt2lo/m["jtpt1"], w);
           hmcxJASsigsyshi->Fill(pt2hi/m["jtpt1"], w);
         }
 
         //signal-like pairCode (for MC purity)
-        if (IsSignal(m))//m["subidSL"]==0)
-          hPairCodeBFA->Fill(m["pairCodeSL1"],w0);//wb);////////////////////////////////there were w0 here
+        if (IsSignal(m))//m[subidSL]==0)
+          hPairCodeBFA->Fill(m[pairCodeSL1],w0);//wb);////////////////////////////////there were w0 here
       }
 
-      if (m["dphiSL1"]<PI13)
-        hmcxJNS->Fill(m["jtptSL"]/m["jtpt1"],w);//wb);
+      if (m[dphiSL1]<PI13)
+        hmcxJNS->Fill(m[jtptSL]/m["jtpt1"],w);//wb);
 
 
     }
@@ -553,9 +526,9 @@ void findtruthPbPb(int binMin, int binMax)
 
 // float LJeff = 0.35;
 
-if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9  && m["jtptSL"]>pt2cut //&& abs(m["refparton_flavorForB1"])==5
+if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9  && m[jtptSL]>pt2cut //&& abs(m["refparton_flavorForB1"])==5
         && ((dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1)))
-        hmcxJEars->Fill(m["jtptSL"]/m["jtpt1"],w);//LFeff*w//LJeff*(m["pairCodeSL1"]==0 ? wb : wbkg));
+        hmcxJEars->Fill(m[jtptSL]/m["jtpt1"],w);//LFeff*w//LJeff*(m[pairCodeSL1]==0 ? wb : wbkg));
 
   });
 
@@ -585,7 +558,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9  && m["jtptSL"
 
   });
 
-  Fill(fmcinc,{"weight","jtpt1","refpt1","jtpt2","dphi21","bin","jteta1","jteta2","pairCodeSL1","discr_csvV1_1","jtptSL","dphiSL1","pthat","subidSL","refptSL","subid2","numTagged","jtptSignal2","dphiSignal21"},[&] (dict &m) {
+  Fill(fmcinc,{"weight","jtpt1","refpt1","jtpt2","dphi21","bin","jteta1","jteta2",pairCodeSL1,discr_csvV1_1,jtptSL,dphiSL1,"pthat",subidSL,refptSL,"subid2","numTagged","jtptSignal2","dphiSignal21"},[&] (dict &m) {
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["pthat"]<pthatcut) return;
 
@@ -642,9 +615,9 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9  && m["jtptSL"
           hmcINCxJEars->Fill(m["jtpt2"]/m["jtpt1"],w*ew);
     }
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m["discr_csvV1_1"]>0.9 && m["jtptSL"]>pt2cut && m["dphiSL1"]>PI23) {
-      if (IsSignal(m) && m["numTagged"]<=6)//m["pairCodeSL1"]<4 && 
-        hPairCodeQCD->Fill(m["pairCodeSL1"],w);
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23) {
+      if (IsSignal(m) && m["numTagged"]<=6)//m[pairCodeSL1]<4 && 
+        hPairCodeQCD->Fill(m[pairCodeSL1],w);
     }
 
   });
@@ -694,7 +667,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9  && m["jtptSL"
   for (int i=0;i<Nbinc;i++) 
     hincsub[i]->Add(hincasd[i],hincbkg[i],1,-1);
 
-  buildh(cbins);//Nb,0,100);
+  seth(cbins);//Nb,0,100);
   auto hcentrSubSIG = geth("hcentrSubSIG","Signal;bin;<x_{J}>");
   auto hcentrSubASD = geth("hcentrSubASD","Unsubtracted;bin;<x_{J}>");
   auto hcentrSubBKG = geth("hcentrSubBKG","Background;bin;<x_{J}>");
@@ -702,7 +675,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9  && m["jtptSL"
   auto hcentrSubHJS = geth("hcentrSubHJS","Subtracted Hydjet;bin;<x_{J}>");
 
 
-  buildh(Nbinc,0,100);
+  seth(Nbinc,0,100);
   auto hcentrSubSIGinc = geth("hcentrSubSIGinc","INC Signal;bin;<x_{J}>");
   auto hcentrSubASDinc = geth("hcentrSubASDinc","INC Unsubtracted;bin;<x_{J}>");
   auto hcentrSubBKGinc = geth("hcentrSubBKGinc","INC Background;bin;<x_{J}>");
@@ -750,7 +723,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m["discr_csvV1_1"]>0.9  && m["jtptSL"
   plotymin = 0.8;
   //plotymax = 0.4;
   aktstring = "anti-k_{T} Pu R=0.4 |#eta|<2.0";
-  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2}>%d GeV", (int)pt1cut, (int)pt2cut);
+  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2b}>%d GeV", (int)pt1cut, (int)pt2cut);
   
   plotytitle = "Event fractions";
 
@@ -871,14 +844,17 @@ for (int i=0;i<Nb;i++) {
 
   plotputmean = true;
   plotymax = 0.4;
-    Draw({hmcxJASsig,hmcxJASsigsyshi,hmcxJASsigsyslo});
+    // Draw({hmcxJASsig,hmcxJASsigsyshi,hmcxJASsigsyslo});
 
   plotputmean = false;
   plotputwidth = true;
 
 
-
-  DrawCompare(hdphiBJTdata,hdphiBJTall);
+  plotthirdline = TString::Format("%d-%d %% MC purity=%.2f",binMin/2, binMax/2, purity);
+  plotdiffmax = 0.055;
+    plotymax = 0.5;
+  DrawCompare(hdphiBJTdata,hdphiBJTall,"#Delta#phi");
+  plotdiffmax = 9999;  
   // DrawCompare(hdphiBJTdata,hdphiBJTsig);
 
   // Draw({hdphiINCdata,hdphiINCall,hdphiINCsig});
@@ -892,25 +868,37 @@ for (int i=0;i<Nb;i++) {
   // Draw({hmcINCxJASsig,hmcINCxJEars,hmcINCxJAS,hmcINCxJASSubEars});
   // Draw({hmcxJASsig,hmcxJEars,hmcxJAS,hmcxJASSubEars});
 
+  plotymax = 0.4;
 
-
-  DrawCompare(hdtxJASSubEars, hmcxJASSubEars);
+  plotdiffmax = 0.15;
+  //important! but not used in the result plots
+  // DrawCompare(hdtxJASSubEars, hmcxJASSubEars);
   DrawCompare(hdtxJASSubEars, hmcxJASsigBB);
 
 
+  plotsecondline = Form("p_{T,1}>%d GeV, p_{T,2}>%d GeV", (int)pt1cut, (int)pt2cut);
   plotthirdline = TString::Format("#Delta#phi>2/3#pi %d-%d %%",binMin/2, binMax/2);
 
-  DrawCompare(hdtINCxJASSubEars,hmcINCxJASSubEars);
+
+  // DrawCompare(hdtINCxJASSubEars,hmcINCxJASSubEars);
   DrawCompare(hdtINCxJASSubEars,hmcINCxJASsignal2);
+plotdiffmax = 9999;
 
+  plotputmean = false;
+  plotputwidth = true;
+  plotthirdline = TString::Format("%d-%d %%",binMin/2, binMax/2);
+  plotdiffmax = 0.07;
+      plotymax = 0.65;
+  DrawCompare(hdphiINCdata,hdphiINCall,"#Delta#phi");
 
+  plotputmean = true;
+  plotputwidth = false;
 
-  DrawCompare(hdphiINCdata,hdphiINCall);
   // DrawCompare(hdphiINCdata,hdphiINCsig);
 
   plotputmean = false;
   plotymax = 1;
-  Draw({hPairCode});
+  // Draw({hPairCode});
 
 
   // Draw({hdtxJAS,hmcxJAS});
@@ -954,8 +942,18 @@ for (int i=0;i<Nb;i++) {
 
 
 
-void tellmetruth(TString name, int subtractcode, bool applytriggercorr, bool applytagg, bool firstRun = true)
+void tellmetruth(TString name = "")
 {
+  name = "results_"+name;
+  macro m(name);
+
+  int subtractcode = 2;
+  bool applytriggercorr = true;
+  bool applytagg = true;
+
+
+
+
   if (subtractcode==0) bkgfractionInNearSide = {0,0,0};
   if (subtractcode==1) bkgfractionInNearSide = {1,1,1};
 //subtractcode = 2 or something - use whatever is true
@@ -964,7 +962,7 @@ void tellmetruth(TString name, int subtractcode, bool applytriggercorr, bool app
   applyCorrection = applytagg;
 
 //"tellmetruth0503_triggercorrtaggcorr_correctsub"
-  macro m(name,firstRun);
+
 
   loadTagEffCorrections();
   loadTrigEffCorrections();
@@ -1026,5 +1024,5 @@ void tellmetruth(TString name, int subtractcode, bool applytriggercorr, bool app
 
   WriteToFile(plotfoldername+"/results.root",res);
 
-
+  //moneyplot("moneyplot"+suffix);
 }

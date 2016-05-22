@@ -21,7 +21,7 @@ public:
   TString getFileName_djt(TString sample)
   {
     TString algo = isPbPb(sample) ? PbPbjetalgo : ppjetalgo;
-    TString fname = tuplesfolder+    //(dt(sample) ? "/latestdata" : "") 
+    TString fname = tuplesfolder+   // ((mc(sample)  && isPbPb(sample)) ? "/privmc" : "") 
                       +"/"+sample+algo+"_djt.root";
     if (!file_exist(fname))
       cout<<"File "<<fname<<" doesn\'t exist"<<endl;
@@ -40,6 +40,11 @@ public:
     if (!file_exist(fname))
       cout<<"File "<<fname<<" doesn\'t exist"<<endl;
     return fname;
+  }
+
+  TFile *getfile_inc(TString sample)
+  {
+    return new TFile(getFileName_inc(sample));
   }
 };
 

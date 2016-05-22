@@ -54,17 +54,17 @@ float addIn2(float v1, float v2)
 
 // }
 
-void moneyplot()
+void moneyplot(TString name="")
 {
-  macro m("moneyplot_0512_newntupletest");
+  macro m("moneyplot_"+name);
 
-  auto res = ReadFromFile("results_0512_newntupletest/results.root");
+  auto res = ReadFromFile("results_"+name+"/results.root");
   for (auto i:res) {
     cout<<i.first<<" = "<<i.second<<endl;
   }
 
   int nbins = binnames.size()+1;
-  buildh(nbins,0,nbins);
+  seth(nbins,0,nbins);
   auto hmcinc = geth("hmcinc","MC Inclusive;;#LTx_{J}#GT");
   auto hmcsig = geth("hmcsig","MC Inclusive Signal;;#LTx_{J}#GT");
   auto hdtinc = geth("hdtinc","Data Inclusive;;#LTx_{J}#GT");
@@ -142,10 +142,23 @@ void moneyplot()
     hdtbjtsys->SetBinError(i+1,sig);
   }
 
+
+hdtincsys->SetBinError(1,0.022);
+hdtincsys->SetBinError(2,0.023);
+hdtincsys->SetBinError(3,0.026);
+hdtincsys->SetBinError(4,0.036);
+
+hdtbjtsys->SetBinError(1,0.023);//0.023);
+hdtbjtsys->SetBinError(2,0.024);//0.023);
+hdtbjtsys->SetBinError(3,0.027);//0.024);
+hdtbjtsys->SetBinError(4,0.033);//0.027);
+
+
+
 hmcincsys->SetFillColor(kCyan-10);   hmcincsys->SetFillStyle(1001);
 hdtincsys->SetFillColor(kCyan-10);   hdtincsys->SetFillStyle(1001);
-hmcbjtsys->SetFillColor(kWhite);   hmcbjtsys->SetFillStyle(1001); //kRed-10); 
-hdtbjtsys->SetFillColor(kWhite);   hdtbjtsys->SetFillStyle(1001); //kRed-10); 
+hmcbjtsys->SetFillColor(kRed-10);   hmcbjtsys->SetFillStyle(1001); //kRed-10); 
+hdtbjtsys->SetFillColor(kRed-10);   hdtbjtsys->SetFillStyle(1001); //kRed-10); 
 
 hmcincsys->SetMarkerSize(0);
 hdtincsys->SetMarkerSize(0);

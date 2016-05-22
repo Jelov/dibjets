@@ -40,3 +40,7 @@
 	```
 	sh runall.sh
 	```
+	
+	
+##Remarks
+* To prevent confusion, centrality bin number in the code is always 0-200 (except tagging efficiency correction functions), and shown as 0-100% only in the plotting.

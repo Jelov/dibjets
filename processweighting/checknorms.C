@@ -55,6 +55,8 @@ void loadnumbers2()
   N12alldataAS = h12alldataAS->Integral();
   N13alldataAS = h13alldataAS->Integral();
 
+  N12allmcAS = h12allmcAS->Integral();
+
   cout<<"N13allmcNS = "<<N13allmcNS<<endl;
   cout<<"N13fcrNS = "<<N13fcrNS<<endl;
   cout<<"N13fexNS = "<<N13fexNS<<endl;
@@ -67,7 +69,6 @@ void loadnumbers2()
   cout<<"N13gspAS = "<<N13gspAS<<endl;
   cout<<"N12alldataAS = "<<N12alldataAS<<endl;
   cout<<"N13alldataAS = "<<N13alldataAS<<endl;
-
 
 }
 
@@ -183,6 +184,34 @@ void checkerr()
 
 }
 
+void PrintTable()
+{
+
+  float s1 = (N12alldataAS+N13alldataAS+N13alldataNS)/100;
+  float s2 = (N12allmcAS+N13allmcAS+N13allmcNS)/100;
+
+  float s12as = (N12fcrAS+N12gspAS+N12fexAS)/100;
+  float s13as = (N13fcrAS+N13gspAS+N13fexAS)/100;
+  float s13ns = (N13fcrNS+N13gspNS+N13fexNS)/100;
+
+  cout<<setprecision(2);
+
+  cout<<"Pair & Data & MC \\\\"<<endl;
+  cout<<"\\hline"<<endl;
+  cout<<"1-2 AS & "<<N12alldataAS/s1<<"\\% & "<<N12allmcAS/s2<<"\\% \\\\"<<endl;
+  cout<<"1-3 AS & "<<N13alldataAS/s1<<"\\% & "<<N13allmcAS/s2<<"\\% \\\\"<<endl;
+  cout<<"1-3 NS & "<<N13alldataNS/s1<<"\\% & "<<N13allmcNS/s2<<"\\% \\\\"<<endl;
+  cout<<endl;
+
+  cout<<"Pair & FCR & GSP & FEX \\\\"<<endl;
+  cout<<"\\hline"<<endl;
+  cout<<"1-2 AS & "<<N12fcrAS/s12as<<"\\% & "<<N12gspAS/s12as<<"\\% & "<<N12fexAS/s12as<<"\\% \\\\"<<endl;
+  cout<<"1-3 AS & "<<N13fcrAS/s13as<<"\\% & "<<N13gspAS/s13as<<"\\% & "<<N13fexAS/s13as<<"\\% \\\\"<<endl;
+  cout<<"1-3 NS & "<<N13fcrNS/s13ns<<"\\% & "<<N13gspNS/s13ns<<"\\% & "<<N13fexNS/s13ns<<"\\% \\\\"<<endl;
+  cout<<endl;
+
+}
+
 
 void checknorms()
 {
@@ -194,4 +223,6 @@ void checknorms()
   float mb=0,mg=0;
   check(true,mb,mg);
   //checkerr();
+
+  PrintTable();
 }

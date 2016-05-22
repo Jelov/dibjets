@@ -1,33 +1,6 @@
 #include "../helpers/plotting.h"
 #include "../helpers/config.h"
 
-void RenameBinLabelsX(TH1 *h)
-{
-  for (int i=1;i<=h->GetNbinsX();i++)
-    h->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
-}
-
-void RenameBinLabelsX(TH1 *h, vector<TString> labels)
-{
-  if (h->GetNbinsX()!=(int)labels.size()) cout<<" wrong number of labels/bins"<<endl;
-
-  for (int i=1;i<=h->GetNbinsX();i++)
-    h->GetXaxis()->SetBinLabel(i,labels[i-1]);
-}
-
-void RenameBinLabelsY(TH1 *h)
-{
-  for (int i=1;i<=h->GetNbinsY();i++)
-    h->GetYaxis()->SetBinLabel(i,Form("%d",i-1));
-}
-
-void RenameBinLabelsY(TH1 *h, vector<TString> labels)
-{
-    if (h->GetNbinsY()!=(int)labels.size()) cout<<" wrong number of labels/bins"<<endl;
-  for (int i=1;i<=h->GetNbinsY();i++)
-    h->GetYaxis()->SetBinLabel(i,labels[i-1]);
-}
-
 void wtfisbkg()
 {
   auto fmcpp = new TFile(config.getFileName_djt("mcppbfa"));

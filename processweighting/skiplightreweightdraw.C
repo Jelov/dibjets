@@ -3,7 +3,7 @@
 
 void skiplightreweightdraw()
 {
-	macro m("skiplightreweightdraw_12030");
+	macro m("skiplightreweightdraw_12030_pthat50");
 
 //0.266, gamma = 1.232
 
@@ -64,23 +64,23 @@ void skiplightreweightdraw()
 
 	auto h12reweighted = (TH1F *)h12all->Clone("h12reweighted");
 	auto hSLreweighted = (TH1F *)hSLall->Clone("hSLreweighted");
-	h12reweighted->Reset();h12reweighted->SetTitle("h12reweighted");
-	hSLreweighted->Reset();hSLreweighted->SetTitle("hSLreweighted");
+	h12reweighted->Reset();h12reweighted->SetTitle("x_{J};x_{J}");
+	hSLreweighted->Reset();hSLreweighted->SetTitle("x_{J};x_{J}");
 
 	auto h12dphiNSreweighted = (TH1F *)h12dphiNSall->Clone("h12dphiNSreweighted");
 	auto hSLdphiNSreweighted = (TH1F *)hSLdphiNSall->Clone("hSLdphiNSreweighted");
-	h12dphiNSreweighted->Reset();h12dphiNSreweighted->SetTitle("h12dphiNSreweighted");
-	hSLdphiNSreweighted->Reset();hSLdphiNSreweighted->SetTitle("hSLdphiNSreweighted");
+	h12dphiNSreweighted->Reset();h12dphiNSreweighted->SetTitle("#Delta#phi;#Delta#phi");
+	hSLdphiNSreweighted->Reset();hSLdphiNSreweighted->SetTitle("#Delta#phi;#Delta#phi");
 
 	auto h12dphireweighted = (TH1F *)h12dphiall->Clone("h12dphireweighted");
 	auto hSLdphireweighted = (TH1F *)hSLdphiall->Clone("hSLdphireweighted");
-	h12dphireweighted->Reset();h12dphireweighted->SetTitle("h12dphireweighted");
-	hSLdphireweighted->Reset();hSLdphireweighted->SetTitle("hSLdphireweighted");
+	h12dphireweighted->Reset();h12dphireweighted->SetTitle("#Delta#phi;#Delta#phi");
+	hSLdphireweighted->Reset();hSLdphireweighted->SetTitle("#Delta#phi;#Delta#phi");
 
 	auto h12ordreweighted = (TH1F *)h12ordall->Clone("h12ordreweighted");
 	auto hSLordreweighted = (TH1F *)hSLordall->Clone("hSLordreweighted");
-	h12ordreweighted->Reset();h12ordreweighted->SetTitle("h12ordreweighted");
-	hSLordreweighted->Reset();hSLordreweighted->SetTitle("hSLordreweighted");
+	h12ordreweighted->Reset();h12ordreweighted->SetTitle("order of jet;order of jet");
+	hSLordreweighted->Reset();hSLordreweighted->SetTitle("order of jet;order of jet");
 
 
 	h12reweighted->Add(h12fex,h12gsp,beta,gamma);
@@ -120,22 +120,22 @@ void skiplightreweightdraw()
 	plotylog = false;
 	plotputmean = true;
 	aktstring+="PF Jets R=0.4";
-  	plotsecondline = "p_{T,1}>100GeV,p_{T,2}>40GeV";
+  	plotsecondline = "p_{T,1}>120GeV,p_{T,2}>30GeV";
   	plotthirdline  = "#Delta#phi>2#pi/3, CSV>0.9";
   	
   	
   	plotfilenameend = "12";
-  	DrawCompare(h12data,h12all);
+  	// DrawCompare(h12data,h12all);
 	plotfilenameend = "SL";
-  	DrawCompare(hSLdata,hSLall);
+  	// DrawCompare(hSLdata,hSLall);
 
 	Normalize({h12reweighted,hSLreweighted});
 	SetMC({h12reweighted,hSLreweighted});
 
 	plotfilenameend = "12";
-	DrawCompare(h12data,h12reweighted);
+	// DrawCompare(h12data,h12reweighted);
 	plotfilenameend = "SL";
-	DrawCompare(hSLdata,hSLreweighted);
+	// DrawCompare(hSLdata,hSLreweighted);
 
 	plotfilenameend = "";
 
@@ -178,8 +178,8 @@ void skiplightreweightdraw()
 	Normalize({hSLordreweighted,h12ordreweighted});
 	SetMC({hSLordreweighted,h12ordreweighted});
 
-	DrawCompare(h12orddata,h12ordreweighted);
-	DrawCompare(hSLorddata,hSLordreweighted);
+	// DrawCompare(h12orddata,h12ordreweighted);
+	// DrawCompare(hSLorddata,hSLordreweighted);
 
 	auto h12ordstack = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack","(P)");
 	DrawCompare(h12orddata,h12ordstack,"skiplight order");
@@ -210,15 +210,15 @@ void skiplightreweightdraw()
 	plotymax = 0.5;
 	plotthirdline  = "CSV>0.9";
 
-	DrawCompare(h12dphidata,h12dphiall,"#Delta#phi");
-	DrawCompare(hSLdphidata,hSLdphiall,"#Delta#phi");
+	// DrawCompare(h12dphidata,h12dphiall,"#Delta#phi");
+	// DrawCompare(hSLdphidata,hSLdphiall,"#Delta#phi");
 
 
 	Normalize({hSLdphireweighted,h12dphireweighted});
 	SetMC({hSLdphireweighted,h12dphireweighted});
 
-	DrawCompare(h12dphidata,h12dphireweighted,"#Delta#phi");
-	DrawCompare(hSLdphidata,hSLdphireweighted,"#Delta#phi");
+	// DrawCompare(h12dphidata,h12dphireweighted,"#Delta#phi");
+	// DrawCompare(hSLdphidata,hSLdphireweighted,"#Delta#phi");
 
 	//plotymax = 0.5;
 
@@ -242,15 +242,15 @@ void skiplightreweightdraw()
 	plotylog = false;
 	plotymax = 0.25;
 //only interesting dphi region
-	DrawCompare(h12dphiNSdata,h12dphiNSall);
-	DrawCompare(hSLdphiNSdata,hSLdphiNSall);
+	// DrawCompare(h12dphiNSdata,h12dphiNSall);
+	// DrawCompare(hSLdphiNSdata,hSLdphiNSall);
 
 
-	Normalize({hSLdphiNSreweighted,h12dphiNSreweighted});
-	SetMC({hSLdphiNSreweighted,h12dphiNSreweighted});
+	// Normalize({hSLdphiNSreweighted,h12dphiNSreweighted});
+	// SetMC({hSLdphiNSreweighted,h12dphiNSreweighted});
 
-	DrawCompare(h12dphiNSdata,h12dphiNSreweighted);
-	DrawCompare(hSLdphiNSdata,hSLdphiNSreweighted);
+	// DrawCompare(h12dphiNSdata,h12dphiNSreweighted);
+	// DrawCompare(hSLdphiNSdata,hSLdphiNSreweighted);
 
 
 

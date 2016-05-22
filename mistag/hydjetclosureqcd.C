@@ -3,6 +3,25 @@
 #include "../helpers/config.h"
 #include "../helpers/physics.h"
 
+bool IsSignal2(dict d)
+{
+  return d["subid2"]==0 && d["refpt2"]>20;
+}
+
+bool NearSide2(dict d)
+{
+  //return d["dphiSL1"]<PI13;
+
+  float dphi = d["dphi21"];
+  float deta = abs(d["jteta1"]-d["jteta2"]); 
+  return (dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1);
+}
+
+bool AwaySide2(dict d)
+{
+  return d["dphi21"]>PI23;
+}
+
 void checkclosure()
 {
   vector<TH1F *>hsig(Nbins);
@@ -15,7 +34,7 @@ void checkclosure()
 
 
   for (int i=0;i<Nbins;i++) {
-    seth(10,0,1);
+    buildh(10,0,1);
     hsig[i] = geth(Form("hsig%d",i),Form("Signal away-side %s;x_{J}",binnames[i].Data())) ;
     hasd[i] = geth(Form("hasd%d",i),Form("Measured away-side %s;x_{J}",binnames[i].Data()));
     hbkg[i] = geth(Form("hbkg%d",i),Form("Near-side %s;x_{J}",binnames[i].Data()));
@@ -28,21 +47,21 @@ void checkclosure()
 
 
 
-  auto fmcPb = config.getfile_djt("mcPbbfa");
+  auto fmcPb = config.getfile_djt("mcPbqcd");
 
-  Fill(fmcPb,{"pthat","weight","jtpt1","refpt1","bProdCode","jtptSL","refptSL","dphiSL1","refparton_flavorForB1","subidSL","bin","pairCodeSL1","discr_csvV1_1","jteta1","jtetaSL"},[&] (dict d) {
+  Fill(fmcPb,{"pthat","weight","jtpt1","refpt1","jtpt2","dphi21","subid2","refpt2","jteta1","jteta2","bin"},[&] (dict d) {
       if (d["pthat"]<pthatcut) return;
       
-      if (d["jtpt1"]>pt1cut && d["refpt1"]>50 && abs(d["refparton_flavorForB1"])==5 && d["jtptSL"]>pt2cut) {
+      if (d["jtpt1"]>pt1cut && d["refpt1"]>50 && d["jtpt2"]>pt2cut) {
         int bin = getbinindex(d["bin"]);
         
-        float xj = d["jtptSL"]/d["jtpt1"];
-        float w = weight1SLPbPb(d);
-        if (AwaySide(d)) hasd[bin]->Fill(xj, w);
-        if (AwaySide(d) && IsSignal(d)) hsig[bin]->Fill(xj,w);
+        float xj = d["jtpt2"]/d["jtpt1"];
+        float w = d["weight"];
+        if (AwaySide2(d)) hasd[bin]->Fill(xj, w);
+        if (AwaySide2(d) && IsSignal2(d)) hsig[bin]->Fill(xj,w);
 
-        if (NearSide(d)) hbkg[bin]->Fill(xj,w);
-        if (NearSide(d) && !IsSignal(d)) hhyj[bin]->Fill(xj,w);
+        if (NearSide2(d)) hbkg[bin]->Fill(xj,w);
+        if (NearSide2(d) && !IsSignal2(d)) hhyj[bin]->Fill(xj,w);
       }
         
 
@@ -53,23 +72,21 @@ void checkclosure()
 
 
   for (int i=0;i<Nbins;i++) {
-    hsub[i]->Add(hasd[i],hbkg[i],1,-1*bkgfractionInNearSide[i]);
+    hsub[i]->Add(hasd[i],hbkg[i],1,-1);
     hsbn[i]->Add(hasd[i],hbkg[i],1,-1);
     hshj[i]->Add(hasd[i],hhyj[i],1,-1);
   }
 //  for (int i=0;i<Nbins;i++) 
 //    hincsub[i]->Add(hincasd[i],hincbkg[i],1,-1);
 
-  seth(bins);//Nbins,0,100);
-  auto hcentrSubSIG = geth("hcentrSubSIG","Signal;bin;#LTx_{J}#GT");
-  auto hcentrSubASD = geth("hcentrSubASD","Unsubtracted;bin;#LTx_{J}#GT");
+  buildh(bins);//Nbins,0,100);
+  auto hcentrSubSIG = geth("hcentrSubSIG","Signal;bin;<x_{J}>");
+  auto hcentrSubASD = geth("hcentrSubASD","Unsubtracted;bin;<x_{J}>");
 
-  auto hcentrSubBKS = geth("hcentrSubBKS","Subtracted w/o bkg scaling;bin;#LTx_{J}#GT");
-  auto hcentrSubCLS = geth("hcentrSubCLS","Subtracted with bkg scaling;bin;#LTx_{J}#GT");
-  auto hcentrSubHJS = geth("hcentrSubHJS","Subtracted Hydjet;bin;#LTx_{J}#GT");
+  auto hcentrSubBKS = geth("hcentrSubBKS","Naive subtraction;bin;<x_{J}>");
+  auto hcentrSubCLS = geth("hcentrSubCLS","Subtracted;bin;<x_{J}>");
+  auto hcentrSubHJS = geth("hcentrSubHJS","Subtracted Hydjet;bin;<x_{J}>");
 
-
-  plotlegendpos = BottomRight;
 
 
   for (int i=0;i<Nbins;i++) {
@@ -84,52 +101,40 @@ void checkclosure()
   }
 
 
-  plotymin = 0.55;//0.4;
-  plotymax = 0.7;//0.8;
+  plotymin = 0.65;//0.4;
+  plotymax = 0.75;//0.8;
   plotlegendpos = BottomRight;
   aktstring = "";
 
 
   plotputmean = false;
   //hcentrSubHJS - hydjet only subtraction
-  // SetMC({hcentrSubSIG, hcentrSubBKS, hcentrSubASD});
-  // SetData({hcentrSubCLS});
-
-  hcentrSubSIG->SetMarkerStyle(kOpenSquare);
-  hcentrSubBKS->SetMarkerStyle(kOpenSquare);
-  hcentrSubASD->SetMarkerStyle(kOpenSquare);
-  hcentrSubCLS->SetMarkerStyle(kFullCircle);
-
-
+  SetMC({hcentrSubSIG, hcentrSubBKS, hcentrSubASD});
+  SetData({hcentrSubCLS});
   hcentrSubSIG->SetMarkerColor(TColor::GetColorDark(2)); hcentrSubSIG->SetLineColor(TColor::GetColorDark(2));
   hcentrSubBKS->SetMarkerColor(TColor::GetColorDark(3)); hcentrSubBKS->SetLineColor(TColor::GetColorDark(3));
   hcentrSubASD->SetMarkerColor(TColor::GetColorDark(4)); hcentrSubASD->SetLineColor(TColor::GetColorDark(4));
   hcentrSubCLS->SetMarkerColor(TColor::GetColorDark(3)); hcentrSubCLS->SetLineColor(TColor::GetColorDark(3));
 
   plotoverwritecolors = false;
-  plotlegenddx = -0.15;
-
-  Draw({hcentrSubSIG,hcentrSubASD, hcentrSubBKS, hcentrSubCLS});
+  Draw({hcentrSubSIG, hcentrSubBKS, hcentrSubASD, hcentrSubCLS});
 
 
   auto syst = (TH1F *)hcentrSubSIG->Clone("syst");
   syst->Add(hcentrSubCLS,-1);
   map<TString,float> m;
-  for (unsigned i=0;i<bins.size()-1;i++) {
-    float misclosure = syst->GetBinContent(i+1);
-    float err = hcentrSubCLS->GetBinError(i+1);
-    m[Form("closure%d%d",(int)bins[i],(int)bins[i+1])]=sqrt(misclosure*misclosure+err*err);
-  }
+  for (unsigned i=0;i<bins.size()-1;i++)
+    m[Form("closure%d%d",(int)bins[i],(int)bins[i+1])]=syst->GetBinContent(i+1);
 
-  WriteToFile(plotfoldername+"/hydjetclosuresyst.root",m);
-
+  WriteToFile(plotfoldername+"/hydjetclosureqcdsyst.root",m);
 
 }
 
 
 
-void hydjetclosure(bool firstRun = true)
+void hydjetclosureqcd(bool firstRun = true)
 {
-  macro m("hydjetclosureplus10p",firstRun);
+  macro m("hydjetclosureqcd",firstRun);
+  //looptupledryrun = true;
   checkclosure();
 }
