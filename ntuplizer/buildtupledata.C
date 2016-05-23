@@ -10,7 +10,9 @@
 TString jettree;
 vector<TString> subfoldernames;
 
-bool subTag = false; //IF TRUE - SUBLEDING JET MUST BE TAGGED!!!
+bool PbPb;
+
+bool mockSL = false; //IF TRUE - SUBLEDING JET MUST BE TAGGED!!!
 
 TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
 TString samplesfolder="/data_CMS/cms/mnguyen/bJet2015/data/";
@@ -143,7 +145,7 @@ int triggeredLeadingJetCalo(float leadjtphi, float leadjteta, vector<Double_t> &
 }
 
 
-void Init(bool PbPb, TString sample)
+void Init(TString sample)
 {
   if (!PbPb && sample=="jpf") {
     subfoldernames = {"pp_PFLowPt/constSubV1_csvV2","pp_PFHighPt/constSubV1_csvV2"};
@@ -156,18 +158,10 @@ void Init(bool PbPb, TString sample)
     subfoldernames = {"PbPb_Jet6080/puTowerExclLimitV2/0000","PbPb_Jet6080/puTowerExclLimitV2/0001","PbPb_Jet6080/puTowerExclLimitV2/0002"};
     weights = {1.,1.,1.};
   }
-  // else if (PbPb && sample=="j60") {
-  //   subfoldernames = {"PbPb_Jet60"};
-  //   weights = {1.};
-  // }
   else if (PbPb && sample=="j80") {
     subfoldernames = {"PbPb_Jet6080/puTowerExclLimitV2/0000","PbPb_Jet6080/puTowerExclLimitV2/0001","PbPb_Jet6080/puTowerExclLimitV2/0002"};
     weights = {1.,1.,1.};
   }
-  // else if (PbPb && sample=="j4_") {
-  //   subfoldernames = {"PbPb_Jet40/oldProd"};
-  //   weights = {1.};
-  // }
   else cout<<"Don\'t know collision type: PbPb"<<PbPb<<", sample "<<sample<<endl;
 }
 
@@ -238,17 +232,60 @@ void updateweight(TString filename)
 
 }
 
+TF1 *fpp = 0, *fPb1, *fPb2, *fPb3;
+
+void loadmockSLfunc()
+{
+  //not working for now b/c of the root version incompatibility
+  // auto file = new TFile("BXmistagfunc.root");
+  // fpp = (TF1 *)file->Get("fpp");
+  // fPb1 = (TF1 *)file->Get("fPb1");
+  // fPb2 = (TF1 *)file->Get("fPb2");
+  // fPb3 = (TF1 *)file->Get("fPb3");
+
+  fpp = new TF1("fpp","expo",40,200);
+  fPb1 = new TF1("fPb1","expo",40,200);
+  fPb2 = new TF1("fPb2","expo",40,200);
+  fPb3 = new TF1("fPb3","expo",40,200);
+  fpp->SetParameters(-4.94207,-0.00241127);
+  fPb1->SetParameters(-4.01644,-0.0114637);
+  fPb2->SetParameters(-4.6333,-0.00971588);
+  fPb3->SetParameters(-5.03225,-0.00564332);
+
+
+}
+
+//condition on SL jet whether it's true SL (csv>0.9) or randomized using P(tag|L)
+bool SLcondition(float csv, float pt, float bin)
+{
+  if (!mockSL) return csv>0.9;
+
+  //mock SL!
+  if (fpp == 0) loadmockSLfunc();
+
+  float r = gRandom->Uniform();
+
+  if (!PbPb) return r<fpp->Eval(pt);
+
+  if (bin<20)            return r<fPb1->Eval(pt);
+  if (bin>=20 && bin<60) return r<fPb2->Eval(pt);
+  if (bin>=60)           return r<fPb3->Eval(pt);
+
+  cout << "Should never get to this point" << endl;
+  return false;
+}
+
 
 void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jetalgo = "akVs4PFJetAnalyzer")
 {
   if (!dt(code)) { cout<<"Not data: "<<code<<", exiting..."<<endl; return;}
   
-  bool PbPb = isPbPb(code);
+  PbPb = isPbPb(code);
   TString sample = getSample(code);
   jettree = getjettree(code);
-  subTag = subTagging(code);
+  mockSL = IsMockSL(code);
 
-  Init(PbPb, sample);
+  Init(sample);
 
   TString outputfilenamedj = outputfolder+"/"+code+"_djt.root";
   TString outputfilenameinc = outputfolder+"/"+code+"_inc.root";
@@ -486,7 +523,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
             if (!foundSL) SLord++;
 
           //ind1!=j otherwise SL will be = J1
-            if (foundJ1 && ind1!=j && !foundSL && discr_csvV1[j]>0.9) {
+            if (foundJ1 && ind1!=j && !foundSL && SLcondition(discr_csvV1[j], jtpt[j], *bin)) {
               indSL = j;
               foundSL = true;
             }  
