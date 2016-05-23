@@ -17,7 +17,7 @@ bool mockSL = false; //IF TRUE - SUBLEDING JET MUST BE TAGGED!!!
 TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
 TString samplesfolder="/data_CMS/cms/mnguyen/bJet2015/data/";
 
-
+int maxrepeat = 1;
 const int NaN = -999;
 
 const float hiHFcut = 5500;
@@ -285,6 +285,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   jettree = getjettree(code);
   mockSL = IsMockSL(code);
 
+  if (mockSL) maxrepeat = 10;
+
   Init(sample);
 
   TString outputfilenamedj = outputfolder+"/"+code+"_djt.root";
@@ -427,17 +429,27 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     int evCounter = 0;
     TTimeStamp t0;
     
-    //for testing - only 10% of data
-    //while (evCounter<2*onep && reader.Next()) {
-    //go full file
-    while (reader.Next()) {
-      readerhlt.Next();
-      readerevt.Next();
-      readerskim.Next();
-      readercsv60object.Next();
-      readercsv80object.Next();
-      readerCalo60object.Next();
-      readerCalo80object.Next();
+    //allows repeating event maxrepeat times
+    int repeatcounter = 0;
+    bool continuereading = true;
+    while (true) {
+      repeatcounter++;
+      if (repeatcounter>=maxrepeat) {
+        continuereading = reader.Next();
+        readerhlt.Next();
+        readerevt.Next();
+        readerskim.Next();
+        readercsv60object.Next();
+        readercsv80object.Next();
+        readerCalo60object.Next();
+        readerCalo80object.Next();
+        repeatcounter = 0;
+      }
+      if (!continuereading) break;
+
+
+      //for testing - only 2% of data
+      //if (evCounter>2*onep) break;
 
       evCounter++;
       if (evCounter%onep==0) {
