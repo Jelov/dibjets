@@ -370,7 +370,7 @@ void do_buildtuplemc(TString code)
   //put only pthat weight
   TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:")+
       "bProdCode:cProdCode:dijet:bkgLeadingJet:numTagged:"
-      "genpt1:geneta1:genphi1:gensubid:"+
+      "genpt1:geneta1:genphi1:gensubid1:genpt2:geneta2:genphi2:gensubid2:genpt3:geneta3:genphi3:gensubid3:"+
       "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
       "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
       "subid3:refpt3:rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:refparton_flavorForB3:refparton_flavorProcess3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:pairCode31:pairCode32:"+
@@ -536,7 +536,7 @@ void do_buildtuplemc(TString code)
       bool bkgJ1 = false; // is leading jet coming from background?
 
       int numTagged = 0;
-      int genmaxind = *ngen>0 ? 0 : -1;
+      int genind1 = *ngen>0 ? 0 : -1, genind2 = -1, genind3 = -1;
 
 
       if (abs(*vz)<15) {//event-level cuts, if not passed all foundXY = false
@@ -615,9 +615,13 @@ void do_buildtuplemc(TString code)
 
           }
 
-	for (int ig=0;ig<*ngen;ig++)
-	  if (genpt[ig]>genpt[genmaxind])
-	    genmaxind = ig;
+	        for (int ig=0;ig<*ngen;ig++)
+            if (geneta[ig]<2.0)
+              if (genpt[ig]>genpt[genind1]) {
+                genind3 = genind2;
+                genind2 = genind1;
+                genind1 = ig;
+              }
 
       }
 
@@ -628,12 +632,22 @@ void do_buildtuplemc(TString code)
         newFlavorProcess ? (float)*(*bProdCode) : NaN,
         newFlavorProcess ? (float)*(*cProdCode) : NaN,
         foundJ1 && foundJ2 ? (float)1 : (float)0, (float)bkgJ1,
-	     (float)numTagged,
+       (float)numTagged,
 
-	      genmaxind!=-1 ? genpt[genmaxind] : NaN,
-	      genmaxind!=-1 ? geneta[genmaxind] : NaN,
-	      genmaxind!=-1 ? genphi[genmaxind] : NaN,
-	      genmaxind!=-1 ? (float)gensubid[genmaxind] : NaN,
+        genind1!=-1 ? genpt[genind1] : NaN,
+        genind1!=-1 ? geneta[genind1] : NaN,
+        genind1!=-1 ? genphi[genind1] : NaN,
+        genind1!=-1 ? (float)gensubid[genind1] : NaN,
+
+        genind2!=-1 ? genpt[genind2] : NaN,
+        genind2!=-1 ? geneta[genind2] : NaN,
+        genind2!=-1 ? genphi[genind2] : NaN,
+        genind2!=-1 ? (float)gensubid[genind2] : NaN,
+
+        genind3!=-1 ? genpt[genind3] : NaN,
+        genind3!=-1 ? geneta[genind3] : NaN,
+        genind3!=-1 ? genphi[genind3] : NaN,
+        genind3!=-1 ? (float)gensubid[genind3] : NaN,
 
         foundJ1 ? (float)subid[ind1] : NaN,
         foundJ1 ? refpt[ind1] : NaN,

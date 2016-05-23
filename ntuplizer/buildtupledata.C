@@ -425,7 +425,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         weight = *CaloJet60;
 
       if (PbPb && sample=="j80")
-        weight = *CaloJet80 && !*CaloJet60;
+        weight = *CaloJet80;
 
       ntevt->Fill(weight, *bin, *vz, *hiHF, *CSV60, *CSV80);
 
