@@ -20,17 +20,17 @@ void findfunc()
   // hn->Fit(f)
   
 
-  auto fpp = new TF1("fpp","expo",40,200);
-  auto f1 = new TF1("fPb1","expo",40,200);
-  auto f2 = new TF1("fPb2","expo",40,200);
-  auto f3 = new TF1("fPb3","expo",40,200);
+  auto fpp = new TF1("fpp;p_{T} [GeV];mistag probability","expo",40,200);
+  auto f1 = new TF1("fPb1;p_{T} [GeV];mistag probability","expo",40,200);
+  auto f2 = new TF1("fPb2;p_{T} [GeV];mistag probability","expo",40,200);
+  auto f3 = new TF1("fPb3;p_{T} [GeV];mistag probability","expo",40,200);
   seth(18,40,200);
 
 
   auto ntpp = (TTree *)config.getfile_inc("mcppqcd")->Get("nt");
 
   auto hd = geth("hd");
-  auto hn = geth("hn");
+  auto hn = geth("hn",";p_{T} [GeV];mistag probability");
   ntpp->Project("hd","jtpt","weight*(pthat>50 && refpt>20 && abs(refparton_flavorForB)!=5)");
   ntpp->Project("hn","jtpt","weight*(pthat>50 && refpt>20 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn->Divide(hn,hd,1,1,"B");
@@ -39,25 +39,45 @@ void findfunc()
   auto nt = (TTree *)config.getfile_inc("mcPbqcd")->Get("nt");
 
   auto hd1 = geth("hd1");
-  auto hn1 = geth("hn1");
+  auto hn1 = geth("hn1",";p_{T} [GeV];mistag probability");
   nt->Project("hd1","jtpt","weight*(pthat>50 && refpt>20 && bin < 20 && abs(refparton_flavorForB)!=5)");
   nt->Project("hn1","jtpt","weight*(pthat>50 && refpt>20 && bin < 20 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn1->Divide(hn1,hd1,1,1,"B");
   hn1->Fit(f1);
 
   auto hd2 = geth("hd2");
-  auto hn2 = geth("hn2");
+  auto hn2 = geth("hn2",";p_{T} [GeV];mistag probability");
   nt->Project("hd2","jtpt","weight*(pthat>50 && refpt>20 && bin>=20 && bin<60 && abs(refparton_flavorForB)!=5)");
   nt->Project("hn2","jtpt","weight*(pthat>50 && refpt>20 && bin>=20 && bin<60 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn2->Divide(hn2,hd2,1,1,"B");
   hn2->Fit(f2);
 
   auto hd3 = geth("hd3");
-  auto hn3 = geth("hn3");
+  auto hn3 = geth("hn3",";p_{T} [GeV];mistag probability");
   nt->Project("hd3","jtpt","weight*(pthat>50 && refpt>20 && bin>=60 && abs(refparton_flavorForB)!=5)");
   nt->Project("hn3","jtpt","weight*(pthat>50 && refpt>20 && bin>=60 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn3->Divide(hn3,hd3,1,1,"B");
   hn3->Fit(f3);
+
+
+  // because of backward imcompatibility with root version on polui
+
+  cout<<"auto fpp = new TF1(\"fpp\",\"expo\","<<fpp->GetXmin()<<","<<fpp->GetXmax()<<");"<<endl;
+  cout<<"auto fPb1 = new TF1(\"fPb1\",\"expo\","<<f1->GetXmin()<<","<<f1->GetXmax()<<");"<<endl;
+  cout<<"auto fPb2 = new TF1(\"fPb2\",\"expo\","<<f2->GetXmin()<<","<<f2->GetXmax()<<");"<<endl;
+  cout<<"auto fPb3 = new TF1(\"fPb3\",\"expo\","<<f3->GetXmin()<<","<<f3->GetXmax()<<");"<<endl;
+
+
+  cout<<"fpp->SetParameters("<<fpp->GetParameter(0)<<","<<fpp->GetParameter(1)<<");"<<endl;
+  cout<<"fPb1->SetParameters("<<f1->GetParameter(0)<<","<<f1->GetParameter(1)<<");"<<endl;
+  cout<<"fPb2->SetParameters("<<f2->GetParameter(0)<<","<<f2->GetParameter(1)<<");"<<endl;
+  cout<<"fPb3->SetParameters("<<f3->GetParameter(0)<<","<<f3->GetParameter(1)<<");"<<endl;
+
+  // hn->SetMinimum(0);
+  // hn1->SetMinimum(0);
+  // hn2->SetMinimum(0);
+  // hn3->SetMinimum(0);
+
 
   auto fout = new TFile("../ntuplizer/BXmistagfunc.root","recreate");
   fout->cd();
@@ -84,6 +104,9 @@ void findfunc()
   l->AddEntry(f2,"20<bin<60","L");
   l->AddEntry(f3,"bin>60","L");
 
+  f1->GetXaxis()->SetTitle("p_{T} [GeV]");
+  f1->GetYaxis()->SetTitle("mistag probability");
+
 
   f1->Draw();
   f2->Draw("same");
@@ -92,8 +115,38 @@ void findfunc()
 
   l->Draw();
 
+  SavePlots(c,"func");
 
-  c->SaveAs("func.pdf");
+  float x = 0.55;
+  float y = 0.75;
+
+  auto t= new TLatex();
+
+  auto cpp = getc();
+  hn->Draw();
+  fpp->Draw("same");
+  t->DrawLatexNDC(x,y,"pp");
+  SavePlots(cpp,"pp");
+
+
+  auto c1 = getc();
+  hn1->Draw();
+  f1->Draw("same");
+  t->DrawLatexNDC(x,y,"PbPb 0-10%");
+  SavePlots(c1,"bin_0_20");
+
+  auto c2 = getc();
+  hn2->Draw();
+  f2->Draw("same");
+  t->DrawLatexNDC(x,y,"PbPb 10-30%");
+  SavePlots(c2,"bin_20_60");
+
+  auto c3 = getc();
+  hn3->Draw();
+  f3->Draw("same");
+  t->DrawLatexNDC(x,y,"PbPb 30-100%");
+  SavePlots(c3,"bin_60");
+
 
   fout->Close();
 
@@ -132,7 +185,7 @@ void findfunc()
 
 void BXmistags()
 {
-  // macro m("BXmistags",true);
+  macro m("BXmistags",true);
   findfunc();
   // run();
 }

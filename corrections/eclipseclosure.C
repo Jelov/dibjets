@@ -25,11 +25,45 @@ vector<float> binbounds = {0,5,10,15,20,30,40,50,60,200};
 //NS MC pthat>50
 vector<float> binmean = {1.76756, 7.02132,  11.8198, 17.0293, 23.8897, 34.1438, 44.1978, 54.1609,  91.5871};
 
+// wrong - without underflow
 vector<float> par0mc = {310.123,  257.007,  338.152, 278.773, 156.73,  39.3968, 30.3697, 7.18124,  2.24178};
 vector<float> par1mc = {0.0931636,0.0994282,0.114211,0.120011,0.118508,0.101331,0.107097,0.0830526,0.0612657};
-// NS data  
+
+//???correct - with underflow bin
+// //vector<float> par0mc = {340.855,285.031,379.29,312.579,176.524,43.3339,33.695,7.64328,1.10267};
+// //vector<float> par1mc = {0.0931846,0.0994929,0.114226,0.1199,0.118522,0.101184,0.107032,0.0827885,0.059788};
+
+
+//UPDATED WITH UNDERFLOW BIN FIX!
+// vector<float> par0mc = {282.615,233.15,303.303,248.589,135.641,26.4813,19.1192,5.8134,0.89925};
+// vector<float> par1mc = {0.0931685,0.0994672,0.114318,0.120107,0.117998,0.0954307,0.0998593,0.0806762,0.0583244};
+
+//plus 1 GeV
+// vector<float> par0mc = {307.678,260.455,345.329,293.864,153.239,35.5853,24.7877,6.85737,0.984627};
+// vector<float> par1mc = {0.0930313,0.0997206,0.114631,0.121013,0.118095,0.0992568,0.10326,0.0818517,0.0587724};
+
+//minus 1 GeV
+// vector<float> par0mc = {255.119,213.95,277.18,225.139,122.169,19.9603,12.4845,5.3611,0.791768};
+// vector<float> par1mc = {0.0930073,0.099771,0.114794,0.120535,0.118287,0.0917484,0.0935159,0.0802547,0.0569541};
+
+
+
+// NS data -- old, without underflow
 vector<float> par0dt = {271.692,254.36,196.266,187.834,107.866,67.3588,42.9682,16.8285,5.79053};
 vector<float> par1dt = {0.0949912,0.104842,0.107888,0.114252,0.111524,0.109608,0.107457,0.0888285,0.0624925};
+
+//Data - UPDATED!!!
+// vector<float> par0dt = {247.354,229.656,175.195,160.035,70.5693,29.6137,10.4073,3.33657,0.417425};
+// vector<float> par1dt = {0.0950106,0.104889,0.107828,0.113688,0.107395,0.101935,0.0942873,0.08042,0.054413};
+
+//min 1 GeV
+// vector<float> par0dt = {224.496,205.743,157.371,147.157,60.5557,26.7927,7.98273,2.9463,0.368765};
+// vector<float> par1dt = {0.0950121,0.104765,0.107892,0.114274,0.106524,0.102094,0.0908525,0.0795072,0.0532526};
+
+//plus 1 GeV
+// vector<float> par0dt = {271.038,251.323,195.291,180.785,79.2452,37.3225,14.0793,3.87185,0.479263};
+// vector<float> par1dt = {0.0949957,0.104601,0.107896,0.113841,0.107592,0.104523,0.0983239,0.0816622,0.0559585};
+
 
 auto fecl = new TF1("feclipse","exp(-[0]*exp(-[1]*x))");
 
@@ -41,6 +75,7 @@ int geteclbinindex(float bin)
 }
 
 
+/////OLD CODE!!!!!
 float eclipseWeightdt(float jtpt2, float bin)
 {
   // return 1;
@@ -80,6 +115,58 @@ float eclipseWeightmc(float jtpt2, float bin)
   if (p<0.05) p=0.05;
   return 1/p;
 }
+/////OLD CODE!!!!!
+
+//NEW CODE!!!!!
+// TGraph *gpar0mc=0, *gpar1mc=0;
+// TGraph *gpar0dt=0, *gpar1dt=0;
+// void loadcorr()
+// {
+
+//   //for the moment, binbounds work better than binmeans
+//   gpar0mc = new TGraph(binmean.size(),&binmean[0],&par0mc[0]);//binbounds
+//   gpar1mc = new TGraph(binmean.size(),&binmean[0],&par1mc[0]);//binmean
+
+//   gpar0dt = new TGraph(binmean.size(),&binmean[0],&par0dt[0]);
+//   gpar1dt = new TGraph(binmean.size(),&binmean[0],&par1dt[0]);
+
+// }
+
+// float eclipseWeightmc(float jtpt2, float bin)
+// {
+//   if (gpar0mc==0)  loadcorr();
+
+//   // return 1;
+//   int b = geteclbinindex(bin);
+
+// // float par0 = par0mc[b];
+// // float par1 = par1mc[b];
+
+//   float par0 = gpar0mc->Eval(bin);
+//   float par1 = gpar1mc->Eval(bin);
+
+
+//   fecl->SetParameters(par0,par1);
+//   float p = fecl->Eval(jtpt2);
+//   if (p<0.05) p=0.05;
+//   return 1/p;
+// }
+
+
+// float eclipseWeightdt(float jtpt2, float bin)
+// {
+//   if (gpar0dt==0)  loadcorr();
+//   int b = geteclbinindex(bin);
+
+//   float par0 = gpar0dt->Eval(bin);
+//   float par1 = gpar1dt->Eval(bin);
+
+//   fecl->SetParameters(par0,par1);
+//   float p = fecl->Eval(jtpt2);
+//   if (p<0.05) p=0.05;
+//   return 1/p;
+// }
+
 
 float eclipseWeightmcNoCutoff(float jtpt2, float bin)
 {
@@ -134,6 +221,8 @@ void Plot(TString filename, TH1F *hxjAStrue,TH1F *hxjASsiguncorr, TH1F *hxjASsig
 
 }
 
+vector<float> xjtrue, xjsubuncorr,xjunsub,xjsubcorr;
+vector<float> exjtrue, exjsubuncorr,exjunsub,exjsubcorr;
 
 void checkclosure(int binMin, int binMax)
 {
@@ -232,15 +321,108 @@ hxjbkgsubuncorr->SetTitle("After subtraction");
 Plot(Form("closureofbkgsubonly%d%d",binMin,binMax),hxjASsiguncorr,hxjASuncorr,hxjbkgsubuncorr);
 
 
+xjtrue.push_back(hxjAStrue->GetMean());
+exjtrue.push_back(hxjAStrue->GetMeanError());
+
+xjsubuncorr.push_back(hxjbkgsubuncorr->GetMean());
+exjsubuncorr.push_back(hxjbkgsubuncorr->GetMeanError());
+
+xjunsub.push_back(hxjASuncorr->GetMean());
+exjunsub.push_back(hxjASuncorr->GetMeanError());
+
+xjsubcorr.push_back(hxjASclos->GetMean());
+exjsubcorr.push_back(hxjASclos->GetMeanError());
+
+
+}
+
+void fillhistbins(TH1F *h, vector<float> x, vector<float> e)
+{
+  for (unsigned i=0;i<x.size();i++) {
+    h->SetBinContent(i+1,x[i]);
+    h->SetBinError(i+1,e[i]);
+  }
 }
 
 void eclipseclosure()
 {
-  macro m("eclipseclosureNS_0519");
+  macro m("eclipseclosure");
 
 
   checkclosure(0,20);
   checkclosure(20,60);
   checkclosure(60,200);
+
+  seth(3,0,3);
+  auto hxjtrue = geth("hxjtrue","Truth");
+  auto hxjunsub = geth("hxjunsub","Raw");
+  auto hxjsubuncorr = geth("hxjsubuncorr","Sideband subtracted");
+  auto hxjsubcorr = geth("hxjsubcorr","+ Eclipse correction");
+
+  fillhistbins(hxjtrue, xjtrue, exjtrue);
+  fillhistbins(hxjsubuncorr, xjsubuncorr, exjsubuncorr);
+  fillhistbins(hxjunsub, xjunsub, exjunsub);
+  fillhistbins(hxjsubcorr, xjsubcorr, exjsubcorr);
+
+
+  vector<TString> axnames;
+ for (auto s:binnames) axnames.push_back(s);
+  RenameBinLabelsX(hxjtrue,axnames);
+  RenameBinLabelsX(hxjsubuncorr,axnames);
+  RenameBinLabelsX(hxjunsub,axnames);
+  RenameBinLabelsX(hxjsubcorr,axnames);  
+
+
+  plotlegendpos = TopLeft;
+  // Draw(hmcPbdphi);
+
+  aktstring = "";
+
+  ShuffleBins(hxjtrue,{3,2,1});
+  ShuffleBins(hxjsubuncorr,{3,2,1});
+  ShuffleBins(hxjunsub,{3,2,1});
+  ShuffleBins(hxjsubcorr,{3,2,1});
+
+  plotymin = 0.5;
+  plotymax = 0.8;
+
+  plotputmean = false;
+
+SetInc({hxjtrue,hxjsubuncorr,hxjunsub,hxjsubcorr});
+hxjtrue->SetMarkerColor(kBlack);
+hxjsubuncorr->SetMarkerColor(kBlack);
+
+hxjtrue->SetMarkerSize(2.);
+hxjsubuncorr->SetMarkerSize(1.4);
+hxjunsub->SetMarkerSize(1.4);
+hxjsubcorr->SetMarkerSize(1.4);
+
+
+hxjtrue->SetMarkerStyle(kOpenDiamond);
+hxjsubuncorr->SetMarkerStyle(kOpenSquare);
+hxjunsub->SetMarkerStyle(kOpenCircle);
+hxjsubcorr->SetMarkerStyle(kFullCircle);
+
+  hxjsubcorr->SetMinimum(0.55);
+  hxjsubcorr->SetMaximum(0.8);
+
+  auto c=getc();
+  auto l = getLegend();
+  l->AddEntry(hxjtrue,hxjtrue->GetTitle(),"P");
+  l->AddEntry(hxjunsub,hxjunsub->GetTitle(),"P");
+  l->AddEntry(hxjsubuncorr,hxjsubuncorr->GetTitle(),"P");
+  l->AddEntry(hxjsubcorr,hxjsubcorr->GetTitle(),"P");
+
+
+  hxjsubcorr->Draw();
+  hxjtrue->Draw("same");
+  hxjsubuncorr->Draw("same");
+
+  hxjunsub->Draw("same");
+  l->Draw();
+
+
+  SavePlots(c,"eclipsedemonstration");
+  // Draw({hxjtrue,hxjsubuncorr,hxjunsub,hxjsubcorr});
 
 }

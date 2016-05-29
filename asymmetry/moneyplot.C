@@ -148,10 +148,11 @@ hdtincsys->SetBinError(2,0.023);
 hdtincsys->SetBinError(3,0.026);
 hdtincsys->SetBinError(4,0.036);
 
+
 hdtbjtsys->SetBinError(1,0.023);//0.023);
-hdtbjtsys->SetBinError(2,0.024);//0.023);
-hdtbjtsys->SetBinError(3,0.027);//0.024);
-hdtbjtsys->SetBinError(4,0.033);//0.027);
+hdtbjtsys->SetBinError(2,0.025);//0.023);
+hdtbjtsys->SetBinError(3,0.028);//0.024);
+hdtbjtsys->SetBinError(4,0.035);//0.027);
 
 
 

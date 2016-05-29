@@ -44,7 +44,6 @@ float buildymax = 1;
 int buildndiv = -1;
 vector<TH1 *> allhists;
 
-
 int ccounter = 0;
 TCanvas *getc()
 {
@@ -298,6 +297,13 @@ void MakeOverflowVisibleAll()
     h->SetBinContent(1,h->GetBinContent(0)+h->GetBinContent(1));    
   }
 }
+
+TString FloatToStr(float x)
+{
+  if (abs(x-(int)x)<0.0001) return TString::Format("%d",(int)x);
+  else return TString::Format("%.1f",x);
+}
+
 
 TLegend *getLegend()
 {
@@ -1312,6 +1318,33 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
   //c1->SaveAs(Form("%s/Compare_%s_%s.pdf",plotsfolder.Data(),h1->GetTitle(),h2->GetTitle()));
 
 }
+
+
+TGraph *getCDFgraph(TH1F *h)
+{
+  auto v = h->GetIntegral();
+  vector<double>vx;
+  for (int i=0;i<=h->GetNbinsX();i++) vx.push_back(h->GetBinCenter(i));
+  return new TGraph(h->GetNbinsX(), &vx[0],v);
+}
+
+TH1F *getCDF(TH1F *h)
+{
+  auto v = h->GetIntegral();
+  vector<double>vx;
+
+  //create clone by size
+  // int n = h->GetNbinsX();
+  // float w = h->GetBinWidth(0);
+  // float xmin = h->GetBinLowEdge(0);
+
+  // seth(n,xmin,xmin+n*w); //not very good as it can interfere with outer calls
+  // auto res = geth(Form("%s_cdf",h->GetName()));//
+  auto res = (TH1F *)h->Clone(Form("%s_cdf",h->GetName()));
+  for (int i=1;i<=h->GetNbinsX();i++) res->SetBinContent(i,v[i]);
+  return res;
+}
+
 
 
 

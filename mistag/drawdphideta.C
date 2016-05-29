@@ -5,12 +5,12 @@
 
 void drawdphideta()
 {
-  macro m("drawdphideta");
+  macro m("drawdphideta",false);
 
-  buildh(50,0,3.142,50,0,4);
+  seth(25,0,3.142,25,0,4);
 
-  auto hdphidetasig = geth2d("hdphidetasig");
-  auto hdphidetabkg = geth2d("hdphidetabkg");
+  auto hdphidetasig = geth2d("hdphidetasig",";#Delta#phi;#Delta#eta");
+  auto hdphidetabkg = geth2d("hdphidetabkg",";#Delta#phi;#Delta#eta");
 
 
   auto fmcPb = config.getfile_djt("mcPbbfa");
@@ -36,12 +36,17 @@ void drawdphideta()
   c1->SetLogz();
   hdphidetasig->SetMaximum(5E-9);
   hdphidetasig->Draw("colz");
+  // hdphidetasig->GetXaxis()->SetTitleSize(.15);
+  // hdphidetasig->GetYaxis()->SetTitleSize(.15);
   SavePlots(c1,"signaldphideta");
 
   auto c2 = getc();
   c2->SetLogz();
   hdphidetabkg->SetMaximum(5E-9);
   hdphidetabkg->Draw("colz");
+  // hdphidetabkg->GetXaxis()->SetTitleSize(.15);
+  // hdphidetabkg->GetYaxis()->SetTitleSize(.15);  
+  // c2->Update();
   SavePlots(c2,"bkgdphideta");
 
 }

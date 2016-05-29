@@ -7,16 +7,6 @@
 #include "../corrections/eclipseclosure.C"
 #include "moneyplot.C"
 
-// const float pt1cut = 100;
-// const float pt2cut = 40;
-
-// const float PI23 = 3.142*2/3;
-// const float PI13 = 3.142*1/3;
-
-
-
-//vector<float> processWeights(4);
-
 //for reporting in the end
 vector<float> lbinmin, lbinmax;
 vector<float> xjdtincmean, xjdtincmeanerror;
@@ -32,6 +22,10 @@ vector<float> xjmcbjtsyslo,xjmcbjtsyshi;
 
 TF1 *ftrigEta, *ftrigCent, *ftrigPt;
 
+bool tagLeadingJet = true;
+TString dtppjpf = "dtppjpf";
+TString dtPbbjt = "dtPbbjt";
+TString dtPbj60 = "dtPbj60";
 
 void loadTrigEffCorrections()
 {
@@ -53,13 +47,18 @@ float getTrigcorrection(float jetpt, float jeteta, float bin)
   double PtTrigEff = (jetpt > 200) ? ftrigPt->Eval(200):ftrigPt->Eval(jetpt);
   double EtaTrigEff = ftrigEta->Eval(jeteta);
 
-  return centTagEffCorr;
+  return centTagEffCorr/PtTrigEff/EtaTrigEff;
 }
 
+bool LeadingJetCut(dict &d)
+{
+  if (tagLeadingJet) return d["discr_csvV1_1"]>0.9;
+  else return d["discr_csvV1_1"]<0.5;
+}
 
 void findtruthpp(float datafraction = 1.)
 {
-  TFile *fdtpp = new TFile(config.getFileName_djt("dtppjpf"));// "/data_CMS/cms/lisniak/bjet2015/dtppjpfak4PF_djt.root");
+  TFile *fdtpp = new TFile(config.getFileName_djt(dtppjpf));
 
   seth(10,0,1);
   auto hdtppxJAS = geth("hdtppxJAS","Data b-jets;x_{J}");
@@ -89,16 +88,16 @@ void findtruthpp(float datafraction = 1.)
     float corr = getppcorrection(_["jtpt1"],_["jteta1"],_[jtptSL],_[jtetaSL]);
     float wb = w*corr;
 
-    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _[jtptSL]>pt2cut)
+    if (_["jtpt1"]>pt1cut && LeadingJetCut(_) && _[jtptSL]>pt2cut)
       hdphippBJTdata->Fill(_[dphiSL1],wb);   
 
-    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _[jtptSL]>pt2cut && _[dphiSL1]>PI23)
+    if (_["jtpt1"]>pt1cut && LeadingJetCut(_) && _[jtptSL]>pt2cut && _[dphiSL1]>PI23)
       hdtppxJAS->Fill(_[jtptSL]/_["jtpt1"],wb);
 
-    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _["jtpt2"]>pt2cut && _[discr_csvV1_2]>0.9 && _["dphi21"]>PI23)
+    if (_["jtpt1"]>pt1cut && LeadingJetCut(_) && _["jtpt2"]>pt2cut && _[discr_csvV1_2]>0.9 && _["dphi21"]>PI23)
       hdt12ppxJAS->Fill(_["jtpt2"]/_["jtpt1"],wb);
 
-    if (_["jtpt1"]>pt1cut && _[discr_csvV1_1]>0.9 && _["jtpt2"]>pt2cut && _[discr_csvV1_2]>0.9)
+    if (_["jtpt1"]>pt1cut && LeadingJetCut(_) && _["jtpt2"]>pt2cut && _[discr_csvV1_2]>0.9)
       hdphippBJT12data->Fill(_["dphi21"],w);
 
     if (_["jtpt1"]>pt1cut && _["jtpt2"]>pt2cut && _["dphi21"]>PI23)
@@ -119,14 +118,14 @@ void findtruthpp(float datafraction = 1.)
     float corr = getppcorrection(m["jtpt1"],m["jteta1"],m[jtptSL],m[jtetaSL]);
     float wb = w*corr;
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut)
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m) && m[jtptSL]>pt2cut)
       hdphippBJTmc->Fill(m[dphiSL1],wb);
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23)
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m) && m[jtptSL]>pt2cut && m[dphiSL1]>PI23)
       hmcppxJAS->Fill(m[jtptSL]/m["jtpt1"],wb);
 
-    if (m["jtpt1"]>pt1cut && m[discr_csvV1_1]>0.9 && m["jtpt2"]>pt2cut && m[discr_csvV1_2]>0.9)
+    if (m["jtpt1"]>pt1cut && LeadingJetCut(m) && m["jtpt2"]>pt2cut && m[discr_csvV1_2]>0.9)
       hdphippBJT12mc->Fill(m["dphi21"],wb);
-    if (m["jtpt1"]>pt1cut && m[discr_csvV1_1]>0.9 && m["jtpt2"]>pt2cut && m[discr_csvV1_2]>0.9 && m["dphi21"]>PI23)
+    if (m["jtpt1"]>pt1cut && LeadingJetCut(m) && m["jtpt2"]>pt2cut && m[discr_csvV1_2]>0.9 && m["dphi21"]>PI23)
       hmc12ppxJAS->Fill(m["jtpt2"]/m["jtpt1"],wb);
 
 
@@ -233,12 +232,12 @@ void findtruthpp(float datafraction = 1.)
 
 void findtruthPbPb(int binMin, int binMax)
 {
-  TString dtfname = config.getFileName_djt("dtPbbjt");
+  TString dtfname = config.getFileName_djt(dtPbbjt);
   TString mcfname = config.getFileName_djt("mcPbbfa");
 
   TFile *fdt = new TFile(dtfname);
   TFile *fmc = new TFile(mcfname);
-  TFile *fdtinc = new TFile(config.getFileName_djt("dtPbj60"));
+  TFile *fdtinc = new TFile(config.getFileName_djt(dtPbj60));
   TFile *fmcinc = new TFile(config.getFileName_djt("mcPbqcd"));
 
 
@@ -334,7 +333,7 @@ void findtruthPbPb(int binMin, int binMax)
     hdtvz->Fill(m["vz"],w);
 
 
-    if (m["jtpt1"]>pt1cut && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut) {
+    if (m["jtpt1"]>pt1cut && LeadingJetCut(m) && m[jtptSL]>pt2cut) {
 
       hdtbin->Fill(m["bin"],wb);
       hdphiBJTdata->Fill(m[dphiSL1],wb);
@@ -438,7 +437,7 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 //&& abs(m["refparton_flavorForB1"])==5
-//&& m[discr_csvV1_1]>0.9
+//&& LeadingJetCut(m)
 
 //signal: subidSL==0 on the away side
 //background: subidSL!=0 on the away side
@@ -474,7 +473,7 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 //NOT CORRECTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m["jtptSignal2"]>pt2cut && m[discr_csvV1_Signal2]>0.9) { //&& m["dphiSignal21"]>PI23 
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m) && m["jtptSignal2"]>pt2cut && m[discr_csvV1_Signal2]>0.9) { //&& m["dphiSignal21"]>PI23 
       hbinSignal->Fill(m["bin"]/2,w);
       if (m["Signal2ord"]==2)
         hbinSignalFound12->Fill(m["bin"]/2,w);
@@ -482,7 +481,7 @@ void findtruthPbPb(int binMin, int binMax)
         hbinSignalFoundSL->Fill(m["bin"]/2,w);
     }
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23) {
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && LeadingJetCut(m) && m[jtptSL]>pt2cut && m[dphiSL1]>PI23) {
       hbinSL->Fill(m["bin"],w);//wb);
       if (abs(m[refparton_flavorForBSL])==5)
         hbinSLisB->Fill(m["bin"],w);//wb);
@@ -492,7 +491,7 @@ void findtruthPbPb(int binMin, int binMax)
     if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSB"]>pt2cut && m["dphiSB1"]>PI23)
       hmcxJASsigBB->Fill(m["jtptSB"]/m["jtpt1"],wSB);
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut) {
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m) && m[jtptSL]>pt2cut) {
       hmcbin->Fill(m["bin"],w);//wb);
       hdphiBJTall->Fill(m[dphiSL1],w);//wb);
 
@@ -526,7 +525,7 @@ void findtruthPbPb(int binMin, int binMax)
 
 // float LJeff = 0.35;
 
-if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9  && m[jtptSL]>pt2cut //&& abs(m["refparton_flavorForB1"])==5
+if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m)  && m[jtptSL]>pt2cut //&& abs(m["refparton_flavorForB1"])==5
         && ((dphi<PI13 && (dphi*dphi+deta*deta)>1) || (dphi>PI13 && ((dphi-PI13)*(dphi-PI13)+deta*deta)<1)))
         hmcxJEars->Fill(m[jtptSL]/m["jtpt1"],w);//LFeff*w//LJeff*(m[pairCodeSL1]==0 ? wb : wbkg));
 
@@ -615,7 +614,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && m[discr_csvV1_1]>0.9  && m[jtptSL]>pt
           hmcINCxJEars->Fill(m["jtpt2"]/m["jtpt1"],w*ew);
     }
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && m[discr_csvV1_1]>0.9 && m[jtptSL]>pt2cut && m[dphiSL1]>PI23) {
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50  && LeadingJetCut(m) && m[jtptSL]>pt2cut && m[dphiSL1]>PI23) {
       if (IsSignal(m) && m["numTagged"]<=6)//m[pairCodeSL1]<4 && 
         hPairCodeQCD->Fill(m[pairCodeSL1],w);
     }
@@ -942,18 +941,27 @@ plotdiffmax = 9999;
 
 
 
-void tellmetruth(TString name = "")
+void tellmetruth(TString name = "", bool applytagg = true, bool tagLJ = true, bool tagSL = true)
 {
   name = "results_"+name;
   macro m(name);
 
-  int subtractcode = 2;
   bool applytriggercorr = true;
-  bool applytagg = true;
+
+  tagLeadingJet = tagLJ;
+
+  //tagSL == !mockSL
+  dtppjpf = tagSL ? "dtppjpf" : "dXppjpf";
+  dtPbbjt = tagSL ? "dtPbbjt" : "dXPbbjt";
+  dtPbj60 = tagSL ? "dtPbj60" : "dXPbj60";
+
+  //in case LJ is not tagged - use inc jet ntuple
+  if (!tagLJ && tagSL)  dtPbbjt = "dtPbj60";
+  if (!tagLJ && !tagSL) dtPbbjt = "dXPbj60";
 
 
 
-
+  int subtractcode = 2;
   if (subtractcode==0) bkgfractionInNearSide = {0,0,0};
   if (subtractcode==1) bkgfractionInNearSide = {1,1,1};
 //subtractcode = 2 or something - use whatever is true
@@ -991,6 +999,13 @@ void tellmetruth(TString name = "")
                                           "\t\t"<<xjmcincmean[i]<<"\t"<<xjmcincmeanerror[i]<<
                                           "\t\t"<<xjdtbjtmean[i]<<"\t"<<xjdtbjtmeanerror[i]<<
                                           "\t\t"<<xjmcbjtmean[i]<<"\t"<<xjmcbjtmeanerror[i]<<endl;
+  for (unsigned i=0;i<lbinmin.size();i++)
+    ofs<<setprecision(3)<<(int)lbinmin[i]/2<<" - "<<(int)lbinmax[i]/2<<" : \t";
+  ofs<<endl;
+  for (unsigned i=0;i<xjdtbjtmean.size();i++)
+    ofs<<setprecision(3)<<xjdtbjtmean[i]<<"\t";
+  ofs<<endl;
+    
   ofs.close();
 
 

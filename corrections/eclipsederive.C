@@ -22,6 +22,8 @@ vector<float> binmean;
 vector<TProfile *> profs;
 vector<TF1 *>fs;
 
+float shift = 0;
+
 void derivefromprofile()
 {
 
@@ -61,6 +63,10 @@ void derivefromprofile()
 
 }
 
+float pt = 40;
+vector<float> prob;
+vector<float> meanb;
+
 void derivefromNS(bool data = false)
 {
 
@@ -70,22 +76,26 @@ void derivefromNS(bool data = false)
   for (unsigned i=1;i<binbounds.size();i++) {
     int b1 = binbounds[i-1];
     int b2 = binbounds[i];
-    auto h = new TH1F(Form("h%d%d",b1,b2),"h",90,0,180);
-    auto hb = new TH1F(Form("hb%d%d",b1,b2),"hb",b2-b1,b1,b2);
+    seth(71,38,180);
+    auto h = geth(Form("h%d%d",b1,b2)); //allowing one more bin for overflow
+    seth(b2-b1,b1,b2);
+    auto hb = geth(Form("hb%d%d",b1,b2));
 
    
     TString mcappendix = data ? "" : "&& pthat>50";
    
-    nt->Project(h->GetName(),"jtpt2", Form("weight*(jtpt1>100&&bin>=%d && bin<%d && dphi21<1.05 %s)",b1,b2,mcappendix.Data()));
+    nt->Project(h->GetName(),Form("jtpt2+%f",shift), Form("weight*(jtpt1>100&&bin>=%d && bin<%d && dphi21<1.05 %s)",b1,b2,mcappendix.Data()));
     nt->Project(hb->GetName(),"bin", Form("weight*(jtpt1>100&&bin>=%d && bin<%d && dphi21<1.05 %s)",b1,b2,mcappendix.Data()));
 
-    //profs.push_back(p);
-    auto v = h->GetIntegral();
-    vector<double>vx;
-    for (int i=0;i<90;i++) vx.push_back(i*2);
-    auto g = new TGraph(90, &vx[0],v);
+    h->SetBinContent(1,h->GetBinContent(0)+h->GetBinContent(1));
+
+    auto g = getCDFgraph(h);
     g->GetXaxis()->SetTitle("p_{T,2} threshold [GeV]");
     g->GetYaxis()->SetTitle("found fraction");
+
+    auto gtemp = getCDFgraph(h);
+    meanb.push_back(hb->GetMean());
+    prob.push_back(gtemp->Eval(pt));
 
     auto f = new TF1(Form("f%d%d",b1,b2),"exp(-[0]*exp(-[1]*x))",40,180);
     f->SetLineColor(kRed);
@@ -119,39 +129,53 @@ void derivefromNS(bool data = false)
 
 
     SavePlots(c,Form("fit%d%d",b1,b2));
-    cout<<"?"<<c->GetTitle()<<endl;
   }
 
 }
 
 void eclipsederive()
 {
-  macro m("eclipsederiveNSMC");
+  bool data = false;
 
-  derivefromNS(false);
+  macro m("eclipsederiveMC");
+
+  derivefromNS(data);
   // derivefromNS(true);
 
   //derivefromprofile();
 
+  auto ggg = new TGraph(meanb.size(),&meanb[0],&prob[0]);
+  auto cc = getc();
+  ggg->Draw("AP");
+  SavePlots(cc,"probvsbin");
+
+
+
   vector<float> x = binmean;
-  vector<float> y;
-  vector<float> z;
+  vector<float> xerr;
+  vector<float> y,yerr;
+  vector<float> z,zerr;
+
 
   for (unsigned i=1;i<binbounds.size();i++) {
     // int b1 = binbounds[i-1];
     // int b2 = binbounds[i];
     // x.push_back((b1+b2)/2);
 
+    xerr.push_back(0);
     y.push_back(fs[i-1]->GetParameter(0));
+    yerr.push_back(fs[i-1]->GetParError(0));
+
     z.push_back(fs[i-1]->GetParameter(1));
+    zerr.push_back(fs[i-1]->GetParError(1));
   }
   auto c2 = getc();
-  auto g= new TGraph(x.size(),&x[0],&y[0]);
+  auto g= new TGraphErrors(x.size(),&x[0],&y[0],&xerr[0],&yerr[0]);
   g->Draw();
   SavePlots(c2,"par0cent");
 
   auto c3 = getc();
-  TGraph *g2 = new TGraph(x.size(),&x[0],&z[0]);
+  auto g2 = new TGraphErrors(x.size(),&x[0],&z[0],&xerr[0],&zerr[0]);
   g2->Draw();
   SavePlots(c3,"par1cent");
 
@@ -163,7 +187,9 @@ void eclipsederive()
   }
   cout<<"};"<<endl;
 
-  cout<<"par0 = {";
+  cout<<"vector<float> par0";
+  if (data) cout<<"dt"; else cout<<"mc";
+  cout<<" = {";
   for (unsigned i=1;i<binbounds.size();i++) {
     int b1 = binbounds[i-1];
     int b2 = binbounds[i];
@@ -172,7 +198,9 @@ void eclipsederive()
   }
   cout<<"};"<<endl;
 
-  cout<<"par1 = {";
+  cout<<"vector<float> par1";
+  if (data) cout<<"dt"; else cout<<"mc";
+  cout<<" = {";
   for (unsigned i=1;i<binbounds.size();i++) {
     int b1 = binbounds[i-1];
     int b2 = binbounds[i];

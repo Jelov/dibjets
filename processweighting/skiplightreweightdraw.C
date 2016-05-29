@@ -120,7 +120,14 @@ void skiplightreweightdraw()
 	plotylog = false;
 	plotputmean = true;
 	aktstring+="PF Jets R=0.4";
-  	plotsecondline = "p_{T,1}>120GeV,p_{T,2}>30GeV";
+	TString text12 = "p_{T,1}>120GeV,p_{T,2}>30GeV";
+	TString textSL = "p_{T,1}>120GeV,p_{T,2b}>30GeV";
+plotytitle = "";
+// plotlegenddy = 0.08;
+// plotlegenddx = -0.03;
+
+
+  	plotsecondline = text12;
   	plotthirdline  = "#Delta#phi>2#pi/3, CSV>0.9";
   	
   	
@@ -157,6 +164,7 @@ void skiplightreweightdraw()
 	DrawCompare(h12data,h12stack2,"x_{J}");
 
 
+  	plotsecondline = textSL;
 	auto hSLstack = stackhists({hSLfcr,hSLfex,hSLgsp},colors,"hSLstack","(P)");
 	DrawCompare(hSLdata,hSLstack,"x_{J}");
 
@@ -173,7 +181,7 @@ void skiplightreweightdraw()
 	plotylog = false;
 	plotymax = 1.1;
 	plotymin = 1E-5;
-
+  	plotsecondline = text12;
 
 	Normalize({hSLordreweighted,h12ordreweighted});
 	SetMC({hSLordreweighted,h12ordreweighted});
@@ -189,7 +197,7 @@ void skiplightreweightdraw()
 	auto h12ordstack2 = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack2","(W)");
 	DrawCompare(h12orddata,h12ordstack2,"skiplight order");
 
-
+  	plotsecondline = textSL;
 	auto hSLordstack = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack","(P)");
 	DrawCompare(hSLorddata,hSLordstack,"skiplight order");
 
@@ -209,7 +217,7 @@ void skiplightreweightdraw()
 	plotputwidth = true;
 	plotymax = 0.5;
 	plotthirdline  = "CSV>0.9";
-
+  	plotsecondline = text12;
 	// DrawCompare(h12dphidata,h12dphiall,"#Delta#phi");
 	// DrawCompare(hSLdphidata,hSLdphiall,"#Delta#phi");
 
@@ -230,6 +238,7 @@ void skiplightreweightdraw()
 	DrawCompare(h12dphidata,h12dphistack2,"#Delta#phi");
 
 
+  	plotsecondline = textSL;
 	auto hSLdphistack = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack","(P)");
 	DrawCompare(hSLdphidata,hSLdphistack,"#Delta#phi");
 
@@ -241,6 +250,7 @@ void skiplightreweightdraw()
 
 	plotylog = false;
 	plotymax = 0.25;
+	  	plotsecondline = text12;
 //only interesting dphi region
 	// DrawCompare(h12dphiNSdata,h12dphiNSall);
 	// DrawCompare(hSLdphiNSdata,hSLdphiNSall);
@@ -262,6 +272,7 @@ void skiplightreweightdraw()
 	DrawCompare(h12dphiNSdata,h12dphiNSstack2,"#Delta#phi");
 
 
+  	plotsecondline = textSL;
 	auto hSLdphiNSstack = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack","(P)");
 	DrawCompare(hSLdphiNSdata,hSLdphiNSstack,"#Delta#phi");
 

@@ -430,7 +430,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTimeStamp t0;
     
     //allows repeating event maxrepeat times
-    int repeatcounter = 0;
+    int repeatcounter = maxrepeat;
     bool continuereading = true;
     while (true) {
       repeatcounter++;
