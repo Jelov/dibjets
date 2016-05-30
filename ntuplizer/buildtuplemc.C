@@ -614,6 +614,8 @@ void do_buildtuplemc(TString code)
               ntinc->Fill(&vinc[0]);
 	        }
 
+          bool taggedJet = SLcondition((*csvv1)[j], jtpt[j], *bin);
+
             //if background jumped above signal (or highest signal is outside acceptance) - then it's a "bad" event
             //this condition is propagated on every clause b/c we still need to loop jets for inclusive ntuple above
             if (!foundJ1 && !isSignal(j)) bkgJ1 = true;
@@ -647,7 +649,7 @@ void do_buildtuplemc(TString code)
             if (!bkgJ1 && !foundSL && isSignal(j)) SLordSignalOnly++;
 
           	//ind1!=j otherwise SL will be = J1
-            if (!bkgJ1 && foundJ1 && !foundSL && ind1!=j && SLcondition((*csvv1)[j], jtpt[j], *bin)) {              
+            if (!bkgJ1 && foundJ1 && !foundSL && ind1!=j && taggedJet) {              
               indSL = j;
               foundSL = true;
             }
@@ -666,12 +668,12 @@ void do_buildtuplemc(TString code)
             }
 
             if (!bkgJ1 && !foundSignalSL) SignalSLord++;
-            if (!bkgJ1 && foundJ1 && !foundSignalSL && ind1!=j && (*csvv1)[j]>0.9 && isSignal(j)) {
+            if (!bkgJ1 && foundJ1 && !foundSignalSL && ind1!=j && taggedJet && isSignal(j)) {
               indSignalSL = j;
               foundSignalSL = true;
             }
 
-            if (SLcondition((*csvv1)[j], jtpt[j], *bin)) numTagged++;
+            if (taggedJet) numTagged++;
 
 
           }
