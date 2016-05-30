@@ -263,6 +263,9 @@ bool SLcondition(float csv, float pt, float bin)
   //mock SL!
   if (fpp == 0) loadmockSLfunc();
 
+  //consider only csv<0.5 for mockSL
+  if (csv>0.5) return false;
+
   float r = gRandom->Uniform();
 
   if (!PbPb) return r<fpp->Eval(pt);
@@ -430,7 +433,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTimeStamp t0;
     
     //allows repeating event maxrepeat times
-    int repeatcounter = 0;
+    int repeatcounter = maxrepeat;
     bool continuereading = true;
     while (true) {
       repeatcounter++;
@@ -556,7 +559,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
             (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],svtxm[j],discr_prob[j],
             svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
   
-          ntinc->Fill(&vinc[0]);
+	  if (!mockSL) //no need for inc ntuple in mockSL mode
+	    ntinc->Fill(&vinc[0]);
         }
 
       //fill dijet ntuple
@@ -664,8 +668,9 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
       };
 
-
-      ntdj->Fill(&vdj[0]);
+      //==(mockSL && foundSL) || !mockSL
+      if (!mockSL || foundSL)
+	ntdj->Fill(&vdj[0]);
 
 
 
