@@ -421,6 +421,7 @@ void do_buildtuplemc(TString code)
       "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
       "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
       "subid3:refpt3:rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:refparton_flavorForB3:refparton_flavorProcess3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:pairCode31:pairCode32:"+
+      "SLordSignalOnly:"+
       "SLord:subidSL:refptSL:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:refparton_flavorForBSL:refparton_flavorProcessSL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:pairCodeSL1:"+
       "NSLord:subidNSL:refptNSL:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:refparton_flavorForBNSL:refparton_flavorProcessNSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1:pairCodeNSL1:"+
       "SBord:subidSB:refptSB:rawptSB:jtptSB:jtphiSB:jtetaSB:discr_csvV1_SB:ndiscr_csvV1_SB:refparton_flavorForBSB:refparton_flavorProcessSB:svtxmSB:discr_probSB:svtxdlsSB:svtxptSB:svtxntrkSB:nsvtxSB:nselIPtrkSB:dphiSB1:pairCodeSB1:"+
@@ -589,7 +590,7 @@ void do_buildtuplemc(TString code)
 
 
       int ind1=-1, ind2=-1, indSignal2=-1, ind3=-1, indSL=-1, indNSL=-1, indSignalSL=-1, indSB=-1; //indices of leading/subleading jets in jet array
-      int SLord = 0, NSLord = 0, SignalSLord = 0, Signal2ord = 0, SBord = 0;
+      int SLord = 0, SLordSignalOnly = 0, NSLord = 0, SignalSLord = 0, Signal2ord = 0, SBord = 0;
       bool foundJ1=false, foundJ2 = false, foundSignalJ2 = false, foundJ3 = false, foundSL = false, foundNSL = false, foundSignalSL = false, foundSB = false; //found/not found yet, for convenience
       bool bkgJ1 = false; // is leading jet coming from background?
 
@@ -643,6 +644,8 @@ void do_buildtuplemc(TString code)
           	//we need ordinal number of SL jets, so counting until found
           	//indSL != SLord because some jets are not in acceptance region
             if (!bkgJ1 && !foundSL) SLord++;
+            if (!bkgJ1 && !foundSL && isSignal(j)) SLordSignalOnly++;
+
           	//ind1!=j otherwise SL will be = J1
             if (!bkgJ1 && foundJ1 && !foundSL && ind1!=j && SLcondition((*csvv1)[j], jtpt[j], *bin)) {              
               indSL = j;
@@ -783,6 +786,7 @@ void do_buildtuplemc(TString code)
         foundJ3 && foundJ1 ? (float)getPairCode(refparton_flavorForB[ind3],refparton_flavorForB[ind1]) : NaN,
         foundJ3 && foundJ2 ? (float)getPairCode(refparton_flavorForB[ind3],refparton_flavorForB[ind2]) : NaN,
 
+        foundSL ? (float)SLordSignalOnly : NaN,
         foundSL ? (float)SLord : NaN,
         foundSL ? (float)subid[indSL] : NaN,
         foundSL ? refpt[indSL] : NaN,
