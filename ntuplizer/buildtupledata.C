@@ -10,9 +10,9 @@
 TString jettree;
 vector<TString> subfoldernames;
 
-bool PbPb;
+bool PbPb = false;
 
-bool mockSL = false; //IF TRUE - SUBLEDING JET MUST BE TAGGED!!!
+bool mockSL = false;
 
 TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
 TString samplesfolder="/data_CMS/cms/mnguyen/bJet2015/data/";
@@ -551,7 +551,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
               foundNSL = true;
             }
 
-            if (discr_csvV1[j]>0.9) numTagged++;
+            if (SLcondition(discr_csvV1[j], jtpt[j], *bin)) numTagged++;
 
 
           //at this point foundLJ = true always, so triggermatched is determined
@@ -670,7 +670,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
       //==(mockSL && foundSL) || !mockSL
       if (!mockSL || foundSL)
-	ntdj->Fill(&vdj[0]);
+        ntdj->Fill(&vdj[0]);
 
 
 

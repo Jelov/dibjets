@@ -29,6 +29,8 @@
 #include "mergeFCRandBJT.C"
 
 bool PbPb = false;
+bool mockSL = false;
+
 bool newFlavorProcess = false;
 TString samplesfolder, jettree,sample;
 vector<TString> subfoldernames;
@@ -42,6 +44,7 @@ TString outputfilenameevt;
 
 TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
 
+int maxrepeat = 1;
 const int NaN = -999;
 
 
@@ -360,6 +363,52 @@ float getFlavorProcess(TTreeReaderArray<bool> *&refparton_isGSP, TTreeReaderArra
   }
 }
 
+TF1 *fpp = 0, *fPb1, *fPb2, *fPb3;
+
+void loadmockSLfunc()
+{
+  //not working for now b/c of the root version incompatibility
+  // auto file = new TFile("BXmistagfunc.root");
+  // fpp = (TF1 *)file->Get("fpp");
+  // fPb1 = (TF1 *)file->Get("fPb1");
+  // fPb2 = (TF1 *)file->Get("fPb2");
+  // fPb3 = (TF1 *)file->Get("fPb3");
+
+  fpp = new TF1("fpp","expo",40,200);
+  fPb1 = new TF1("fPb1","expo",40,200);
+  fPb2 = new TF1("fPb2","expo",40,200);
+  fPb3 = new TF1("fPb3","expo",40,200);
+  fpp->SetParameters(-4.94207,-0.00241127);
+  fPb1->SetParameters(-4.01644,-0.0114637);
+  fPb2->SetParameters(-4.6333,-0.00971588);
+  fPb3->SetParameters(-5.03225,-0.00564332);
+
+
+}
+
+//condition on SL jet whether it's true SL (csv>0.9) or randomized using P(tag|L)
+bool SLcondition(float csv, float pt, float bin)
+{
+  if (!mockSL) return csv>0.9;
+
+  //mock SL!
+  if (fpp == 0) loadmockSLfunc();
+
+  //consider only csv<0.5 for mockSL
+  if (csv>0.5) return false;
+
+  float r = gRandom->Uniform();
+
+  if (!PbPb) return r<fpp->Eval(pt);
+
+  if (bin<20)            return r<fPb1->Eval(pt);
+  if (bin>=20 && bin<60) return r<fPb2->Eval(pt);
+  if (bin>=60)           return r<fPb3->Eval(pt);
+
+  cout << "Should never get to this point" << endl;
+  return false;
+}
+
 void do_buildtuplemc(TString code)
 {
   auto weights = calculateWeights();
@@ -507,17 +556,28 @@ void do_buildtuplemc(TString code)
     int evCounter = 0;
     TTimeStamp t0;
 
-    while (reader.Next()) {
-      readerevt.Next();
-      readerhlt.Next();
+    //allows repeating event maxrepeat times
+    int repeatcounter = maxrepeat;
+    bool continuereading = true;
+    while (true) {
+      repeatcounter++;
+      if (repeatcounter>=maxrepeat) {
+        continuereading = reader.Next();
+        readerevt.Next();
+        readerhlt.Next();
+        repeatcounter = 0;
+      }
+      if (!continuereading) break;
+
+
+      //for testing - only 2% of data
+      //if (evCounter>2*onep) break;
+
       evCounter++;
-
-      //if (evCounter>10*onep) break; //for fast testing
-
       if (evCounter%onep==0) {
-  std::cout << std::fixed;
-  TTimeStamp t1; 
-  cout<<" \r"<<evCounter/onep<<"%   "<<" total time "<<(int)round((t1-t0)*nev/(evCounter+.1))<<" s "<<flush;
+        std::cout << std::fixed;
+        TTimeStamp t1; 
+        cout<<" \r"<<evCounter/onep<<"%   "<<" total time "<<(int)round((t1-t0)*nev/(evCounter+.1))<<" s "<<flush;
       }
 
       int b = *bin;
@@ -542,9 +602,9 @@ void do_buildtuplemc(TString code)
           if (abs(jteta[j])>2.0) continue; //1.5 for PU!
 
 
-
+          //no need for inc ntuple in mockSL mode
           //for inclusive plots, subid==0 everywhere
-          if (isSignal(j)) {
+          if (!mockSL && isSignal(j)) {
             vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF,
               (float)subid[j], refpt[j], rawpt[j],jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],ncsvv1[j],
               (float)refparton_flavorForB[j], getFlavorProcess(refparton_isGSP,refparton_flavorProcess,j),
@@ -584,7 +644,7 @@ void do_buildtuplemc(TString code)
           	//indSL != SLord because some jets are not in acceptance region
             if (!bkgJ1 && !foundSL) SLord++;
           	//ind1!=j otherwise SL will be = J1
-            if (!bkgJ1 && foundJ1 && !foundSL && ind1!=j && (*csvv1)[j]>0.9) {
+            if (!bkgJ1 && foundJ1 && !foundSL && ind1!=j && SLcondition((*csvv1)[j], jtpt[j], *bin)) {              
               indSL = j;
               foundSL = true;
             }
@@ -608,7 +668,7 @@ void do_buildtuplemc(TString code)
               foundSignalSL = true;
             }
 
-            if ((*csvv1)[j]>0.9) numTagged++;
+            if (SLcondition((*csvv1)[j], jtpt[j], *bin)) numTagged++;
 
 
           }
@@ -831,8 +891,9 @@ void do_buildtuplemc(TString code)
 
 
       };
-      
-      ntdj->Fill(&vdj[0]);
+            //==(mockSL && foundSL) || !mockSL
+      if (!mockSL || foundSL)
+        ntdj->Fill(&vdj[0]);
     }
     
     f->Close();
@@ -914,6 +975,8 @@ void buildtuplemc(TString code)
   sample = getSample(code);
   jettree = getjettree(code);
   TString jetalgo = algo(code);
+  mockSL = IsMockSL(code);
+  if (mockSL) maxrepeat = 10;
 
   Init();
 
