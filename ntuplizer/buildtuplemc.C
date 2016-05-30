@@ -360,8 +360,6 @@ float getFlavorProcess(TTreeReaderArray<bool> *&refparton_isGSP, TTreeReaderArra
   }
 }
 
-
-
 void do_buildtuplemc(TString code)
 {
   auto weights = calculateWeights();
@@ -536,7 +534,7 @@ void do_buildtuplemc(TString code)
       bool bkgJ1 = false; // is leading jet coming from background?
 
       int numTagged = 0;
-      int genind1 = *ngen>0 ? 0 : -1, genind2 = -1, genind3 = -1;
+      int genind1 = -1, genind2 = -1, genind3 = -1;
 
 
       if (abs(*vz)<15) {//event-level cuts, if not passed all foundXY = false
@@ -615,13 +613,29 @@ void do_buildtuplemc(TString code)
 
           }
 
-	        for (int ig=0;ig<*ngen;ig++)
-            if (geneta[ig]<2.0)
-              if (genpt[ig]>genpt[genind1]) {
-                genind3 = genind2;
-                genind2 = genind1;
-                genind1 = ig;
-              }
+	//not clear how the gen jet list is sorted - search multiple times
+	float genpt1=-999;
+	for (int ig=0;ig<*ngen;ig++)
+	  if (geneta[ig]<2.0 && gensubid[ig]==0 && genpt[ig]>genpt1) {
+	    genpt1 = genpt[ig];
+	    genind1 = ig;
+	  }
+
+	float genpt2 = -999;
+	if (genind1!=-1)
+	  for (int ig=0;ig<*ngen;ig++)
+	    if (geneta[ig]<2.0 && gensubid[ig]==0 && genpt[ig]>genpt2 && genpt[ig]<genpt1) {
+	      genpt2 = genpt[ig];
+	      genind2 = ig;
+	    }
+
+	float genpt3 = -999;
+	if (genind2!=-1)
+	  for (int ig=0;ig<*ngen;ig++)
+	    if (geneta[ig]<2.0 && gensubid[ig]==0 && genpt[ig]>genpt3 && genpt[ig]<genpt2) {
+	      genpt3 = genpt[ig];
+	      genind3 = ig;
+	    }
 
       }
 
