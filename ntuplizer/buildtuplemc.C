@@ -547,7 +547,7 @@ void do_buildtuplemc(TString code)
     TTreeReaderValue<int> CSV60(readerhlt, csv60triggerv2);
     TTreeReaderValue<int> CSV80(readerhlt, csv80triggerv2);
 
-    auto isSignal = [&] (int N) {return subid[N]==0;}; // && refpt[N]>20;};
+    auto isSignal = [&] (int N) {return subid[N]==0 && refpt[N]>20;};
 
 
 
@@ -983,6 +983,7 @@ void buildtuplemc(TString code)
   TString jetalgo = algo(code);
   mockSL = IsMockSL(code);
   if (mockSL) maxrepeat = 10;
+  TString mcdt = getmcdt(code);
 
   Init();
 
@@ -1027,10 +1028,10 @@ void buildtuplemc(TString code)
   
   //merge bfc sample with b-jet filtered -> bfa sample
   if (sample=="bfc" || sample=="bfV") {
-    TString bjtfiledjt = outputfolder+"/mc"+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_djt.root";
-    TString bfafiledjt = outputfolder+"/mc"+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_djt.root";
-    TString bjtfileinc = outputfolder+"/mc"+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_inc.root";
-    TString bfafileinc = outputfolder+"/mc"+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_inc.root";
+    TString bjtfiledjt = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_djt.root";
+    TString bfafiledjt = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_djt.root";
+    TString bjtfileinc = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_inc.root";
+    TString bfafileinc = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_inc.root";
     cout<<"Merging FCR sample "<<outputfilenamedj<<endl<<"   with BJT sample "<<bjtfiledjt<<endl;
   
     mergeFCRandBJT(outputfilenamedj,bjtfiledjt, bfafiledjt);
