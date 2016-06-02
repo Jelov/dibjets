@@ -21,6 +21,8 @@ int maxrepeat = 1;
 const int NaN = -999;
 
 const float hiHFcut = 5500;
+const float etacut = 1.5;
+
 
 TTree *GetTree(TFile *f, TString treename)
 {
@@ -504,7 +506,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       if (goodevent)
         for (int j=0;j<*nref;j++) {
           //acceptance selection
-          if (abs(jteta[j])>2.0) continue;
+          if (abs(jteta[j])>etacut) continue;
           //muon cuts
           if (PbPb) {
             if((*muMax)[j]/rawpt[j]>0.95) continue;

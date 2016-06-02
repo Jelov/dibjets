@@ -49,6 +49,11 @@ bool dt(TString code)
   return false;
 }
 
+TString getmcdt(TString code)
+{
+  return TString(code(0,2));
+}
+
 bool isPbPb(TString code)
 {
   TString s = TString(code(2,2));

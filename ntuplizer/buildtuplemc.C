@@ -46,6 +46,7 @@ TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
 
 int maxrepeat = 1;
 const int NaN = -999;
+const float etacut = 1.5;
 
 
 void Init()
@@ -415,7 +416,7 @@ void do_buildtuplemc(TString code)
   int totentries = 0;
 
   //put only pthat weight
-  TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:")+
+  TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:Ncoll:")+
       "bProdCode:cProdCode:dijet:bkgLeadingJet:numTagged:"
       "genpt1:geneta1:genphi1:gensubid1:genpt2:geneta2:genphi2:gensubid2:genpt3:geneta3:genphi3:gensubid3:"+
       "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
@@ -429,7 +430,7 @@ void do_buildtuplemc(TString code)
       "SignalSLord:subidSignalSL:refptSignalSL:rawptSignalSL:jtptSignalSL:jtphiSignalSL:jtetaSignalSL:discr_csvV1_SignalSL:ndiscr_csvV1_SignalSL:refparton_flavorForBSignalSL:refparton_flavorProcessSignalSL:svtxmSignalSL:discr_probSignalSL:svtxdlsSignalSL:svtxptSignalSL:svtxntrkSignalSL:nsvtxSignalSL:nselIPtrkSignalSL:dphiSignalSL1:pairCodeSignalSL1";
 
 
-  TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:cProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:")
+  TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:cProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:Ncoll:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:")
       +"refparton_flavorForB:isPrimary:refparton_flavorProcess:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
   //now fill histos
@@ -512,6 +513,10 @@ void do_buildtuplemc(TString code)
     TTreeReaderValue<float> vz(readerevt, "vz");
     TTreeReaderValue<int> bin(readerevt, "hiBin");
     TTreeReaderValue<float> hiHF(readerevt, "hiHF");
+
+    TTreeReaderValue<float> *Ncoll = 0;
+    if (PbPb)
+      Ncoll = new TTreeReaderValue<float>(readerevt, "Ncoll");
 
     TTreeReaderValue<unsigned int> run(readerevt, "run");
     TTreeReaderValue<unsigned int> lumi(readerevt, "lumi");
@@ -597,16 +602,17 @@ void do_buildtuplemc(TString code)
       int numTagged = 0;
       int genind1 = -1, genind2 = -1, genind3 = -1;
 
+      float ncoll = PbPb ? *(*Ncoll) : 0;
 
       if (abs(*vz)<15) {//event-level cuts, if not passed all foundXY = false
         for (int j=0;j<*nref;j++) {
-          if (abs(jteta[j])>2.0) continue; //1.5 for PU!
+          if (abs(jteta[j])>etacut) continue;
 
 
           //no need for inc ntuple in mockSL mode
           //for inclusive plots, subid==0 everywhere
           if (!mockSL && isSignal(j)) {
-            vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF,
+            vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF, ncoll,
               (float)subid[j], refpt[j], rawpt[j],jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],ncsvv1[j],
               (float)refparton_flavorForB[j], getFlavorProcess(refparton_isGSP,refparton_flavorProcess,j),
               svtxm[j],discr_prob[j],svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
@@ -681,7 +687,7 @@ void do_buildtuplemc(TString code)
 	//not clear how the gen jet list is sorted - search multiple times
 	float genpt1=-999;
 	for (int ig=0;ig<*ngen;ig++)
-	  if (geneta[ig]<2.0 && gensubid[ig]==0 && genpt[ig]>genpt1) {
+	  if (geneta[ig]<etacut && gensubid[ig]==0 && genpt[ig]>genpt1) {
 	    genpt1 = genpt[ig];
 	    genind1 = ig;
 	  }
@@ -689,7 +695,7 @@ void do_buildtuplemc(TString code)
 	float genpt2 = -999;
 	if (genind1!=-1)
 	  for (int ig=0;ig<*ngen;ig++)
-	    if (geneta[ig]<2.0 && gensubid[ig]==0 && genpt[ig]>genpt2 && genpt[ig]<genpt1) {
+	    if (geneta[ig]<etacut && gensubid[ig]==0 && genpt[ig]>genpt2 && genpt[ig]<genpt1) {
 	      genpt2 = genpt[ig];
 	      genind2 = ig;
 	    }
@@ -697,7 +703,7 @@ void do_buildtuplemc(TString code)
 	float genpt3 = -999;
 	if (genind2!=-1)
 	  for (int ig=0;ig<*ngen;ig++)
-	    if (geneta[ig]<2.0 && gensubid[ig]==0 && genpt[ig]>genpt3 && genpt[ig]<genpt2) {
+	    if (geneta[ig]<etacut && gensubid[ig]==0 && genpt[ig]>genpt3 && genpt[ig]<genpt2) {
 	      genpt3 = genpt[ig];
 	      genind3 = ig;
 	    }
@@ -707,7 +713,7 @@ void do_buildtuplemc(TString code)
       vector<float> vdj;
 
       vdj = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80,
-        *pthat,(float)pthats[i], (float)evCounter-1, (float)weights[getind(*pthat)], (float)*bin, *vz,*hiHF,
+	     *pthat,(float)pthats[i], (float)evCounter-1, (float)weights[getind(*pthat)], (float)*bin, *vz,*hiHF,ncoll,
         newFlavorProcess ? (float)*(*bProdCode) : NaN,
         newFlavorProcess ? (float)*(*cProdCode) : NaN,
         foundJ1 && foundJ2 ? (float)1 : (float)0, (float)bkgJ1,
