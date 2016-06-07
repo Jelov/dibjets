@@ -308,7 +308,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       "NSLord:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1";
 
 
-
+  TString incvars = TString("prew:goodevent:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltPFJet60:hltPFJet80:")+
+      "rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
 
   for (auto w:weights) cout<<w<<"\t";
@@ -321,7 +322,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   TNtuple *ntdj = new TNtuple("nt","ntdj",djvars);
 
   TFile *foutinc = new TFile(outputfilenameinc,"recreate");
-  TNtuple *ntinc = new TNtuple("nt","ntinc","prew:goodevent:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltPFJet60:hltPFJet80:rawpt:jtpt:jtphi:jteta:discr_csvV1:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk");
+  TNtuple *ntinc = new TNtuple("nt","ntinc",incvars);
+
   TFile *foutevt = new TFile(outputfilenameevt,"recreate");
   TNtuple *ntevt = new TNtuple("nt","ntinc","prew:bin:vz:hiHF:hltCSV60:hltCSV80");
   

@@ -30,6 +30,7 @@
 
 bool PbPb = false;
 bool mockSL = false;
+bool bParticle = false;
 
 bool newFlavorProcess = false;
 TString samplesfolder, jettree,sample;
@@ -145,6 +146,13 @@ void Init()
     subfoldernames={"bfcr15/constSubV1_csvV2","bfcr30/constSubV1_csvV2","bfcr50/constSubV1_csvV2","bfcr65/constSubV1_csvV2","bfcr80/constSubV1_csvV2","bfcr100/constSubV1_csvV2","bfcr120/constSubV1_csvV2"};
     pthats = {15,           30,     50,     65,    80,  100,   120};
     CS     = {1.890e-03,1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
+    if (bParticle) {
+      //for bparticle analysis only, comment bfa part if intended to use this
+      subfoldernames={"bfcr30/bParticleAna","bfcr50/bParticleAna","bfcr80/bParticleAna","bfcr100/bParticleAna","bfcr120/bParticleAna"};
+      pthats = {30,     50,      80,  100,   120};
+      CS     = {1.242e-04,1.348e-05,1.468e-06,4.831e-07,1.889e-07};
+    }
+
   }
   else cout<<"Unknown type of collision-mc. Use PbPb/pp-qcd/bjet"<<endl;
 
@@ -410,6 +418,28 @@ bool SLcondition(float csv, float pt, float bin)
   return false;
 }
 
+float dR2(float eta1, float eta2, float phi1, float phi2) 
+{
+  return (eta2-eta1)*(eta2-eta1)+(phi2-phi1)*(phi2-phi1);
+}
+
+//match b-jet to the final hadron (first in the list!)
+float genhadronpt(float refeta, float refphi, vector<float> &bpt, vector<float> &beta, vector<float> &bphi, vector<int> &bpdg)
+{
+  //take a first hadron inside dR
+
+  float dRmax = 0.5;
+  float dRmax2 = dRmax*dRmax;
+
+  int n = beta.size();
+
+  for (int i=0;i<n;i++)
+    if (abs(bpdg[i])!=5 && dR2(refeta,beta[i],refphi,bphi[i])<dRmax2)
+      return bpt[i];
+
+  return NaN;
+}
+
 void do_buildtuplemc(TString code)
 {
   auto weights = calculateWeights();
@@ -419,19 +449,19 @@ void do_buildtuplemc(TString code)
   TString djvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:pthat:pthatsample:sampleEventNumber:pthatweight:bin:vz:hiHF:Ncoll:")+
       "bProdCode:cProdCode:dijet:bkgLeadingJet:numTagged:"
       "genpt1:geneta1:genphi1:gensubid1:genpt2:geneta2:genphi2:gensubid2:genpt3:geneta3:genphi3:gensubid3:"+
-      "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
-      "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
-      "subid3:refpt3:rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:refparton_flavorForB3:refparton_flavorProcess3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:pairCode31:pairCode32:"+
+      "subid1:refpt1:rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:refparton_flavorForB1:refparton_flavorProcess1:bhadronpt1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
+      "subid2:refpt2:rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:refparton_flavorForB2:refparton_flavorProcess2:bhadronpt2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:pairCode21:"+
+      "subid3:refpt3:rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:refparton_flavorForB3:refparton_flavorProcess3:bhadronpt3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:pairCode31:pairCode32:"+
       "SLordSignalOnly:"+
-      "SLord:subidSL:refptSL:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:refparton_flavorForBSL:refparton_flavorProcessSL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:pairCodeSL1:"+
-      "NSLord:subidNSL:refptNSL:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:refparton_flavorForBNSL:refparton_flavorProcessNSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1:pairCodeNSL1:"+
-      "SBord:subidSB:refptSB:rawptSB:jtptSB:jtphiSB:jtetaSB:discr_csvV1_SB:ndiscr_csvV1_SB:refparton_flavorForBSB:refparton_flavorProcessSB:svtxmSB:discr_probSB:svtxdlsSB:svtxptSB:svtxntrkSB:nsvtxSB:nselIPtrkSB:dphiSB1:pairCodeSB1:"+
-      "Signal2ord:subidSignal2:refptSignal2:rawptSignal2:jtptSignal2:jtphiSignal2:jtetaSignal2:discr_csvV1_Signal2:ndiscr_csvV1_Signal2:refparton_flavorForBSignal2:refparton_flavorProcessSignal2:svtxmSignal2:discr_probSignal2:svtxdlsSignal2:svtxptSignal2:svtxntrkSignal2:nsvtxSignal2:nselIPtrkSignal2:dphiSignal21:pairCodeSignal21:"+
-      "SignalSLord:subidSignalSL:refptSignalSL:rawptSignalSL:jtptSignalSL:jtphiSignalSL:jtetaSignalSL:discr_csvV1_SignalSL:ndiscr_csvV1_SignalSL:refparton_flavorForBSignalSL:refparton_flavorProcessSignalSL:svtxmSignalSL:discr_probSignalSL:svtxdlsSignalSL:svtxptSignalSL:svtxntrkSignalSL:nsvtxSignalSL:nselIPtrkSignalSL:dphiSignalSL1:pairCodeSignalSL1";
+      "SLord:subidSL:refptSL:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:refparton_flavorForBSL:refparton_flavorProcessSL:bhadronptSL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:pairCodeSL1:"+
+      "NSLord:subidNSL:refptNSL:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:refparton_flavorForBNSL:refparton_flavorProcessNSL:bhadronptNSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1:pairCodeNSL1:"+
+      "SBord:subidSB:refptSB:rawptSB:jtptSB:jtphiSB:jtetaSB:discr_csvV1_SB:ndiscr_csvV1_SB:refparton_flavorForBSB:refparton_flavorProcessSB:bhadronptSB:svtxmSB:discr_probSB:svtxdlsSB:svtxptSB:svtxntrkSB:nsvtxSB:nselIPtrkSB:dphiSB1:pairCodeSB1:"+
+      "Signal2ord:subidSignal2:refptSignal2:rawptSignal2:jtptSignal2:jtphiSignal2:jtetaSignal2:discr_csvV1_Signal2:ndiscr_csvV1_Signal2:refparton_flavorForBSignal2:refparton_flavorProcessSignal2:bhadronptSignal2:svtxmSignal2:discr_probSignal2:svtxdlsSignal2:svtxptSignal2:svtxntrkSignal2:nsvtxSignal2:nselIPtrkSignal2:dphiSignal21:pairCodeSignal21:"+
+      "SignalSLord:subidSignalSL:refptSignalSL:rawptSignalSL:jtptSignalSL:jtphiSignalSL:jtetaSignalSL:discr_csvV1_SignalSL:ndiscr_csvV1_SignalSL:refparton_flavorForBSignalSL:refparton_flavorProcessSignalSL:bhadronptSignalSL:svtxmSignalSL:discr_probSignalSL:svtxdlsSignalSL:svtxptSignalSL:svtxntrkSignalSL:nsvtxSignalSL:nselIPtrkSignalSL:dphiSignalSL1:pairCodeSignalSL1";
 
 
   TString incvars = TString("run:lumi:event:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCSV60:hltCSV80:bProdCode:cProdCode:pthat:pthatsample:pthatweight:bin:vz:hiHF:Ncoll:subid:refpt:rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:")
-      +"refparton_flavorForB:isPrimary:refparton_flavorProcess:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
+      +"refparton_flavorForB:refparton_flavorProcess:bhadronpt:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
   //now fill histos
   TFile *foutdj = new TFile(outputfilenamedj,"recreate");
@@ -552,6 +582,15 @@ void do_buildtuplemc(TString code)
     TTreeReaderValue<int> CSV60(readerhlt, csv60triggerv2);
     TTreeReaderValue<int> CSV80(readerhlt, csv80triggerv2);
 
+
+    TTreeReader readerbana("bParticleAna/hi",f);
+    TTreeReaderValue<vector<float> > bpt(readerbana,"pt");
+    TTreeReaderValue<vector<float> > beta(readerbana,"eta");
+    TTreeReaderValue<vector<float> > bphi(readerbana,"phi");
+    TTreeReaderValue<vector<int> > bpdg(readerbana,"pdg");
+
+
+
     auto isSignal = [&] (int N) {return subid[N]==0 && refpt[N]>20;};
 
 
@@ -571,13 +610,14 @@ void do_buildtuplemc(TString code)
         continuereading = reader.Next();
         readerevt.Next();
         readerhlt.Next();
+        if (bParticle) readerbana.Next();
         repeatcounter = 0;
       }
       if (!continuereading) break;
 
 
       //for testing - only 2% of data
-      //if (evCounter>2*onep) break;
+      // if (evCounter>2*onep) break;
 
       evCounter++;
       if (evCounter%onep==0) {
@@ -615,6 +655,7 @@ void do_buildtuplemc(TString code)
             vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF, ncoll,
               (float)subid[j], refpt[j], rawpt[j],jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],ncsvv1[j],
               (float)refparton_flavorForB[j], getFlavorProcess(refparton_isGSP,refparton_flavorProcess,j),
+              PbPb ? genhadronpt(jteta[j], jtphi[j], *bpt, *beta, *bphi, *bpdg) : NaN,
               svtxm[j],discr_prob[j],svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
 
               ntinc->Fill(&vinc[0]);
@@ -744,6 +785,7 @@ void do_buildtuplemc(TString code)
         foundJ1 ? ncsvv1[ind1] : NaN,
         foundJ1 ? (float)refparton_flavorForB[ind1] : NaN,
         foundJ1 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,ind1) : NaN,
+        foundJ1 && PbPb? genhadronpt(jteta[ind1], jtphi[ind1], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundJ1 ? svtxm[ind1] : NaN,
         foundJ1 ? discr_prob[ind1] : NaN,
         foundJ1 ? svtxdls[ind1] : NaN,
@@ -762,6 +804,7 @@ void do_buildtuplemc(TString code)
         foundJ2 ? ncsvv1[ind2] : NaN,
         foundJ2 ? (float)refparton_flavorForB[ind2] : NaN,
         foundJ2 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,ind2) : NaN,
+        foundJ2 && PbPb? genhadronpt(jteta[ind2], jtphi[ind2], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundJ2 ? svtxm[ind2] : NaN,
         foundJ2 ? discr_prob[ind2] : NaN,
         foundJ2 ? svtxdls[ind2] : NaN, 
@@ -782,6 +825,7 @@ void do_buildtuplemc(TString code)
         foundJ3 ? ncsvv1[ind3] : NaN,
         foundJ3 ? (float)refparton_flavorForB[ind3] : NaN,
         foundJ3 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,ind3) : NaN,
+        foundJ3 && PbPb? genhadronpt(jteta[ind3], jtphi[ind3], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundJ3 ? svtxm[ind3] : NaN,
         foundJ3 ? discr_prob[ind3] : NaN,
         foundJ3 ? svtxdls[ind3] : NaN, 
@@ -806,6 +850,7 @@ void do_buildtuplemc(TString code)
         foundSL ? ncsvv1[indSL] : NaN,
         foundSL ? (float)refparton_flavorForB[indSL] : NaN,
         foundSL ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSL) : NaN,
+        foundSL && PbPb? genhadronpt(jteta[indSL], jtphi[indSL], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundSL ? svtxm[indSL] : NaN,
         foundSL ? discr_prob[indSL] : NaN,
         foundSL ? svtxdls[indSL] : NaN, 
@@ -827,6 +872,7 @@ void do_buildtuplemc(TString code)
         foundNSL ? ncsvv1[indNSL] : NaN,
         foundNSL ? (float)refparton_flavorForB[indNSL] : NaN,
         foundNSL ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indNSL) : NaN,
+        foundNSL && PbPb? genhadronpt(jteta[indNSL], jtphi[indNSL], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundNSL ? svtxm[indNSL] : NaN,
         foundNSL ? discr_prob[indNSL] : NaN,
         foundNSL ? svtxdls[indNSL] : NaN, 
@@ -848,6 +894,7 @@ void do_buildtuplemc(TString code)
         foundSB ? ncsvv1[indSB] : NaN,
         foundSB ? (float)refparton_flavorForB[indSB] : NaN,
         foundSB ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSB) : NaN,
+        foundSB && PbPb? genhadronpt(jteta[indSB], jtphi[indSB], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundSB ? svtxm[indSB] : NaN,
         foundSB ? discr_prob[indSB] : NaN,
         foundSB ? svtxdls[indSB] : NaN, 
@@ -870,6 +917,7 @@ void do_buildtuplemc(TString code)
         foundSignalJ2 ? ncsvv1[indSignal2] : NaN,
         foundSignalJ2 ? (float)refparton_flavorForB[indSignal2] : NaN,
         foundSignalJ2 ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSignal2) : NaN,
+        foundSignalJ2 && PbPb? genhadronpt(jteta[indSignal2], jtphi[indSignal2], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundSignalJ2 ? svtxm[indSignal2] : NaN,
         foundSignalJ2 ? discr_prob[indSignal2] : NaN,
         foundSignalJ2 ? svtxdls[indSignal2] : NaN, 
@@ -891,6 +939,7 @@ void do_buildtuplemc(TString code)
         foundSignalSL ? ncsvv1[indSignalSL] : NaN,
         foundSignalSL ? (float)refparton_flavorForB[indSignalSL] : NaN,
         foundSignalSL ? getFlavorProcess(refparton_isGSP,refparton_flavorProcess,indSignalSL) : NaN,
+        foundSignalSL && PbPb? genhadronpt(jteta[indSignalSL], jtphi[indSignalSL], *bpt, *beta, *bphi, *bpdg) : NaN,
         foundSignalSL ? svtxm[indSignalSL] : NaN,
         foundSignalSL ? discr_prob[indSignalSL] : NaN,
         foundSignalSL ? svtxdls[indSignalSL] : NaN, 
@@ -990,6 +1039,8 @@ void buildtuplemc(TString code)
   mockSL = IsMockSL(code);
   if (mockSL) maxrepeat = 10;
   TString mcdt = getmcdt(code);
+  bParticle = PbPb; //set to true together with special pp files
+
 
   Init();
 
@@ -1033,7 +1084,7 @@ void buildtuplemc(TString code)
   auto fvertexweight = vertexWeighting(datafile, outputfilenamedj);
   
   //merge bfc sample with b-jet filtered -> bfa sample
-  if (sample=="bfc" || sample=="bfV") {
+  if (bParticle && (sample=="bfc" || sample=="bfV")) {
     TString bjtfiledjt = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_djt.root";
     TString bfafiledjt = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_djt.root";
     TString bjtfileinc = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_inc.root";

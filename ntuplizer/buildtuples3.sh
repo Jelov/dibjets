@@ -1,11 +1,18 @@
 #Build FCR (and BFA)
 root -l <<< ".L buildtuplemc.C+"
-#pp
+
 root -l -q -b buildtuplemc.C+\(\"mcppbfcak4PF\"\) >out/mcppbfcak4PF &
-root -l -q -b buildtuplemc.C+\(\"mcppbfcak3PF\"\) >out/mcppbfcak3PF &
-#PbPb
 root -l -q -b buildtuplemc.C+\(\"mcPbbfcakPu4PF\"\) >out/mcPbbfcakPu4PF &
-root -l -q -b buildtuplemc.C+\(\"mcPbbfcakPu3PF\"\) >out/mcPbbfcakPu3PF &
+
+wait
+
+root -l -q -b buildtuplemc.C+\(\"mXppbfcak4PF\"\) >out/mcppbfcak4PF &
+root -l -q -b buildtuplemc.C+\(\"mXPbbfcakPu4PF\"\) >out/mXPbbfcakPu4PF &
+
+
+#root -l -q -b buildtuplemc.C+\(\"mcppbfcak3PF\"\) >out/mcppbfcak3PF &
+#root -l -q -b buildtuplemc.C+\(\"mcPbbfcakPu3PF\"\) >out/mcPbbfcakPu3PF &
+
 
 
 #root -l -q -b buildtuplemc.C+\(\"mcPbbfcakCs4PF\"\) >out/mcPbbfcakCs4PF &
