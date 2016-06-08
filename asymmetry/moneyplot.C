@@ -54,6 +54,17 @@ float addIn2(float v1, float v2)
 
 // }
 
+void fitPaleLine(vector<TH1F *> v)
+{
+  for (auto h:v) {
+    h->Fit("pol1");
+    auto f= h->GetFunction("pol1");
+    f->SetLineColor(h->GetLineColor());
+    f->SetLineWidth(1);
+    f->SetLineStyle(2);
+  }
+}
+
 void moneyplot(TString name="")
 {
   macro m("moneyplot_"+name);
@@ -65,12 +76,15 @@ void moneyplot(TString name="")
 
   int nbins = binnames.size()+1;
   seth(nbins,0,nbins);
-  auto hmcinc = geth("hmcinc","MC Inclusive;;#LTx_{J}#GT");
-  auto hmcsig = geth("hmcsig","MC Inclusive Signal;;#LTx_{J}#GT");
-  auto hdtinc = geth("hdtinc","Data Inclusive;;#LTx_{J}#GT");
-  auto hmcbjt = geth("hmcbjt","MC b-jets;;#LTx_{J}#GT");
-  auto hmcbSB = geth("hmcbSB","MC b-jets Signal;;#LTx_{J}#GT");
-  auto hdtbjt = geth("hdtbjt","Data b-jets;;#LTx_{J}#GT");
+  auto hmcinc       = geth("hmcinc","MC Inclusive;;#LTx_{J}#GT");
+  auto hmcsig       = geth("hmcsig","MC Inclusive Signal;;#LTx_{J}#GT");
+  auto hdtinc       = geth("hdtinc","Data Inclusive;;#LTx_{J}#GT");
+  auto hmcbjt       = geth("hmcbjt","MC b-jets;;#LTx_{J}#GT");
+  auto hmcbSB       = geth("hmcbSB","MC b-jets Signal;;#LTx_{J}#GT");
+  auto hdtbjt       = geth("hdtbjt","Data b-jets;;#LTx_{J}#GT");
+  auto hdtb12       = geth("hdtb12","Data b-jets 12;;#LTx_{J}#GT");
+  auto hmcb12       = geth("hmcb12","MC b-jets 12;;#LTx_{J}#GT");
+  auto hmcb12Signal = geth("hmcb12Signal","MC b-jets 12 Signal;;#LTx_{J}#GT");
 
   vector<TString> labels = {"pp"};
   for (int i=binnames.size()-1;i>=0;i--) labels.push_back(binnames[i]);
@@ -81,6 +95,9 @@ void moneyplot(TString name="")
   RenameBinLabelsX(hdtinc,labels);
   RenameBinLabelsX(hmcbjt,labels);
   RenameBinLabelsX(hdtbjt,labels);
+  RenameBinLabelsX(hdtb12,labels);
+  RenameBinLabelsX(hmcb12,labels);
+  RenameBinLabelsX(hmcb12Signal,labels);
   RenameBinLabelsX(hmcbSB,labels);
 
   for(unsigned i=0;i<bins.size();i++) {
@@ -90,31 +107,51 @@ void moneyplot(TString name="")
     hdtinc->SetBinContent(nbins-i,res[Form("xj_data_inc_mean%s",end)]);      //i+1
     hmcbjt->SetBinContent(nbins-i,res[Form("xj_mc_bjt_mean%s",end)]);      //i+1
     hdtbjt->SetBinContent(nbins-i,res[Form("xj_data_bjt_mean%s",end)]);      //i+1
+    hdtb12->SetBinContent(nbins-i,res[Form("xj_data_b12_mean%s",end)]);      //i+1
+    hmcb12->SetBinContent(nbins-i,res[Form("xj_mc_b12_mean%s",end)]);      //i+1
     hmcsig->SetBinContent(nbins-i,res[Form("xj_mc_sig2_inc_mean%s",end)]);      //i+1
     hmcbSB->SetBinContent(nbins-i,res[Form("xj_mc_bjtSB_mean%s",end)]);      //i+1
+    hmcb12Signal->SetBinContent(nbins-i,res[Form("xj_mc_b12Signal_mean%s",end)]);      //i+1
 
     hmcinc->SetBinError(nbins-i,res[Form("xj_mc_inc_meanerror%s",end)]);
     hdtinc->SetBinError(nbins-i,res[Form("xj_data_inc_meanerror%s",end)]);
     hmcbjt->SetBinError(nbins-i,res[Form("xj_mc_bjt_meanerror%s",end)]);
     hdtbjt->SetBinError(nbins-i,res[Form("xj_data_bjt_meanerror%s",end)]);
+    hdtb12->SetBinError(nbins-i,res[Form("xj_data_b12_meanerror%s",end)]);
+    hmcb12->SetBinError(nbins-i,res[Form("xj_mc_b12_meanerror%s",end)]);
     hmcsig->SetBinError(nbins-i,res[Form("xj_mc_sig2_inc_meanerror%s",end)]);
     hmcbSB->SetBinError(nbins-i,res[Form("xj_mc_bjtSB_meanerror%s",end)]);
+    hmcb12Signal->SetBinError(nbins-i,res[Form("xj_mc_b12Signal_meanerror%s",end)]);
 
 
   }
 
-  SetB({hmcbjt,hdtbjt,hmcbSB});
+  SetB({hmcbjt,hdtbjt,hdtb12,hmcb12,hmcb12Signal,hmcbSB});
   SetInc({hmcinc,hdtinc,hmcsig});
-  SetMC({hmcinc,hmcbjt,hmcsig,hmcbSB});
-  SetData({hdtinc,hdtbjt});
+  SetMC({hmcinc,hmcbjt,hmcsig,hmcbSB,hmcb12,hmcb12Signal});
+  SetData({hdtinc,hdtbjt,hdtb12});
   hmcsig->SetMarkerColor(kBlue-7);
   hmcsig->SetLineColor(kBlue-7);
   hmcbSB->SetMarkerColor(kRed-7);
   hmcbSB->SetLineColor(kRed-7);
   hmcsig->SetMarkerStyle(kOpenDiamond);
   hmcbSB->SetMarkerStyle(kOpenDiamond);
+  hmcb12Signal->SetMarkerStyle(kOpenDiamond);
+  // hdtb12->SetMarkerStyle(kFullTriangleUp);
+  hdtb12->SetMarkerColor(kMagenta);
+  hdtb12->SetLineColor(kMagenta);
+  hmcb12Signal->SetMarkerColor(kMagenta-7);
+  hmcb12Signal->SetLineColor(kMagenta-7);
+  hmcb12->SetMarkerColor(kMagenta);
+  hmcb12->SetLineColor(kMagenta);
 
+  hdtb12->GetXaxis()->SetLimits(0.1,nbins+0.1);
+  hmcb12->GetXaxis()->SetLimits(0.1,nbins+0.1);
+  hmcb12Signal->GetXaxis()->SetLimits(0.1,nbins+0.1);
 
+  hmcsig->GetXaxis()->SetLimits(-0.1,nbins-0.1);
+  hmcinc->GetXaxis()->SetLimits(-0.1,nbins-0.1);
+  hdtinc->GetXaxis()->SetLimits(-0.1,nbins-0.1);
 
   aktstring = "";
   plotoverwritecolors = false;
@@ -122,7 +159,7 @@ void moneyplot(TString name="")
   plotymin = 0.45;
   plotymax = 0.75;
 
-
+  // fitPaleLine({hmcb12Signal,hdtb12,hmcsig,hdtinc});
 
 
   hmcincsys = (TH1F *)hmcinc->Clone("hmcincsys");
@@ -167,7 +204,11 @@ hmcbjtsys->SetMarkerSize(0);
 hdtbjtsys->SetMarkerSize(0);
 
 plotputgrid = true;
-Draw({hmcinc,hdtinc,hmcbjt,hdtbjt,hmcsig,hmcbSB},"E1");
+Draw({hmcinc,hdtinc,hmcbjt,hdtbjt,hdtb12,hmcsig,hmcbSB,hmcb12,hmcb12Signal},"E1");
+
+Draw({hmcinc,hdtinc,hdtb12,hmcsig,hmcb12,hmcb12Signal},"E1");
+
+Draw({hdtb12,hmcb12,hmcb12Signal},"E1");
 Draw({hmcinc,hdtinc,hmcsig},"E1");
 
   
