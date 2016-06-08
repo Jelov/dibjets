@@ -91,7 +91,7 @@ void findtruthpp(float datafraction = 1.)
   auto hdphippBJT12mc = geth("hdphippBJT12mc","MC b-jets;#Delta#phi");
 
 
-  Fill(fdtpp,{"weight","jtpt1",discr_csvV1_1,jtptSL,dphiSL1,"jtpt2","dphi21",discr_csvV1_2,"jteta1",jtetaSL,"numTagged"},[&] (dict &_) {
+  Fill(fdtpp,[&] (dict &_) {
     if (_["numTagged"]>6) return;
     float w = _["weight"];
     float corr = getppcorrection(_["jtpt1"],_["jteta1"],_[jtptSL],_[jtetaSL]);
@@ -118,8 +118,7 @@ void findtruthpp(float datafraction = 1.)
     },datafraction);
 
   TFile *fmcpp = new TFile(config.getFileName_djt("mcppbfa"));//("/data_CMS/cms/lisniak/bjet2015/mcppbfaak4PF_djt.root");
-  Fill(fmcpp,{"pthat","numTagged","weight","jtpt1","refpt1","jteta1",discr_csvV1_1,jtptSL,dphiSL1,"bProdCode","jtpt2", discr_csvV1_2, "dphi21",jtetaSL,pairCodeSL1,
-              "refparton_flavorForB1","jtptSB","dphiSB1"},[&] (dict &m) {
+  Fill(fmcpp,[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["pthat"]<pthatcut) return;
     float w = weight1SLpp(m);//m["weight"]*processWeights[(int)m["bProdCode"]];
@@ -146,7 +145,7 @@ void findtruthpp(float datafraction = 1.)
   TFile *fmcppqcd = new TFile(config.getFileName_djt(mcppqcd));//("/data_CMS/cms/lisniak/bjet2015/mcppqcdak4PF_djt.root");
 
 
-  Fill(fmcppqcd,{"pthat","weight","jtpt1","refpt1","jtpt2","dphi21","jtptSignal2","dphiSignal21"},[&] (dict &m) {
+  Fill(fmcppqcd,[&] (dict &m) {
     if (m["pthat"]<pthatcut) return;
     float w = m["weight"];
 
@@ -335,7 +334,7 @@ void findtruthPbPb(int binMin, int binMax)
   auto hbinSL = geth("hbinSL");
   auto hbinSLisB = geth("hbinSLisB");
 
-  Fill(fdt,{"weight","vz","bin","jtpt1",discr_csvV1_1,jtptSL,dphiSL1,"jteta1",jtetaSL,"numTagged","jtpt2","dphi21","discr_csvV1_2"},[&] (dict &m) {
+  Fill(fdt,[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["bin"]<binMin || m["bin"]>binMax) return;
 
@@ -377,9 +376,7 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 
-  Fill(fmc,{"weight","pthat","bProdCode","vz","bin","jtpt1","refpt1",discr_csvV1_1,jtptSL,dphiSL1,"jteta1",jtetaSL,subidSL,refptSL,pairCodeSL1,
-            "jtptSignal2",discr_csvV1_Signal2,"Signal2ord","SLord","dphiSignal21",refparton_flavorForBSL,"refparton_flavorForB1","numTagged","jtptSB","dphiSB1",
-            "jtpt2","pairCodeSignal21","discr_csvV1_2","dphi21"},[&] (dict &m) {
+  Fill(fmc,[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["pthat"]<pthatcut) return;
@@ -471,7 +468,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m)  && m[jtptSL]>pt2cut
   hmcxJ12AS->Add(hmcxJ12NS,-1);
 
 
-  Fill(fdtinc,{"weight","jtpt1","jtpt2","dphi21","bin","jteta1","jteta2","hiHF"},[&] (dict &m) {
+  Fill(fdtinc,[&] (dict &m) {
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["hiHF"]>5500) return;
 
@@ -495,7 +492,7 @@ if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && LeadingJetCut(m)  && m[jtptSL]>pt2cut
 
   });
 
-  Fill(fmcinc,{"weight","jtpt1","refpt1","jtpt2","dphi21","bin","jteta1","jteta2",pairCodeSL1,discr_csvV1_1,jtptSL,dphiSL1,"pthat",subidSL,refptSL,"subid2","numTagged","jtptSignal2","dphiSignal21"},[&] (dict &m) {
+  Fill(fmcinc,[&] (dict &m) {
     if (m["bin"]<binMin || m["bin"]>binMax) return;
     if (m["pthat"]<pthatcut) return;
 

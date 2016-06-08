@@ -9,14 +9,14 @@
 
 //#define dict map<TString,float>
 
-//list-absed dict - 66 s (use this one)
-//my stupid map - 66 s
-//std::map - 110 s...
-class dict
+// list-absed dict - 66 s (use this one)
+// my stupid map - 66 s
+// std::map - 110 s...
+class floatdict
 {
+public:
   vector<TString> keys;
   vector<float> values;
-public:
   void insert(TString key, float value)
   {
     auto p = std::find(keys.begin(), keys.end(), key);
@@ -43,6 +43,27 @@ public:
 
 };
 
+class dict
+{
+public:
+  vector<TString> keys;
+  vector<TTreeReaderValue<float> *> values;
+  bool brokenGet = false;
+  float &operator[](const TString key)
+  {
+    auto p = std::find(keys.begin(), keys.end(), key);
+    if (p == keys.end()) {
+      cout<<"Key \""<<key<<"\" not found!"<<endl;
+      brokenGet = true;
+    }
+    
+    return *(*values[p-keys.begin()]);
+
+  }
+
+};
+
+
 class mystupidmap
 {
   const static int maxN = 1<<16;
@@ -59,7 +80,7 @@ public:
 
 bool looptupledryrun = false;
 
-void Fill(TFile *f, vector<TString> varsNeeded, const std::function<void(dict &)> & func, float processFraction = 1)
+void Fill(TFile *f, vector<TString> varsNeeded, const std::function<void(floatdict &)> & func, float processFraction = 1)
 {
   if (looptupledryrun) processFraction = 0.01;
   if (!firstRunMacro) {
@@ -76,7 +97,7 @@ void Fill(TFile *f, vector<TString> varsNeeded, const std::function<void(dict &)
 	cout<<"Processing file "<<f->GetName()<<endl;
   bool fillportion = processFraction != 1;
 
-	dict v;
+	floatdict v;
 	int nev = reader.GetEntries(true);
 	int onep = nev/100;
 	int evCounter = 0;
@@ -101,6 +122,70 @@ float a = 0;
     }
 	}
 	cout<<endl;
+}
+
+void Fill(TFile *f, const std::function<void(dict &)> & func, float processFraction = 1)
+{
+  if (looptupledryrun) processFraction = 0.01;
+  if (!firstRunMacro) {
+    cout<<" histograms have been read from file, skipping Fill function."<<endl;
+    return;
+  }
+
+  dict v;
+
+  auto nt = (TTree *)f->Get("nt");
+  TObjArray *brlist = nt->GetListOfBranches();
+  int Nbranches = brlist->GetEntries();
+
+  v.keys.resize(Nbranches);
+  v.values.resize(Nbranches);
+
+  for(int i = 0; i < Nbranches; ++i) { 
+    TString brname = brlist->At(i)->GetName();
+    v.keys[i] = brname;
+  }
+
+  TTreeReader reader("nt",f);
+
+  for (int i=0;i<Nbranches;i++)
+    v.values[i] = new TTreeReaderValue<float>(reader,v.keys[i]);
+
+
+
+  cout<<"Processing file "<<f->GetName()<<endl;
+  bool fillportion = processFraction != 1;
+
+
+  int nev = reader.GetEntries(true);
+  int onep = nev/100;
+  int evCounter = 0;
+  TTimeStamp t0;
+
+  while (reader.Next()) {
+    if (fillportion && evCounter>processFraction*nev) break;
+    evCounter++;
+    if (evCounter%onep==0) {
+      std::cout << std::fixed; TTimeStamp t1; 
+      cout<<" \r"<<evCounter/onep<<"%   "<<" total time "<<(int)round((t1-t0)*nev/(evCounter+.1))<<" s "<<flush;
+    }
+
+
+    func(v);
+
+    if (v.brokenGet) {
+      cout<<"You tried to access key which is not present in the tree!"<<endl;
+      break;
+    }
+  }
+  cout<<endl;
+}
+
+//stub from old Fill
+void Fill(TFile *f, vector<TString> varsNeeded,  const std::function<void(dict &)> & func, float processFraction = 1) 
+{
+  varsNeeded.clear();
+  Fill(f,func,processFraction);
 }
 
 
