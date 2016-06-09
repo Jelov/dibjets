@@ -99,6 +99,21 @@ vector<float> calculateWeightsBjet(TString filenamedj)
   return w;
 }
 
+vector<float> calculateWeightsCaloJet(TString filenamedj)
+{
+  cout<<"Calculating calo-jet trigger weights"<<endl;
+
+  TFile *f0 = new TFile(filenamedj);
+  auto nt = (TTree *)f0->Get("nt");
+
+  float njet100 = nt->GetEntries("hltCaloJet100");
+  float overlapjet60 = nt->GetEntries("hltCaloJet60 && hltCaloJet100")/njet100;
+  float overlapjet80 = nt->GetEntries("hltCaloJet80 && hltCaloJet100")/njet100;
+
+  vector<float> w = {overlapjet60,overlapjet80,1};
+  return w;
+}
+
 
 
 double getweight(TString sample, int trig60, int trig80)
@@ -164,6 +179,11 @@ void Init(TString sample)
     subfoldernames = {"PbPb_Jet6080/puTowerExclLimitV2/0000","PbPb_Jet6080/puTowerExclLimitV2/0001","PbPb_Jet6080/puTowerExclLimitV2/0002"};
     weights = {1.,1.,1.};
   }
+  else if (PbPb && sample=="jcl") {
+    subfoldernames = {"PbPb_Jet6080/puTowerExclLimitV2/0000","PbPb_Jet6080/puTowerExclLimitV2/0001","PbPb_Jet6080/puTowerExclLimitV2/0002",
+                "PbPb_Jet100/puTowerExclLimitV2/0000","PbPb_Jet100/puTowerExclLimitV2/0001","PbPb_Jet100/puTowerExclLimitV2/0002"};
+    weights = {1.,1.,1.,1.,1.,1.};
+  }
   else cout<<"Don\'t know collision type: PbPb"<<PbPb<<", sample "<<sample<<endl;
 }
 
@@ -195,6 +215,46 @@ void updatePbPbBtriggerweight(TString filename, vector<float> w)
     weight = 0;
     if (triggermatched && csv80) weight = w[1];
     if (triggermatched && csv60 && !csv80) weight = w[0];
+
+    bw->Fill();
+  }
+
+  nt->Write("nt",TObject::kOverwrite);
+  f->Close();
+
+
+}
+
+void updatePbPbCaloJetTriggerWeight(TString filename, vector<float> w)
+{
+  auto f = new TFile(filename,"update");
+
+  auto nt = (TTree *)f->Get("nt");
+
+  float calojet60, calojet80,calojet100;
+  float triggerPt;
+
+  float weight;
+  TBranch *bw;
+
+  bw =  nt->Branch("weight",&weight);
+
+  nt->SetBranchAddress("hltCaloJet60",&calojet60);
+  nt->SetBranchAddress("hltCaloJet80",&calojet80);
+  nt->SetBranchAddress("hltCaloJet100",&calojet100);
+  nt->SetBranchAddress("triggerPt",&triggerPt);
+  
+  int n = nt->GetEntries();
+  int onep = n/100;
+  for (int i=0;i<n;i++) {
+    if (i%onep==0) cout<<i/onep<<endl;
+    nt->GetEntry(i);
+
+
+    weight = 0;
+    if (calojet100 && triggerPt>100)                weight = w[2];
+    if (calojet80 && triggerPt>80 && triggerPt<=100) weight = w[1];
+    if (calojet60 && triggerPt>60 && triggerPt<=80) weight = w[0];
 
     bw->Fill();
   }
@@ -280,6 +340,23 @@ bool SLcondition(float csv, float pt, float bin)
   return false;
 }
 
+float getHighestTriggerPt(int CaloJet60, int CaloJet80, int CaloJet100, vector<double> &calo60pt,vector<double> &calo80pt, vector<double> &calo100pt)
+{
+  float triggerPt = NaN;
+  if (CaloJet60)
+    for (double x:calo60pt)
+      if (x>triggerPt) triggerPt = x;
+
+  if (CaloJet80)
+    for (double x:calo80pt)
+      if (x>triggerPt) triggerPt = x;
+
+  if (CaloJet100)
+    for (double x:calo100pt)
+      if (x>triggerPt) triggerPt = x;
+
+    return triggerPt;
+}
 
 void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jetalgo = "akVs4PFJetAnalyzer")
 {
@@ -298,7 +375,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   TString outputfilenameinc = outputfolder+"/"+code+"_inc.root";
   TString outputfilenameevt = outputfolder+"/"+code+"_evt.root";
 
-  TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltPFJet60:hltPFJet80:dijet:")+
+  TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:dijet:")+
       "hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
       "numTagged:"
       "rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
@@ -308,7 +385,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       "NSLord:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1";
 
 
-  TString incvars = TString("prew:goodevent:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltPFJet60:hltPFJet80:")+
+  TString incvars = TString("prew:goodevent:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:")+
       "rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
 
@@ -368,6 +445,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TString calojet40triggerv2 = !PbPb ? "HLT_AK4CaloJet40_Eta5p1_v1" : "HLT_HIPuAK4CaloJet40_Eta5p1_v2";
     TString calojet60trigger = !PbPb ? "HLT_AK4CaloJet60_Eta5p1_v1" : "HLT_HIPuAK4CaloJet60_Eta5p1_v1";
     TString calojet80trigger = !PbPb ? "HLT_AK4CaloJet80_Eta5p1_v1" : "HLT_HIPuAK4CaloJet80_Eta5p1_v1";
+    TString calojet100trigger = !PbPb ? "HLT_AK4CaloJet100_Eta5p1_v1" : "HLT_HIPuAK4CaloJet100_Eta5p1_v1";
     //dummy vars in PbPb case
     TString pfjet60trigger = !PbPb ? "HLT_AK4PFJet60_Eta5p1_v1" : "LumiBlock";
     TString pfjet80trigger = !PbPb ? "HLT_AK4PFJet80_Eta5p1_v1" : "LumiBlock";
@@ -388,6 +466,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTreeReaderValue<int> CaloJet40v2(readerhlt, calojet40triggerv2);
     TTreeReaderValue<int> CaloJet60(readerhlt, calojet60trigger);
     TTreeReaderValue<int> CaloJet80(readerhlt, calojet80trigger);
+    TTreeReaderValue<int> CaloJet100(readerhlt, calojet100trigger);    
 
     TTreeReaderValue<int> CSV60(readerhlt, csv60trigger);
     TTreeReaderValue<int> CSV80(readerhlt, csv80trigger);
@@ -412,6 +491,10 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTreeReaderValue<vector<Double_t> > calo80eta(readerCalo80object, "eta");
     TTreeReaderValue<vector<Double_t> > calo80phi(readerCalo80object, "phi");
 
+    TTreeReader readerCalo100object("hltobject/HLT_HIPuAK4CaloJet100_Eta5p1_v",f);
+    TTreeReaderValue<vector<Double_t> > calo100pt(readerCalo100object, "pt");
+    TTreeReaderValue<vector<Double_t> > calo100eta(readerCalo100object, "eta");
+    TTreeReaderValue<vector<Double_t> > calo100phi(readerCalo100object, "phi");
 
     TTreeReader readerevt("hiEvtAnalyzer/HiTree",f);
     TTreeReaderValue<float> vz(readerevt, "vz");
@@ -501,7 +584,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       int SLord = 0, NSLord = 0;
       bool foundJ1=false, foundJ2 = false, foundJ3 = false, foundSL = false, foundNSL = false; //found/not found yet, for convenience
 
-      bool triggermatched = false;
+      bool triggermatched = false; float triggerPt = NaN;
       int numTagged = 0;
 
 
@@ -522,8 +605,11 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 	        if (PbPb) {
 		         indTrigCSV60 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv60pt, *csv60phi, *csv60eta);
 		         indTrigCSV80 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv80pt, *csv80phi, *csv80eta);
+             // actually, I don't need matching of calo jet to leading jet
 		         indTrigCalo60 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo60pt, *calo60phi, *calo60eta);
 		         indTrigCalo80 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo80pt, *calo80phi, *calo80eta);
+
+             triggerPt = getHighestTriggerPt(*CaloJet60, *CaloJet80, *CaloJet100, *calo60pt,*calo80pt,*calo100pt);
 	        }
              
 	      triggermatched = !PbPb || indTrigCSV60!=-1 || indTrigCSV80!=-1;
@@ -559,7 +645,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
 
           //at this point foundLJ = true always, so triggermatched is determined
-          vector<float> vinc = {weight, (float)triggermatched, (float) *bin, *vz, *hiHF,(float)*CSV60, (float)*CSV80,(float)*CaloJet40, (float)*CaloJet60, (float)*CaloJet80,
+          vector<float> vinc = {weight, (float)triggermatched, (float) *bin, *vz, *hiHF,(float)*CSV60, (float)*CSV80,
+            (float)*CaloJet40, (float)*CaloJet60, (float)*CaloJet80,(float)*CaloJet100,triggerPt,
             (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],svtxm[j],discr_prob[j],
             svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
   
@@ -571,7 +658,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       vector<float> vdj;
 
       vdj = {(float)*run, (float)*lumi, (float)*event, weight, (float)triggermatched, (float)*bin, *vz,*hiHF,
-        (float)*CSV60, (float)*CSV80,(float)*CaloJet40,(float)*CaloJet60, (float)*CaloJet80,(float)bPFJet60,(float)bPFJet80, 
+        (float)*CSV60, (float)*CSV80,(float)*CaloJet40,(float)*CaloJet60, (float)*CaloJet80,(float)*CaloJet100,triggerPt,(float)bPFJet60,(float)bPFJet80, 
         foundJ1 && foundJ2 ? (float)1 : (float)0,
 
         indTrigCalo60!=-1 ? (float)(*calo60pt)[indTrigCalo60] : NaN,
@@ -708,7 +795,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     updatePbPbBtriggerweight(outputfilenamedj,w);
     updatePbPbBtriggerweight(outputfilenameinc,w);
     updatePbPbBtriggerweight(outputfilenameevt,w);
-  } else {
+  } else if (PbPb && sample=="jcl"){
+    auto w = calculateWeightsCaloJet(outputfilenamedj);
+
+    updatePbPbCaloJetTriggerWeight(outputfilenamedj,w);
+    updatePbPbCaloJetTriggerWeight(outputfilenameinc,w);
+    updatePbPbCaloJetTriggerWeight(outputfilenameevt,w);
+  }
+  else {
     updateweight(outputfilenamedj);
     updateweight(outputfilenameinc);
     updateweight(outputfilenameevt);
