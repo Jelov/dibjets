@@ -5,7 +5,7 @@
 */
 
 #include "../helpers/parsecode.h"
-
+#include <boost/functional/hash.hpp>
 
 TString jettree;
 vector<TString> subfoldernames;
@@ -31,6 +31,16 @@ TTree *GetTree(TFile *f, TString treename)
   //TODO: figure out
   //  if (t==0) t = (TTree *)f->Get("ak4PFJetAnalyzer/t");
   return t;
+}
+
+std::unordered_set<int> processedevents;
+bool SeenEventAlready(unsigned int run,unsigned int lumi,unsigned int event)
+{
+  vector<unsigned int> v = {run,lumi,event};
+  int hash = boost::hash_range(v.begin(),v.end());
+  bool f = processedevents.find(hash)!=processedevents.end();
+  if (!f) processedevents.insert(hash);
+  return f;
 }
 
 vector<TString> list_files(const char *dirname, const char *exp=".*HiForestAOD.*\\.root")
@@ -110,7 +120,7 @@ vector<float> calculateWeightsCaloJet(TString filenamedj)
   float overlapjet60 = nt->GetEntries("hltCaloJet60 && hltCaloJet100")/njet100;
   float overlapjet80 = nt->GetEntries("hltCaloJet80 && hltCaloJet100")/njet100;
 
-  vector<float> w = {overlapjet60,overlapjet80,1};
+  vector<float> w = {1/overlapjet60,1/overlapjet80,1};
   return w;
 }
 
@@ -533,6 +543,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         readercsv80object.Next();
         readerCalo60object.Next();
         readerCalo80object.Next();
+        readerCalo100object.Next();
         repeatcounter = 0;
       }
       if (!continuereading) break;
@@ -548,6 +559,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         cout<<" \r"<<evCounter/onep<<"%   "<<" total time "<<(int)round((t1-t0)*nev/(evCounter+.1))<<" s "<<flush;
       }
 
+      if (SeenEventAlready(*run,*lumi,*event)) continue;
 
       int bPFJet60 = !PbPb ? *PFJet60 : 1;
       int bPFJet80 = !PbPb ? *PFJet80 : 1;
