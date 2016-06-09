@@ -41,7 +41,6 @@ vector<double> CS;
 vector<double> filterefficiency;
 TString outputfilenamedj; 
 TString outputfilenameinc;
-TString outputfilenameevt;
 
 TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
 
@@ -469,9 +468,6 @@ void do_buildtuplemc(TString code)
   TFile *foutinc = new TFile(outputfilenameinc,"recreate");
   TNtuple *ntinc = new TNtuple("nt","nt",incvars);
 
-  TFile *foutevt = new TFile(outputfilenameevt,"recreate");
-  TNtuple *ntevt = new TNtuple("nt","nt","pthat:pthatbin:pthatweight:bin:vz:hiHF");
-
   for (int i=0;i<Npthat;i++) {
 
     auto files = list_files(TString::Format("%s/%s/",samplesfolder.Data(),subfoldernames[i].Data()));
@@ -628,10 +624,6 @@ void do_buildtuplemc(TString code)
 
       int b = *bin;
       float centrWeight = 1;//PbPb ? centrWeights[b] : 1;
-
-      vector<float> vevt = {*pthat, (float)i, (float)weights[getind(*pthat)], (float)*bin, *vz, *hiHF, centrWeight,
-          (float)weights[getind(*pthat)]*centrWeight};
-      ntevt->Fill(&vevt[0]);
 
 
       int ind1=-1, ind2=-1, indSignal2=-1, ind3=-1, indSL=-1, indNSL=-1, indSignalSL=-1, indSB=-1; //indices of leading/subleading jets in jet array
@@ -952,7 +944,7 @@ void do_buildtuplemc(TString code)
 
 
       };
-            //==(mockSL && foundSL) || !mockSL
+      //==(mockSL && foundSL) || !mockSL
       if (!mockSL || foundSL)
         ntdj->Fill(&vdj[0]);
     }
@@ -960,13 +952,9 @@ void do_buildtuplemc(TString code)
     f->Close();
     }
   }
-  
-  foutevt->cd();
-  //reason for overwrite: AutoSave already saved tree in some intermediate version
-  //without overwrite file has 2 copies
-  ntevt->Write("nt",TObject::kOverwrite);
-  foutevt->Close();
 
+  //reason for overwrite: AutoSave already saved tree in some intermediate version
+  //without overwrite file has 2 copies  
   foutdj->cd();
   ntdj->Write("nt",TObject::kOverwrite);
   foutdj->Close();
@@ -1046,20 +1034,14 @@ void buildtuplemc(TString code)
 
   outputfilenamedj = outputfolder+"/"+code+"_djt.root";
   outputfilenameinc = outputfolder+"/"+code+"_inc.root";
-  outputfilenameevt = outputfolder+"/"+code+"_evt.root";
 
   //in the future pthat weight can also be moved here...
 
 
-  //data sample centrality will be matched to
-  //in qcd - take inclusive jets
-  //in b-jet - take b-jet triggered
+  //data sample centrality/vertex will be matched to
   TString datasample = "";
   if (!PbPb) datasample="jpf";
-  else datasample = "j60";
-
-  //!!! IMPORTANT!!! Use jet60 sample for
-  //sample=="qcd" || sample=="qcV" ? "j60" : "bjt";
+  else datasample = "jcl";
 
   //use Pu algo in data if Vs is required for MC
   //auto subalgo=sub(code);
@@ -1101,6 +1083,5 @@ void buildtuplemc(TString code)
 
   update(outputfilenamedj,fcentrWeight,fvertexweight);
   update(outputfilenameinc,fcentrWeight,fvertexweight);
-  update(outputfilenameevt,fcentrWeight,fvertexweight);
 
 }

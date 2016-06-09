@@ -383,7 +383,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
   TString outputfilenamedj = outputfolder+"/"+code+"_djt.root";
   TString outputfilenameinc = outputfolder+"/"+code+"_inc.root";
-  TString outputfilenameevt = outputfolder+"/"+code+"_evt.root";
 
   TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:dijet:")+
       "hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
@@ -395,7 +394,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       "NSLord:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1";
 
 
-  TString incvars = TString("prew:goodevent:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:")+
+  TString incvars = TString("prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:")+
       "rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
 
@@ -411,9 +410,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   TFile *foutinc = new TFile(outputfilenameinc,"recreate");
   TNtuple *ntinc = new TNtuple("nt","ntinc",incvars);
 
-  TFile *foutevt = new TFile(outputfilenameevt,"recreate");
-  TNtuple *ntevt = new TNtuple("nt","ntinc","prew:bin:vz:hiHF:hltCSV60:hltCSV80");
-  
   for (unsigned i=0;i<subfoldernames.size();i++) {
     //get all files for unmerged forests
     auto files = list_files(TString::Format("%s/%s/",samplesfolder.Data(),subfoldernames[i].Data()));
@@ -578,8 +574,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       if (PbPb && sample=="j80")
         weight = *CaloJet80;
 
-      ntevt->Fill(weight, *bin, *vz, *hiHF, *CSV60, *CSV80);
-
       //good event is vertex cut and noise cuts
       bool goodevent = abs(*vz)<15 && *hiHF<hiHFcut;
       for (auto f:filters) 
@@ -624,8 +618,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
              triggerPt = getHighestTriggerPt(*CaloJet60, *CaloJet80, *CaloJet100, *calo60pt,*calo80pt,*calo100pt);
 	        }
              
-	      triggermatched = !PbPb || indTrigCSV60!=-1 || indTrigCSV80!=-1;
-	  } else
+	        triggermatched = !PbPb || indTrigCSV60!=-1 || indTrigCSV80!=-1;
+	       } else
             if (foundJ1 && !foundJ2) {
               ind2 = j;
               foundJ2 = true;
@@ -656,14 +650,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
             if (SLcondition(discr_csvV1[j], jtpt[j], *bin)) numTagged++;
 
 
-          //at this point foundLJ = true always, so triggermatched is determined
-          vector<float> vinc = {weight, (float)triggermatched, (float) *bin, *vz, *hiHF,(float)*CSV60, (float)*CSV80,
-            (float)*CaloJet40, (float)*CaloJet60, (float)*CaloJet80,(float)*CaloJet100,triggerPt,
-            (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],svtxm[j],discr_prob[j],
-            svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
-  
-	  if (!mockSL) //no need for inc ntuple in mockSL mode
-	    ntinc->Fill(&vinc[0]);
+            //at this point foundLJ = true always, so triggermatched is determined
+            vector<float> vinc = {weight, (float)triggermatched, (float) *bin, *vz, *hiHF,(float)*CSV60, (float)*CSV80,
+              (float)*CaloJet40, (float)*CaloJet60, (float)*CaloJet80,(float)*CaloJet100,triggerPt,
+              (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],svtxm[j],discr_prob[j],
+              svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
+    
+            if (!mockSL) //no need for inc ntuple in mockSL mode
+              ntinc->Fill(&vinc[0]);
         }
 
       //fill dijet ntuple
@@ -782,10 +776,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     f->Close();
     }
   }
-  
-  foutevt->cd();
-  ntevt->Write("nt",TObject::kOverwrite);
-  foutevt->Close();
 
   foutdj->cd();
   ntdj->Write("nt",TObject::kOverwrite);
@@ -806,18 +796,15 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
     updatePbPbBtriggerweight(outputfilenamedj,w);
     updatePbPbBtriggerweight(outputfilenameinc,w);
-    updatePbPbBtriggerweight(outputfilenameevt,w);
   } else if (PbPb && sample=="jcl"){
     auto w = calculateWeightsCaloJet(outputfilenamedj);
 
     updatePbPbCaloJetTriggerWeight(outputfilenamedj,w);
     updatePbPbCaloJetTriggerWeight(outputfilenameinc,w);
-    updatePbPbCaloJetTriggerWeight(outputfilenameevt,w);
   }
   else {
     updateweight(outputfilenamedj);
     updateweight(outputfilenameinc);
-    updateweight(outputfilenameevt);
   }
 
 }

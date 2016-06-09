@@ -2,16 +2,19 @@ root -l <<< ".L buildtupledata.C+"
 
 #Build all data tuple
 root -l -q -b buildtupledata.C+\(\"dtppjpfak4PF\"\) >out/dtppjpfak4PF &
-root -l -q -b buildtupledata.C+\(\"dtPbj60akPu4PF\"\) >out/dtPbj60akPu4PF &
-root -l -q -b buildtupledata.C+\(\"dtPbj80akPu4PF\"\) >out/dtPbj80akPu4PF &
+root -l -q -b buildtupledata.C+\(\"dtPbjclakPu4PF\"\) >out/dtPbjclakPu4PF &
 root -l -q -b buildtupledata.C+\(\"dtPbbjtakPu4PF\"\) >out/dtPbbjtakPu4PF &
 
 root -l -q -b buildtupledata.C+\(\"dXppjpfak4PF\"\) >out/dXppjpfak4PF &
-root -l -q -b buildtupledata.C+\(\"dXPbj60akPu4PF\"\) >out/dXPbj60akPu4PF &
-root -l -q -b buildtupledata.C+\(\"dXPbj80akPu4PF\"\) >out/dXPbj80akPu4PF &
+root -l -q -b buildtupledata.C+\(\"dXPbjclakPu4PF\"\) >out/dXPbjclakPu4PF &
 root -l -q -b buildtupledata.C+\(\"dXPbbjtakPu4PF\"\) >out/dXPbbjtakPu4PF &
 
 
+
+#root -l -q -b buildtupledata.C+\(\"dtPbj60akPu4PF\"\) >out/dtPbj60akPu4PF &
+#root -l -q -b buildtupledata.C+\(\"dtPbj80akPu4PF\"\) >out/dtPbj80akPu4PF &
+#root -l -q -b buildtupledata.C+\(\"dXPbj60akPu4PF\"\) >out/dXPbj60akPu4PF &
+#root -l -q -b buildtupledata.C+\(\"dXPbj80akPu4PF\"\) >out/dXPbj80akPu4PF &
 
 
 #root -l -q -b buildtupledata.C+\(\"dtppjpfak3PF\"\) >out/dtppjpfak3PF &
