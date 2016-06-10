@@ -10,50 +10,6 @@ float addIn2(float v1, float v2)
   return sqrt(v1*v1+v2*v2);
 }
 
-// void loadsyst()
-// {
-//   auto mqcd = ReadFromFile("../mistag/hydjetclosureqcd/hydjetclosureqcdsyst.root");
-
-//   hmcincsys->SetBinError(1,mqcd["closure020"]);
-//   hmcincsys->SetBinError(2,mqcd["closure2060"]);
-//   hmcincsys->SetBinError(3,mqcd["closure60200"]);
-//   hmcincsys->SetBinError(4,0);
-
-//   hdtincsys->SetBinError(1,mqcd["closure020"]);
-//   hdtincsys->SetBinError(2,mqcd["closure2060"]);
-//   hdtincsys->SetBinError(3,mqcd["closure60200"]);
-//   hdtincsys->SetBinError(4,0);
-
-
-//   auto sysbjt = ReadFromFile("results_0510_pthat50/results.root");
-//   float bjtsyspp = addIn2(sysbjt["xjmcbjtsyslo-1-1"],sysbjt["xjmcbjtsyshi-1-1"]);
-//   float bjtsys020 = addIn2(sysbjt["xjmcbjtsyslo020"],sysbjt["xjmcbjtsyshi020"]);
-//   float bjtsys2060 = addIn2(sysbjt["xjmcbjtsyslo2060"],sysbjt["xjmcbjtsyshi2060"]);
-//   float bjtsys60200 = addIn2(sysbjt["xjmcbjtsyslo60200"],sysbjt["xjmcbjtsyshi60200"]);
-
-
-//   auto mbjt = ReadFromFile("../mistag/hydjetclosure_upd/hydjetclosuresyst.root");
-
-//   float bjtfullsyspp = bjtsyspp;
-//   float bjtfullsys020 = addIn2(bjtsys020,mbjt["closure020"]);
-//   float bjtfullsys2060 = addIn2(bjtsys2060,mbjt["closure2060"]);
-//   float bjtfullsys60200 = addIn2(bjtsys60200,mbjt["closure60200"]);
-
-
-//   hmcbjtsys->SetBinError(1,bjtfullsys020);
-//   hmcbjtsys->SetBinError(2,bjtfullsys2060);
-//   hmcbjtsys->SetBinError(3,bjtfullsys60200);
-//   hmcbjtsys->SetBinError(4,bjtfullsyspp);
-
-//   hdtbjtsys->SetBinError(1,bjtfullsys020);
-//   hdtbjtsys->SetBinError(2,bjtfullsys2060);
-//   hdtbjtsys->SetBinError(3,bjtfullsys60200);
-//   hdtbjtsys->SetBinError(4,bjtfullsyspp);
-
-
-
-// }
-
 void fitPaleLine(vector<TH1F *> v)
 {
   for (auto h:v) {
@@ -70,9 +26,6 @@ void moneyplot(TString name="")
   macro m("moneyplot_"+name);
 
   auto res = ReadFromFile("results_"+name+"/results.root");
-  for (auto i:res) {
-    cout<<i.first<<" = "<<i.second<<endl;
-  }
 
   int nbins = binnames.size()+1;
   seth(nbins,0,nbins);
@@ -103,15 +56,15 @@ void moneyplot(TString name="")
   for(unsigned i=0;i<bins.size();i++) {
     const char * end = i<bins.size()-1 ? Form("%d%d",(int)bins[i],(int)bins[i+1]) : "-1-1"; //pp==-1-1
     cout<<nbins-i+1<<endl;
-    hmcinc->SetBinContent(nbins-i,res[Form("xj_mc_inc_mean%s",end)]);      //i+1
-    hdtinc->SetBinContent(nbins-i,res[Form("xj_data_inc_mean%s",end)]);      //i+1
-    hmcbjt->SetBinContent(nbins-i,res[Form("xj_mc_bjt_mean%s",end)]);      //i+1
-    hdtbjt->SetBinContent(nbins-i,res[Form("xj_data_bjt_mean%s",end)]);      //i+1
-    hdtb12->SetBinContent(nbins-i,res[Form("xj_data_b12_mean%s",end)]);      //i+1
-    hmcb12->SetBinContent(nbins-i,res[Form("xj_mc_b12_mean%s",end)]);      //i+1
-    hmcsig->SetBinContent(nbins-i,res[Form("xj_mc_sig2_inc_mean%s",end)]);      //i+1
-    hmcbSB->SetBinContent(nbins-i,res[Form("xj_mc_bjtSB_mean%s",end)]);      //i+1
-    hmcb12Signal->SetBinContent(nbins-i,res[Form("xj_mc_b12Signal_mean%s",end)]);      //i+1
+    hmcinc->SetBinContent(nbins-i,res[Form("xj_mc_inc_mean%s",end)]);
+    hdtinc->SetBinContent(nbins-i,res[Form("xj_data_inc_mean%s",end)]);
+    hmcbjt->SetBinContent(nbins-i,res[Form("xj_mc_bjt_mean%s",end)]);
+    hdtbjt->SetBinContent(nbins-i,res[Form("xj_data_bjt_mean%s",end)]);
+    hdtb12->SetBinContent(nbins-i,res[Form("xj_data_b12_mean%s",end)]);
+    hmcb12->SetBinContent(nbins-i,res[Form("xj_mc_b12_mean%s",end)]);
+    hmcsig->SetBinContent(nbins-i,res[Form("xj_mc_sig2_inc_mean%s",end)]);
+    hmcbSB->SetBinContent(nbins-i,res[Form("xj_mc_bjtSB_mean%s",end)]);
+    hmcb12Signal->SetBinContent(nbins-i,res[Form("xj_mc_b12Signal_mean%s",end)]);
 
     hmcinc->SetBinError(nbins-i,res[Form("xj_mc_inc_meanerror%s",end)]);
     hdtinc->SetBinError(nbins-i,res[Form("xj_data_inc_meanerror%s",end)]);
