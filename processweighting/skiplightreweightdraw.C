@@ -72,13 +72,13 @@ float jtpt2min = 40;
 
 	auto h12dphiNSreweighted = (TH1F *)h12dphiNSall->Clone("h12dphiNSreweighted");
 	auto hSLdphiNSreweighted = (TH1F *)hSLdphiNSall->Clone("hSLdphiNSreweighted");
-	h12dphiNSreweighted->Reset();h12dphiNSreweighted->SetTitle("#Delta#phi;#Delta#phi");
-	hSLdphiNSreweighted->Reset();hSLdphiNSreweighted->SetTitle("#Delta#phi;#Delta#phi");
+	h12dphiNSreweighted->Reset();h12dphiNSreweighted->SetTitle("|#Delta#phi|;|#Delta#phi|");
+	hSLdphiNSreweighted->Reset();hSLdphiNSreweighted->SetTitle("|#Delta#phi|;|#Delta#phi|");
 
 	auto h12dphireweighted = (TH1F *)h12dphiall->Clone("h12dphireweighted");
 	auto hSLdphireweighted = (TH1F *)hSLdphiall->Clone("hSLdphireweighted");
-	h12dphireweighted->Reset();h12dphireweighted->SetTitle("#Delta#phi;#Delta#phi");
-	hSLdphireweighted->Reset();hSLdphireweighted->SetTitle("#Delta#phi;#Delta#phi");
+	h12dphireweighted->Reset();h12dphireweighted->SetTitle("|#Delta#phi|;|#Delta#phi|");
+	hSLdphireweighted->Reset();hSLdphireweighted->SetTitle("|#Delta#phi|;|#Delta#phi|");
 
 	auto h12ordreweighted = (TH1F *)h12ordall->Clone("h12ordreweighted");
 	auto hSLordreweighted = (TH1F *)hSLordall->Clone("hSLordreweighted");
@@ -131,7 +131,7 @@ plotytitle = "";
 
 
   	plotsecondline = text12;
-  	plotthirdline  = "#Delta#phi>2#pi/3, CSV>0.9";
+  	plotthirdline  = "|#Delta#phi|>2#pi/3, CSV>0.9";
   	
   	
   	plotfilenameend = "12";
@@ -223,33 +223,33 @@ plotytitle = "";
 	plotymin = 1E-3;
 	plotthirdline  = "CSV>0.9";
   	plotsecondline = text12;
-	// DrawCompare(h12dphidata,h12dphiall,"#Delta#phi");
-	// DrawCompare(hSLdphidata,hSLdphiall,"#Delta#phi");
+	// DrawCompare(h12dphidata,h12dphiall,"|#Delta#phi|");
+	// DrawCompare(hSLdphidata,hSLdphiall,"|#Delta#phi|");
 
 
 	Normalize({hSLdphireweighted,h12dphireweighted});
 	SetMC({hSLdphireweighted,h12dphireweighted});
 
-	// DrawCompare(h12dphidata,h12dphireweighted,"#Delta#phi");
-	// DrawCompare(hSLdphidata,hSLdphireweighted,"#Delta#phi");
+	// DrawCompare(h12dphidata,h12dphireweighted,"|#Delta#phi|");
+	// DrawCompare(hSLdphidata,hSLdphireweighted,"|#Delta#phi|");
 
 	//plotymax = 0.5;
 
 	auto h12dphistack = stackhists({h12dphifcr,h12dphifex,h12dphigsp},colors,"h12dphistack","(P)");
-	DrawCompare(h12dphidata,h12dphistack,"#Delta#phi");
+	DrawCompare(h12dphidata,h12dphistack,"|#Delta#phi|");
 
 	h12dphifex->Scale(beta); h12dphigsp->Scale(gamma);
 	auto h12dphistack2 = stackhists({h12dphifcr,h12dphifex,h12dphigsp},colors,"h12dphistack2","(W)");
-	DrawCompare(h12dphidata,h12dphistack2,"#Delta#phi");
+	DrawCompare(h12dphidata,h12dphistack2,"|#Delta#phi|");
 
 
   	plotsecondline = textSL;
 	auto hSLdphistack = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack","(P)");
-	DrawCompare(hSLdphidata,hSLdphistack,"#Delta#phi");
+	DrawCompare(hSLdphidata,hSLdphistack,"|#Delta#phi|");
 
 	hSLdphifex->Scale(beta); hSLdphigsp->Scale(gamma);
 	auto hSLdphistack2 = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack2","(W)");
-	DrawCompare(hSLdphidata,hSLdphistack2,"#Delta#phi");
+	DrawCompare(hSLdphidata,hSLdphistack2,"|#Delta#phi|");
 
 
 
@@ -270,20 +270,20 @@ plotytitle = "";
 
 
 	auto h12dphiNSstack = stackhists({h12dphiNSfcr,h12dphiNSfex,h12dphiNSgsp},colors,"h12dphiNSstack","(P)");
-	DrawCompare(h12dphiNSdata,h12dphiNSstack,"#Delta#phi");
+	DrawCompare(h12dphiNSdata,h12dphiNSstack,"|#Delta#phi|");
 
 	h12dphiNSfex->Scale(beta); h12dphiNSgsp->Scale(gamma);
 	auto h12dphiNSstack2 = stackhists({h12dphiNSfcr,h12dphiNSfex,h12dphiNSgsp},colors,"h12dphiNSstack2","(W)");
-	DrawCompare(h12dphiNSdata,h12dphiNSstack2,"#Delta#phi");
+	DrawCompare(h12dphiNSdata,h12dphiNSstack2,"|#Delta#phi|");
 
 
   	plotsecondline = textSL;
 	auto hSLdphiNSstack = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack","(P)");
-	DrawCompare(hSLdphiNSdata,hSLdphiNSstack,"#Delta#phi");
+	DrawCompare(hSLdphiNSdata,hSLdphiNSstack,"|#Delta#phi|");
 
 	hSLdphiNSfex->Scale(beta); hSLdphiNSgsp->Scale(gamma);
 	auto hSLdphiNSstack2 = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack2","(W)");
-	DrawCompare(hSLdphiNSdata,hSLdphiNSstack2,"#Delta#phi");
+	DrawCompare(hSLdphiNSdata,hSLdphiNSstack2,"|#Delta#phi|");
 
 
 
