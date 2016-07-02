@@ -1,19 +1,22 @@
 #include "../helpers/plotting.h"
-
+#include "../helpers/looptuple.h"
+#include "../helpers/config.h"
+#include "../helpers/physics.h"
 
 void skiplightreweightdraw()
 {
-	macro m("skiplightreweightdraw_12030_pthat50");
+	macro m("skiplightreweightdraw");
 
-//0.266, gamma = 1.232
+//for 100/40, beta=0.216,gamma=1.089
+//for 120/30, beta=0.201,gamma=0.938
 
-//0.04;//
-// 1.18;//
 
-//0.266, 0.932 - best fit for SL
+float jtpt1min = 100;
+float jtpt2min = 40; 
 
-	float beta  = 0.04;//0.266;//120/30 = 0.045;//110/50 = 0.28;//FEXGSP = 0.4
-	float gamma = 1.2;//1.232;//120/30 = 1.182;//110/50 = 1.24;//FEXGSP = 0.4
+
+	float beta  = 0.216;
+	float gamma = 1.089;
 
 	auto f= new TFile("skiplightreweight.root");
 	auto h12all = (TH1F *)f->Get("h12all");
@@ -116,12 +119,12 @@ void skiplightreweightdraw()
 	SetMC({h12all,hSLall,h12dphiall,hSLdphiall});
 
 	ploteffectiveentries = false;
-	plotymax = 0.12;
+	plotymax = 0.3;
 	plotylog = false;
 	plotputmean = true;
 	aktstring+="PF Jets R=0.4";
-	TString text12 = "p_{T,1}>120GeV,p_{T,2}>30GeV";
-	TString textSL = "p_{T,1}>120GeV,p_{T,2b}>30GeV";
+	TString text12 = Form("p_{T,1}>%.fGeV,p_{T,2}>%.fGeV",jtpt1min,jtpt2min);
+	TString textSL = Form("p_{T,1}>%.fGeV,p_{T,2b}>%.fGeV",jtpt1min,jtpt2min);
 plotytitle = "";
 // plotlegenddy = 0.08;
 // plotlegenddx = -0.03;
@@ -174,13 +177,14 @@ plotytitle = "";
 	DrawCompare(hSLdata,hSLstack2,"x_{J}");
 
 
-
+	cout<<"FCR fraction in 12 : "<<h12fcr->Integral()/(h12fcr->Integral()+h12fex->Integral()+h12gsp->Integral())<<endl;
+	cout<<"FCR fraction in SL : "<<hSLfcr->Integral()/(hSLfcr->Integral()+hSLfex->Integral()+hSLgsp->Integral())<<endl;
 
 
 	plotputmean = false;
 	plotylog = false;
-	plotymax = 1.1;
-	plotymin = 1E-5;
+	plotymax = 1.3;
+	plotymin = 0;
   	plotsecondline = text12;
 
 	Normalize({hSLordreweighted,h12ordreweighted});
@@ -190,21 +194,21 @@ plotytitle = "";
 	// DrawCompare(hSLorddata,hSLordreweighted);
 
 	auto h12ordstack = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack","(P)");
-	DrawCompare(h12orddata,h12ordstack,"skiplight order");
+	DrawCompare(h12orddata,h12ordstack,"partner b-jet order");
 
 
 	h12ordfex->Scale(beta); h12ordgsp->Scale(gamma);
 	auto h12ordstack2 = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack2","(W)");
-	DrawCompare(h12orddata,h12ordstack2,"skiplight order");
+	DrawCompare(h12orddata,h12ordstack2,"partner b-jet order");
 
   	plotsecondline = textSL;
 	auto hSLordstack = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack","(P)");
-	DrawCompare(hSLorddata,hSLordstack,"skiplight order");
+	DrawCompare(hSLorddata,hSLordstack,"partner b-jet order");
 
 
 	hSLordfex->Scale(beta); hSLordgsp->Scale(gamma);
 	auto hSLordstack2 = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack2","(W)");
-	DrawCompare(hSLorddata,hSLordstack2,"skiplight order");
+	DrawCompare(hSLorddata,hSLordstack2,"partner b-jet order");
 
 
 
@@ -215,7 +219,8 @@ plotytitle = "";
 	plotymin = 9999;
 	plotputmean = false;
 	plotputwidth = true;
-	plotymax = 0.5;
+	plotymax = 10;
+	plotymin = 1E-3;
 	plotthirdline  = "CSV>0.9";
   	plotsecondline = text12;
 	// DrawCompare(h12dphidata,h12dphiall,"#Delta#phi");
@@ -280,84 +285,6 @@ plotytitle = "";
 	auto hSLdphiNSstack2 = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack2","(W)");
 	DrawCompare(hSLdphiNSdata,hSLdphiNSstack2,"#Delta#phi");
 
-
-
-// 	int nearsidebin1 = 1;
-// 	int nearsidebin2 = hSLdphifex->GetNbinsX()/3;
-
-// 	int awaysidebin1 = hSLdphifex->GetNbinsX()/3*2;
-// 	int awaysidebin2 = hSLdphifex->GetNbinsX()-1;
-
-// 	float NnsFEX  = hSLdphifex->Integral(nearsidebin1,nearsidebin2);
-// 	float NnsGSP  = hSLdphigsp->Integral(nearsidebin1,nearsidebin2);
-// 	float NasFEX  = hSLdphifex->Integral(awaysidebin1,awaysidebin2);
-// 	float NasGSP  = hSLdphigsp->Integral(awaysidebin1,awaysidebin2);
-
-// 	float NnsData = hSLdphidata->Integral(nearsidebin1,nearsidebin2);
-// 	float NasData = hSLdphidata->Integral(awaysidebin1,awaysidebin2);
-
-// 	float alpha = (NnsData - NnsGSP*(1+NasFEX/NasGSP))/(NnsFEX - NnsGSP*NasFEX/NasGSP); 
-// 	float beta2 = ((1-alpha)*NasFEX+NasGSP)/NasGSP;
-
-// if (alpha<0) alpha =0;
-
-// 	cout<<"!!!"<<alpha<<" "<<beta2<<endl;
-
-
-
-// 	hSLdphifex->Scale(alpha); hSLdphigsp->Scale(beta2);
-// 	auto hSLdphistack2_new = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack2_new");
-// 	DrawCompare(hSLdphidata,hSLdphistack2_new,"#Delta#phi");
-
-
-// 	cout<<" NasFEX+NasGSP = "<<NasFEX+NasGSP<<" ?= "<<
-// 		hSLdphifex->Integral(awaysidebin1,awaysidebin2)+hSLdphigsp->Integral(awaysidebin1,awaysidebin2)<<endl;
-
-
-// 	ploteffectiveentries = false;
-// 	plotymax = 0.12;
-// 	plotylog = false;
-// 	plotputmean = true;
-// 	aktstring+="PF Jets R=0.4";
-//   	plotsecondline = "p_{T,1}>120GeV,p_{T,2}>30GeV";
-//   	plotthirdline  = "#Delta#phi>2#pi/3, CSV>0.9";
-
-
-
-
-
-
-// 	auto h12reweightedtwice = (TH1F *)h12all->Clone("h12reweightedtwice");
-// 	auto hSLreweightedtwice = (TH1F *)hSLall->Clone("hSLreweightedtwice");
-// 	h12reweightedtwice->Reset();h12reweightedtwice->SetTitle("h12reweightedtwice");
-// 	hSLreweightedtwice->Reset();hSLreweightedtwice->SetTitle("hSLreweightedtwice");
-
-// 	h12reweightedtwice->Add(h12fex,h12gsp,alpha,beta2);
-// 	h12reweightedtwice->Add(h12fcr);
-// 	cout<<"h12reweightedtwice "<<h12reweightedtwice->GetMean()<<endl;
-
-// 	hSLreweightedtwice->Add(hSLfex,hSLgsp,alpha,beta2);
-// 	hSLreweightedtwice->Add(hSLfcr);
-// 	cout<<"hSLreweightedtwice "<<hSLreweightedtwice->GetMean()<<endl;
-
-// 	Normalize({h12reweightedtwice,hSLreweightedtwice});
-// 	SetMC({h12reweightedtwice,hSLreweightedtwice});
-
-// 	plotfilenameend = "12";
-// 	DrawCompare(h12data,h12reweightedtwice);
-// 	plotfilenameend = "SL";
-// 	DrawCompare(hSLdata,hSLreweightedtwice);
-// 	plotfilenameend="";
-
-
-
-// 	hSLfex->Scale(alpha); hSLgsp->Scale(beta2);
-// 	auto hSLstack2_new = stackhists({hSLfcr,hSLfex,hSLgsp},colors,"hSLstack2_new");
-// 	DrawCompare(hSLdata,hSLstack2_new,"x_{J}");
-
-// 	h12fex->Scale(alpha); h12gsp->Scale(beta2);
-// 	auto h12stack2_new = stackhists({h12fcr,h12fex,h12gsp},colors,"h12stack2_new");
-// 	DrawCompare(h12data,h12stack2_new,"x_{J}","___");
 
 
 

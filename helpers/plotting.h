@@ -57,12 +57,14 @@ TCanvas *getc()
 bool firstRunMacro = true;
 TString plotfoldername;
 TString histoutputfilename;
+bool plotsaveadddate = false;
 
-void SavePlots(TCanvas *c, TString filename)
+void SavePlot(TCanvas *c, TString filename)
 {
   TDatime t;
-  filename+="_"+TString::Itoa(t.GetDate(),10);
-  // filename+="_20160512";
+  if (plotsaveadddate)
+    filename+="_"+TString::Itoa(t.GetDate(),10);
+
 
   if (plotfoldername== "") plotfoldername = "plots";
   gSystem->MakeDirectory(plotfoldername);
@@ -175,6 +177,11 @@ vector<TH1F *> getv(TString hname, TString htitle)
   return res;
 }
 
+vector<TH1F *> getv(TString hname) 
+{
+  return getv(hname,hname);
+}
+
 
 void WriteAllHists()
 {
@@ -197,7 +204,6 @@ TF1 *fitdphi(TH1F *h, float &sigma, float &error)
   h->Fit(f,"NQ");
 
 
-  cout<<"sigma = "<<f->GetParameter(0)<<endl;
   sigma = f->GetParameter(0);
   error = f->GetParError(0);
 
@@ -239,6 +245,7 @@ TString plotytitle = "Counts";
 bool plotdivide = true;
 bool plotputmean = false;
 bool plotputwidth = false;
+bool plotusestderror = true;
 TString plotdatacaption = "Data";
 TString plotmccaption = "MC";
 TString ploth11caption = "h11";
@@ -249,6 +256,7 @@ float plotymax = 9999;
 float plotymax1 = 9999;
 float plotymax2 = 9999;
 float plotyline = 9999;
+float plotyline2 = 9999;
 
 bool plotputgrid = false;
 
@@ -269,10 +277,13 @@ float plotmeanposx = 0.2, plotmeanposy = 0.5;
 float textposx = 0.2, textposy = 0.77;
 
 float plotdiffmax = 9999;
+float plotratiomin = 9999;
+float plotratiomax = 9999;
 
 vector<int> plotlegendorder = {};
 
 bool plotoverwritecolors = true;
+bool plotautosave = true;
 
 void Normalize(vector<TH1 *> hists)
 {
@@ -366,7 +377,8 @@ TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
     cout<<h->GetName()<<" : \t"<<h->GetMean()<<"±"<<h->GetMeanError()<<endl;
 
     if (plotputmean) {
-      Tl->DrawLatexNDC(plotmeanposx, plotmeanposy-i*0.07, Form("%.3f#pm%.3f",h->GetMean(),h->GetMeanError()));
+      float e = plotusestderror ? h->GetMeanError() : h->GetStdDev();
+      Tl->DrawLatexNDC(plotmeanposx, plotmeanposy-i*0.07, Form("%.3f#pm%.3f",h->GetMean(),e));
       //TLine *l = new TLine(h->GetMean(),h->GetMinimum(),h->GetMean(),h->GetMaximum());
       //l->SetLineColor(h->GetLineColor());
       //l->SetLineWidth(2);
@@ -386,8 +398,16 @@ TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
   if (plotyline!=9999) {
     TLine *line = new TLine(hists[0]->GetXaxis()->GetXmin(), plotyline, hists[0]->GetXaxis()->GetXmax(), plotyline);
     line->SetLineStyle(2);
+    line->SetLineColor(kRed);    
     line->Draw();
   }
+
+  if (plotyline2!=9999) {
+    TLine *line = new TLine(hists[0]->GetXaxis()->GetXmin(), plotyline2, hists[0]->GetXaxis()->GetXmax(), plotyline2);
+    line->SetLineStyle(2);
+    line->Draw();
+  }
+
 
   if (plotputgrid)
     c->SetGrid();
@@ -399,7 +419,7 @@ TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
 
   c->Update();
 
-  SavePlots(c,filename);
+  if (plotautosave) SavePlot(c,filename);
   return c;
 
 }
@@ -544,9 +564,9 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
   if (plotytitle=="Counts" && bw!=1)
     title = "Counts/"+TString::Format("%.1f",h1->GetBinWidth(1));//"Event fractions";
 
-  TString legend1 = plotdatacaption;
-  TString legend2 = plotmccaption;
-  TString legend3 = ploth11caption;
+  TString legend1 = h1->GetTitle();//plotdatacaption;
+  TString legend2 = h2->GetTitle();//plotmccaption;
+  TString legend3 = h11==0 ? "" : h11->GetTitle();//ploth11caption;
   //int color1 = kBlack;
   //int color2 = TColor::GetColor(152,235,230);
 
@@ -662,15 +682,18 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
 
   if (plotdivide) {
     h3->Divide(h1,h2);
-    h3->SetMinimum(-0.2);
-    h3->SetMaximum(2.2);
-  } else
+    h3->SetMinimum(plotratiomin!=9999 ? plotratiomin : -0.2);
+    h3->SetMaximum(plotratiomax!=9999 ? plotratiomax : 2.2);
+  } else {
     h3->Add(h1,h2,1,-1);
-  if (plotdiffmax!=9999)
-  {
-    h3->SetMaximum(plotdiffmax*1.05);
-    h3->SetMinimum(-plotdiffmax*1.05);
+    if (plotdiffmax!=9999)
+    {
+      h3->SetMaximum(plotdiffmax*1.05);
+      h3->SetMinimum(-plotdiffmax*1.05);
+    }    
   }
+
+
 
   h3->GetYaxis()->SetTitle(plotdivide ? "ratio" : "difference");
   h3->GetYaxis()->CenterTitle();
@@ -679,12 +702,12 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
   //  drawText(var,0.18,0.8,kBlack,20);
 
   h3->SetMarkerStyle(21);
-  h3->Draw("ep");
+  h3->Draw("ep"); //hist p
 
   TLatex *Tl2 = new TLatex();
   if (plotputmean) {
-    Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),plotdatacaption.Data())+nicemeanstr(h1));
-    Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),plotmccaption.Data())+nicemeanstr(h2));
+    Tl2->DrawLatexNDC(textposx, 0.87, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),h1->GetTitle())+nicemeanstr(h1));
+    Tl2->DrawLatexNDC(textposx, 0.77, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),h2->GetTitle())+nicemeanstr(h2));
     if (h11!=0)
       Tl2->DrawLatexNDC(textposx, 0.37, TString::Format("#LT%s#GT^{%s} = ",caption.Data(),ploth11caption.Data())+nicemeanstr(h11));
     
@@ -714,7 +737,7 @@ void DrawCompare(TH1F *h1, TH1F *h2, TString caption = "x_{J}",TH1F *h11=0)
 
   c1->SetName(outname);
 
-  SavePlots(c1,outname);
+  SavePlot(c1,outname);
 }
 
 // void DrawCompare2(TH1F *h1, TH1F *h2, TString caption = "A_{J}",TH1F *h11=0)
@@ -1086,7 +1109,7 @@ TCanvas * DrawStack(THStack *h, TH1F *hontop, TString xtitle, TString ytitle, fl
   h->GetYaxis()->SetTitle(ytitle);
   c2->Modified();
   c2->Update();
-  SavePlots(c2,h->GetTitle());
+  SavePlot(c2,h->GetTitle());
   //c2->SaveAs(plotsfolder+"/"+h->GetTitle()+".pdf");
 
   return c2;
@@ -1314,7 +1337,7 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
 
   c1->cd();
 
-  SavePlots(c1,Form("Compare_%s_%s",h1->GetName(),h2->GetName()));
+  SavePlot(c1,Form("Compare_%s_%s",h1->GetName(),h2->GetName()));
   //c1->SaveAs(Form("%s/Compare_%s_%s.pdf",plotsfolder.Data(),h1->GetTitle(),h2->GetTitle()));
 
 }
@@ -1365,6 +1388,7 @@ public:
     plotfoldername = name;
 
     histoutputfilename = plotfoldername+"/"+filename;
+    gSystem->MakeDirectory(plotfoldername);
 
     cout<<"Starting macro "<<macroname<<"!"<<endl;
   }
@@ -1372,7 +1396,7 @@ public:
   {
     if (!firstRun) return;
     cout<<"Writing histograms to the file "<<filename<<endl;
-    gSystem->MakeDirectory(plotfoldername);
+
     TFile *f = new TFile(plotfoldername+"/"+filename,"recreate");
     for (auto x:allhists)
       x->Write();

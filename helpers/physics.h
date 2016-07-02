@@ -3,6 +3,7 @@
 
 #include "TString.h"
 #include "parsecode.h"
+#include "looptuple.h"
 
 
 //PHYSICAL CONSTANTS
@@ -11,6 +12,11 @@ const float pthatcut = 50;
 
 const float pt1cut = 100;
 const float pt2cut = 40;
+
+const float etacut = 1.5;
+
+float csvcut1 = 0.9; //modifiable later
+float csvcut2 = 0.9; //modifiable later
 
 const float PI = 3.141593;
 const float PI23 = PI*2/3;
@@ -64,6 +70,8 @@ int getbinindex(float bin)
 //definition of the embedded signal
 bool IsSignal(dict d) { return d[subidSL]==0 && d[refptSL]>20;}
 
+bool IsSignal(float subid, float refpt) {return subid==0 && refpt>20;}
+
 
 //physical algo shortcuts
 float weight1SLpp(dict d)
@@ -77,6 +85,27 @@ float weight1SLPbPb(dict d)
 {
   float w = d["weight"];
   if (d[pairCodeSL1]==0 && IsSignal(d)) w*=processweight((int)d["bProdCode"]);
+  return w;
+}
+
+float weight12(dict d)
+{
+  float w = d["weight"];
+  if (d["pairCode21"]==0 && IsSignal(d["subid2"],d["refpt2"])) w*=processweight((int)d["bProdCode"]);
+  return w;
+}
+
+float weight1Signal2(dict d)
+{
+  float w = d["weight"];
+  if (d["pairCodeSignal21"]==0 && IsSignal(d["subidSignal2"],d["refptSignal2"])) w*=processweight((int)d["bProdCode"]);
+  return w;
+}
+
+float weight(float weight, float pairCode, float subid, float refpt, float bProdCode)
+{
+  float w = weight;
+  if ((int)pairCode==0 && IsSignal(subid,refpt)) w*=processweight((int)bProdCode);
   return w;
 }
 
@@ -98,13 +127,11 @@ bool AwaySide(dict d)
 
 //for pthat>50, fullMC
 // vector<float> bkgfractionInNearSide = {0.8692479730,0.4500232041,0.0801286325};
-vector<float> bkgfractionInNearSide = {0.8726,0.4479,0.0801};
+//|eta|<2
+// vector<float> bkgfractionInNearSide = {0.8726,0.4479,0.0801};
 
-//true
-// vector<float> bkgfractionInNearSide = {0.8455,0.3612,0.0311};
-
-// vector<float> bkgfractionInNearSide = {0.96,0.55,0.18};
-
+//|eta|<1.5
+vector<float> bkgfractionInNearSide = {0.7548671365,0.3059994578,0.0966218933};
 
 
 bool applyTaggingCorrection = true;
