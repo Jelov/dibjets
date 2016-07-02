@@ -118,6 +118,9 @@ float jtpt2min = 40;
 			h12ordall,hSLordall,h12orddata,hSLorddata});
 	SetMC({h12all,hSLall,h12dphiall,hSLdphiall});
 
+	plotdivide = false;
+	plotdiffmax = 0.065;
+
 	ploteffectiveentries = false;
 	plotymax = 0.3;
 	plotylog = false;
@@ -125,9 +128,9 @@ float jtpt2min = 40;
 	aktstring+="PF Jets R=0.4";
 	TString text12 = Form("p_{T,1}>%.fGeV,p_{T,2}>%.fGeV",jtpt1min,jtpt2min);
 	TString textSL = Form("p_{T,1}>%.fGeV,p_{T,2b}>%.fGeV",jtpt1min,jtpt2min);
-plotytitle = "";
-// plotlegenddy = 0.08;
-// plotlegenddx = -0.03;
+	plotytitle = "";
+	// plotlegenddy = 0.08;
+	// plotlegenddx = -0.03;
 
 
   	plotsecondline = text12;
