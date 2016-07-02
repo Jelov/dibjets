@@ -125,12 +125,13 @@ float jtpt2min = 40;
 	plotymax = 0.3;
 	plotylog = false;
 	plotputmean = true;
-	aktstring+="PF Jets R=0.4";
-	TString text12 = Form("p_{T,1}>%.fGeV,p_{T,2}>%.fGeV",jtpt1min,jtpt2min);
-	TString textSL = Form("p_{T,1}>%.fGeV,p_{T,2b}>%.fGeV",jtpt1min,jtpt2min);
-	plotytitle = "";
-	// plotlegenddy = 0.08;
-	// plotlegenddx = -0.03;
+
+	aktstring+="anti-k_{T} PF Jets, R=0.4";
+	TString text12 = Form("p_{T,1}>%.f GeV, p_{T,2}>%.f GeV",jtpt1min,jtpt2min);
+	TString textSL = Form("p_{T,1}>%.f GeV, p_{T,2b}>%.f GeV",jtpt1min,jtpt2min);
+plotytitle = "";
+// plotlegenddy = 0.08;
+// plotlegenddx = -0.03;
 
 
   	plotsecondline = text12;
@@ -221,7 +222,7 @@ float jtpt2min = 40;
 	plotylog = true;
 	plotymin = 9999;
 	plotputmean = false;
-	plotputwidth = true;
+	plotputwidth = trueh;
 	plotymax = 10;
 	plotymin = 1E-3;
 	plotthirdline  = "CSV>0.9";
