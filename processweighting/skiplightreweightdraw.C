@@ -197,6 +197,10 @@ plotytitle = "";
 	// DrawCompare(h12orddata,h12ordreweighted);
 	// DrawCompare(hSLorddata,hSLordreweighted);
 
+	Print(hSLordall);
+	Print(hSLordreweighted);
+	Print(hSLorddata);
+
 	auto h12ordstack = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack","(P)");
 	DrawCompare(h12orddata,h12ordstack,"partner b-jet order");
 
@@ -222,7 +226,7 @@ plotytitle = "";
 	plotylog = true;
 	plotymin = 9999;
 	plotputmean = false;
-	plotputwidth = trueh;
+	plotputwidth = true;
 	plotymax = 10;
 	plotymin = 1E-3;
 	plotthirdline  = "CSV>0.9";
@@ -291,6 +295,29 @@ plotytitle = "";
 
 
 
+
+Print(hSLordall);
+	Print(hSLordreweighted);
+	Print(hSLorddata);
+
+
+
+//output order in the table format
+
+	float p2 = hSLordall->GetBinContent(2)*100;
+	float p3 = hSLordall->GetBinContent(3)*100;
+	float r2 = hSLordreweighted->GetBinContent(2)*100;
+	float r3 = hSLordreweighted->GetBinContent(3)*100;
+	float d2 = hSLorddata->GetBinContent(2)*100;
+	float d3 = hSLorddata->GetBinContent(3)*100;
+
+
+cout<< "Partner jet & Pythia & Pythia reweighted & Data  \\\\ "<<endl;
+cout<<"\\hline"<<endl;
+cout<<setprecision(3);
+cout<<"2 & " <<p2<<"\\% & "<<r2<<"\\% & "<<d2<<"\\% \\\\"<<endl;
+cout<<"3 & " <<p3<<"\\% & "<<r3<<"\\% & "<<d3<<"\\% \\\\"<<endl;
+cout<<"4+ & "<<(100-p2-p3)<<"\\% & "<<(100-r2-r3)<<"\\% & "<<(100-d2-d3)<<"\\% \\\\"<<endl;
 
 
 
