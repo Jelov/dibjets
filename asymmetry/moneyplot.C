@@ -73,7 +73,7 @@ void moneyplot(TString name="")
   RenameBinLabelsX(hmcbSB,labels);
 
   for(unsigned i=0;i<bins.size();i++) {
-    const char * end = i<bins.size()-1 ? Form("%d%d",(int)bins[i],(int)bins[i+1]) : "-1-1"; //pp==-1-1
+    const char * end = i<bins.size()-1 ? Form("%d%d",(int)bins[i],(int)bins[i+1]) : "pp"; //pp==-1-1
     cout<<nbins-i+1<<endl;
     hmcinc->SetBinContent(nbins-i,res[Form("xj_mc_inc_mean%s",end)]);
     hdtinc->SetBinContent(nbins-i,res[Form("xj_data_inc_mean%s",end)]);
@@ -153,16 +153,16 @@ void moneyplot(TString name="")
   }
 
 
-hdtincsys->SetBinError(1,0.022);
-hdtincsys->SetBinError(2,0.023);
-hdtincsys->SetBinError(3,0.026);
-hdtincsys->SetBinError(4,0.036);
+hdtbjtsys->SetBinError(1,0.02327);
+hdtbjtsys->SetBinError(2,0.02323);
+hdtbjtsys->SetBinError(3,0.02359);
+hdtbjtsys->SetBinError(4,0.02800);
 
 
-hdtbjtsys->SetBinError(1,0.023);//0.023);
-hdtbjtsys->SetBinError(2,0.025);//0.023);
-hdtbjtsys->SetBinError(3,0.028);//0.024);
-hdtbjtsys->SetBinError(4,0.035);//0.027);
+hdtincsys->SetBinError(1,0.02236);//0.023);
+hdtincsys->SetBinError(2,0.02239);//0.023);
+hdtincsys->SetBinError(3,0.02266);//0.024);
+hdtincsys->SetBinError(4,0.02329);//0.027);
 
 
 
@@ -213,7 +213,7 @@ l->Draw();
  // writing the lumi information and the CMS "logo"
   CMS_lumi(c, iPeriod, iPos );
 
- SavePlots(c,"moneyplotINC");
+ SavePlot(c,"moneyplotINC");
 
 
 
@@ -234,7 +234,7 @@ l2->AddEntry(hdtbjt,"Data","P");
 l2->AddEntry(hmcbSB,"Simulation","P");
 l2->SetHeader("b-dijets");
 l2->Draw();
-SavePlots(c2,"moneyplotBJT");
+SavePlot(c2,"moneyplotBJT");
 
 
  
@@ -245,7 +245,7 @@ TCanvas *c3 = new TCanvas("c3","c3",600,600);
 
 
  TH1F *hframe = new TH1F("hframe","hframe",1,-24.99,400);
- hframe->SetXTitle("N_{coll}-weighted N_{part}");
+ hframe->SetXTitle("N_{part} (N_{coll}-weighted)");
  hframe->SetYTitle("#LTx_{J}#GT");
  hframe->SetMaximum(0.75);
  hframe->SetMinimum(0.45);
@@ -262,7 +262,7 @@ hframe -> GetYaxis() -> CenterTitle();
  TGraphErrors *gMC_pp_inc = new TGraphErrors(1);
  
  // ncoll weighted values from Shengquan
- float npart[3] = {46.81,226.7,358.8};
+ float npart[3] = {102.,239.9,363.4};
  
  
  for(int i=0;i<3;i++){
@@ -312,10 +312,10 @@ hframe -> GetYaxis() -> CenterTitle();
  gMC_PbPb_inc->Draw("p");
  gMC_pp_inc->Draw("p");
 
- TText *t1a = new TText(-7,0.73,"pp");
- TText *t2a = new TText(25,0.697,"30-100%");
- TText *t3a = new TText(205,0.675,"10-30%");
- TText *t4a = new TText(340,0.665,"0-10%");
+ TText *t1a = new TText(-7,0.73,"pp"); //-7,0.73,
+ TText *t2a = new TText(75,0.710,"30-100%"); //100,0.697,
+ TText *t3a = new TText(215,0.690,"10-30%"); //205,0.675,
+ TText *t4a = new TText(340,0.670,"0-10%"); //340,0.665,
 
  t1a->SetTextSize(17);
  t2a->SetTextSize(17);
@@ -332,6 +332,8 @@ hframe -> GetYaxis() -> CenterTitle();
 
   l->Draw();
 
+  SavePlot(c3,"moneyincnice");
+
 TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
  
@@ -346,24 +348,24 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
  
  
  for(int i=0;i<3;i++){
-   gData_PbPb_b->SetPoint(i,npart[i],hdtbjt->GetBinContent(i+2));
-   gData_PbPb_b->SetPointError(i,0.,hdtbjt->GetBinError(i+2));
+   gData_PbPb_b->SetPoint(i,npart[i],hdtb12->GetBinContent(i+2));
+   gData_PbPb_b->SetPointError(i,0.,hdtb12->GetBinError(i+2));
    
-   gData_PbPb_b_sys->SetPoint(i,npart[i],hdtbjt->GetBinContent(i+2));
+   gData_PbPb_b_sys->SetPoint(i,npart[i],hdtb12->GetBinContent(i+2));
    gData_PbPb_b_sys->SetPointError(i,10.,hdtbjtsys->GetBinError(i+2));
 
-   gMC_PbPb_b->SetPoint(i,npart[i],hmcbSB->GetBinContent(i+2));
-   gMC_PbPb_b->SetPointError(i,0.,hmcbSB->GetBinError(i+2));
+   gMC_PbPb_b->SetPoint(i,npart[i],hmcb12Signal->GetBinContent(i+2));
+   gMC_PbPb_b->SetPointError(i,0.,hmcb12Signal->GetBinError(i+2));
  }
 
-   gData_pp_b->SetPoint(0,2,hdtbjt->GetBinContent(1));
-   gData_pp_b->SetPointError(0,0.,hdtbjt->GetBinError(1));
+   gData_pp_b->SetPoint(0,2,hdtb12->GetBinContent(1));
+   gData_pp_b->SetPointError(0,0.,hdtb12->GetBinError(1));
 
-   gData_pp_b_sys->SetPoint(0,2,hdtbjt->GetBinContent(1));
+   gData_pp_b_sys->SetPoint(0,2,hdtb12->GetBinContent(1));
    gData_pp_b_sys->SetPointError(0,10.,hdtbjtsys->GetBinError(1));
 
-   gMC_pp_b->SetPoint(0,2,hmcbSB->GetBinContent(1));
-   gMC_pp_b->SetPointError(0,0.,hmcbSB->GetBinError(1));
+   gMC_pp_b->SetPoint(0,2,hmcb12Signal->GetBinContent(1));
+   gMC_pp_b->SetPointError(0,0.,hmcb12Signal->GetBinError(1));
 
  
 
@@ -392,10 +394,10 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
  gMC_PbPb_b->Draw("p");
  gMC_pp_b->Draw("p");
 
- TText *t1b = new TText(-7,0.702,"pp");
- TText *t2b = new TText(25,0.687,"30-100%");
- TText *t3b = new TText(205,0.665,"10-30%");
- TText *t4b = new TText(340,0.65,"0-10%");
+ TText *t1b = new TText(-7,0.73,"pp"); //-7,0.702
+ TText *t2b = new TText(75,0.710,"30-100%"); //25,0.687
+ TText *t3b = new TText(215,0.690,"10-30%"); //205,0.665
+ TText *t4b = new TText(340,0.670,"0-10%"); //340,0.65
 
  t1b->SetTextSize(17);
  t2b->SetTextSize(17);
@@ -412,8 +414,116 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
   l2->Draw();
 
+  SavePlot(c4,"moneybjtnice");
 
+  auto hbjtincratio = (TH1F *)hdtb12->Clone("hbjtincratio");
+  auto hbjtincratiosys = (TH1F *)hdtbjtsys->Clone("hbjtincratiosys");
   
+  for (int i=1;i<=4;i++) {
+    float bv = hdtb12->GetBinContent(i);
+    float be = hdtb12->GetBinError(i);
+
+    float iv = hdtinc->GetBinContent(i);
+    float ie = hdtinc->GetBinError(i);
+
+    float rv = bv/iv;
+    float re = sqrt(be*be*iv*iv+ie*ie*bv*bv)/(iv*iv);
+
+
+    hbjtincratio->SetBinContent(i,rv);
+    hbjtincratio->SetBinError(i,re);
+
+  }
+  
+hbjtincratiosys->SetBinError(1,0.01356);
+hbjtincratiosys->SetBinError(2,0.01278);
+hbjtincratiosys->SetBinError(3,0.01532);
+hbjtincratiosys->SetBinError(4,0.03627);
+
+ 
+ TGraphErrors *gData_PbPb_r = new TGraphErrors(3);
+ TGraphErrors *gData_PbPb_r_sys = new TGraphErrors(3);
+ TGraphErrors *gData_pp_r = new TGraphErrors(1);
+ TGraphErrors *gData_pp_r_sys = new TGraphErrors(1);
+ TGraphErrors *gMC_PbPb_r = new TGraphErrors(3);
+ TGraphErrors *gMC_pp_r = new TGraphErrors(1);
+ 
+
+  for(int i=0;i<3;i++){
+    gData_PbPb_r->SetPoint(i,npart[i],hbjtincratio->GetBinContent(i+2));
+    gData_PbPb_r->SetPointError(i,0.,hbjtincratio->GetBinError(i+2));
+    
+    gData_PbPb_r_sys->SetPoint(i,npart[i],hbjtincratio->GetBinContent(i+2));
+    gData_PbPb_r_sys->SetPointError(i,10.,hbjtincratiosys->GetBinError(i+2));
+  }
+
+    gData_pp_r->SetPoint(0,2,hbjtincratio->GetBinContent(1));
+    gData_pp_r->SetPointError(0,0.,hbjtincratio->GetBinError(1));
+  
+    gData_pp_r_sys->SetPoint(0,2,hbjtincratio->GetBinContent(1));
+    gData_pp_r_sys->SetPointError(0,10.,hbjtincratiosys->GetBinError(1));
+  
+
+ 
+
+  gData_PbPb_r->SetMarkerColor(kRed);
+  gData_PbPb_r->SetLineColor(kRed);
+  gData_PbPb_r_sys->SetFillColor(kYellow);
+  
+  gData_pp_r->SetMarkerColor(kRed);
+  gData_pp_r->SetLineColor(kRed);
+  gData_pp_r_sys->SetFillColor(kYellow);
+
+  // float xmin = gData_PbPb_r->GetXaxis()->GetMinimum();
+  // float xmax = gData_PbPb_r->GetXaxis()->GetMaximum();
+
+
+  hframe->SetMinimum(0.9);
+  hframe->SetMaximum(1.1);
+  hframe->SetYTitle("b-jet #LTx_{J}#GT / inclusive jet #LTx_{J}#GT");
+
+
+
+
+  TCanvas *c5 = new TCanvas("c4","c4",600,600);
+
+ hframe->Draw();
+
+  TLine *line = new TLine(-7,1,400,1);
+  line->SetLineColor(kGray);
+  line->SetLineWidth(2);
+  line->SetLineStyle(7);
+  line->Draw();
+
+
+ gData_PbPb_r_sys->Draw("e2");
+ gData_PbPb_r->Draw("p");
+ gData_pp_r_sys->Draw("e2");
+ gData_pp_r->Draw("p");
+ 
+ gMC_PbPb_r->Draw("p");
+ gMC_pp_r->Draw("p");
+
+
+ TText *t1r = new TText(-7,1.015,"pp"); //-7,0.702
+ TText *t2r = new TText(75,1.05,"30-100%"); //25,0.687
+ TText *t3r = new TText(215,1.05,"10-30%"); //205,0.665
+ TText *t4r = new TText(340,0.99,"0-10%"); //340,0.65
+
+ t1r->SetTextSize(17);
+ t2r->SetTextSize(17);
+ t3r->SetTextSize(17);
+ t4r->SetTextSize(17);
+ 
+ t1r->Draw();
+ t2r->Draw();
+ t3r->Draw();
+ t4r->Draw();
+
+  CMS_lumi(c5, iPeriod, iPos ); 
+
+SavePlot(c5,"bjtincratio");
+
 }
 
 
