@@ -57,7 +57,7 @@ void CumDefPlot(vector<float> numbers, TH1F *hist, TString name)
   gg.push_back(g);
 
   g->Draw("APL");
-  g->GetXaxis()->SetTitle("csv2");
+  g->GetXaxis()->SetTitle("CSV threshold");
   g->GetYaxis()->SetTitle(name);
 
   hist->Draw("same");
@@ -144,50 +144,50 @@ hxjuneclallSUBcumcor.push_back(geth(Form("hxjuneclallSUBcumcor%.2f",csvrange[i])
   seth(csvrange);
   auto hpuritynum = geth("hpuritynum");
   auto hpurityden = geth("hpurityden");
-  auto hpurity = geth("hpurity",";csv 2;purity");
+  auto hpurity = geth("hpurity",";Subleading jet CSV threshold;purity");
 
   auto hcombpurityASnum = geth("hcombpurityASnum");
   auto hcombpurityASden = geth("hcombpurityASden");
-  auto hcombpurityAS = geth("hcombpurityAS",";csv 2;combinatorial purity AS");
+  auto hcombpurityAS = geth("hcombpurityAS",";Subleading jet CSV threshold;combinatorial purity AS");
 
   auto hcombpurityNSnum = geth("hcombpurityNSnum");
   auto hcombpurityNSden = geth("hcombpurityNSden");
-  auto hcombpurityNS = geth("hcombpurityNS",";csv 2;combinatorial purity NS");
+  auto hcombpurityNS = geth("hcombpurityNS",";Subleading jet CSV threshold;combinatorial purity NS");
 
 
-  auto hefficiency = geth("hefficiency",";csv 2;efficiency");
+  auto hefficiency = geth("hefficiency",";Subleading jet CSV threshold;efficiency");
 
 
-  auto hmeanxjcum = geth("hmeanxjcum","cumulative;csv 2;x_{J}");
-  auto hmeanxjcumcor = geth("hmeanxjcumcor","cumulative corrected;csv 2;x_{J}");
-  auto hmeanxjdif = geth("hmeanxjdif","differential;csv 2;x_{J}");
+  auto hmeanxjcum = geth("hmeanxjcum","cumulative;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjcumcor = geth("hmeanxjcumcor","cumulative corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjdif = geth("hmeanxjdif","differential;Subleading jet CSV threshold;#LTx_{J}#GT");
 
-  auto hmeanxjbkgcum = geth("hmeanxjbkgcum","bkg cumulative;csv 2;x_{J}");
-  auto hmeanxjbkgcumcor = geth("hmeanxjbkgcumcor","bkg cumulative corrected;csv 2;x_{J}");
+  auto hmeanxjbkgcum = geth("hmeanxjbkgcum","bkg cumulative;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjbkgcumcor = geth("hmeanxjbkgcumcor","bkg cumulative corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
 
-  auto hmeanxjallcum = geth("hmeanxjallcum","all cumulative;csv 2;x_{J}");
-  auto hmeanxjallcumcor = geth("hmeanxjallcumcor","all cumulative corrected;csv 2;x_{J}");
+  auto hmeanxjallcum = geth("hmeanxjallcum","all cumulative;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjallcumcor = geth("hmeanxjallcumcor","all cumulative corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
 
   auto hxjtrue = geth("hxjtrue","true xJ");
   auto hxjeclipsedtrue = geth("hxjeclipsedtrue","eclipsed true xJ");
 
 
-  auto hmeanxjeclsigallcum = geth("hmeanxjeclsigallcum","eclipsed signal all;csv 2;x_{J}");
-  auto hmeanxjeclsigallcumcor = geth("hmeanxjeclsigallcumcor","eclipsed signal all corrected;csv 2;x_{J}");
+  auto hmeanxjeclsigallcum = geth("hmeanxjeclsigallcum","eclipsed signal all;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjeclsigallcumcor = geth("hmeanxjeclsigallcumcor","eclipsed signal all corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
 
-  auto hmeanxjeclallcum = geth("hmeanxjeclallcum","eclipsed signal all;csv 2;x_{J}");
-  auto hmeanxjeclallcumcor = geth("hmeanxjeclallcumcor","eclipsed signal all corrected;csv 2;x_{J}");
+  auto hmeanxjeclallcum = geth("hmeanxjeclallcum","eclipsed signal all;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjeclallcumcor = geth("hmeanxjeclallcumcor","eclipsed signal all corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
 
 
-  auto hmeanxjuneclsigallcum = geth("hmeanxjuneclsigallcum","UN eclipsed signal all;csv 2;x_{J}");
-  auto hmeanxjuneclsigallcumcor = geth("hmeanxjuneclsigallcumcor","UN eclipsed signal all corrected;csv 2;x_{J}");
+  auto hmeanxjuneclsigallcum = geth("hmeanxjuneclsigallcum","UN eclipsed signal all;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjuneclsigallcumcor = geth("hmeanxjuneclsigallcumcor","UN eclipsed signal all corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
 
-  auto hmeanxjuneclallcum = geth("hmeanxjuneclallcum","UN eclipsed signal all;csv 2;x_{J}");
-  auto hmeanxjuneclallcumcor = geth("hmeanxjuneclallcumcor","UN eclipsed signal all corrected;csv 2;x_{J}");
+  auto hmeanxjuneclallcum = geth("hmeanxjuneclallcum","UN eclipsed signal all;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjuneclallcumcor = geth("hmeanxjuneclallcumcor","UN eclipsed signal all corrected;Subleading jet CSV threshold;#LTx_{J}#GT");
 
-  auto hmeanxjuneclallNScum = geth("hmeanxjuneclallNScum","UN eclipsed all NOT corrected NS;csv 2;x_{J}");
-  auto hmeanxjuneclallNScumcor = geth("hmeanxjuneclallNScumcor","UN eclipsed all corrected NS;csv 2;x_{J}");
-  auto hmeanxjuneclallSUBcumcor = geth("hmeanxjuneclallSUBcumcor","UN eclipsed all corrected SUB;Subleading jet csv;#LT x_{J} #GT");
+  auto hmeanxjuneclallNScum = geth("hmeanxjuneclallNScum","UN eclipsed all NOT corrected NS;Subleading jet CSV threshold;#LTx_{J}#GT");
+  auto hmeanxjuneclallNScumcor = geth("hmeanxjuneclallNScumcor","UN eclipsed all corrected NS;Subleading jet CSV threshold;x_{J}");
+  auto hmeanxjuneclallSUBcumcor = geth("hmeanxjuneclallSUBcumcor","UN eclipsed all corrected SUB;Subleading jet CSV threshold;#LTx_{J}#GT");
 
   Fill(fmcbfa,[&] (dict &d) {
 
@@ -567,9 +567,10 @@ hxjuneclallSUBcumcor.push_back(geth(Form("hxjuneclallSUBcumcor%.2f",csvrange[i])
   float nomvalue=hmeanxjuneclallSUBcumcor->GetBinContent(csvrange.size()-2);
   auto c = getc();
   hmeanxjuneclallSUBcumcor->Draw();
+  hmeanxjuneclallSUBcumcor->GetXaxis()->SetTitle("Subleading jet CSV threshold");
   auto linenom = new TLine(0,nomvalue,1,nomvalue);
-  linenom->SetLineColor(kRed);
-  linenom->SetLineStyle(2);
+  linenom->SetLineColor(kBlack);
+  //linenom->SetLineStyle(2);
   linenom->Draw();
   auto line1 = new TLine(0,nomvalue+sys,1,nomvalue+sys);
   line1->SetLineColor(kBlack);
@@ -582,8 +583,8 @@ hxjuneclallSUBcumcor.push_back(geth(Form("hxjuneclallSUBcumcor%.2f",csvrange[i])
 
   cout<<"true " << hxjtrue->GetMean()<<endl;
   auto linetrue = new TLine(0,  hxjtrue->GetMean(),1,  hxjtrue->GetMean());
-  linetrue->SetLineColor(kBlack);
-  // linetrue->SetLineStyle(1);
+  linetrue->SetLineColor(kRed);
+  linetrue->SetLineStyle(7);
   linetrue->Draw();
 
 
