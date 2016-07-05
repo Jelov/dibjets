@@ -12,7 +12,6 @@ float weightedsum(TH1F *h, int bin1, int bin2)
 TGraphErrors *makesysplot(TH1F *h, float dmu, int color)
 {
 
-
   auto h1 = (TH1F *)h->Clone("h1");
   auto h2 = (TH1F *)h->Clone("h2");
 
@@ -60,7 +59,9 @@ TGraphErrors *makesysplot(TH1F *h, float dmu, int color)
   }
 
 
-  // Draw({h,h1,h2,hbar},{"E1","hist","hist","e1p"});
+  //draw true value, variation1 and variation2
+  Draw({h,h1,h2},{"E1","hist","hist","e1p"});
+
 
   // auto c2 = getc();
   // h->Draw("e1");
@@ -102,7 +103,7 @@ TGraphErrors *makesysplot(TH1F *h, float dmu, int color)
 
 void plotXJ(int inc_or_bjet=1)
 {
-  macro m("plotXJ");
+  macro m("plotXJ_0704");
 
  writeExtraText = true;       // if extra text
   extraText  = "Preliminary";  // default extra text is "Preliminary"
@@ -118,7 +119,7 @@ void plotXJ(int inc_or_bjet=1)
   // mode generally : 
   //   iPos = 10*(alignement 1/2/3) + position (1/2/3 = left/center/right)
   
-  TFile *fin = new TFile("results_0702_newweight/xJdphi.root");
+  TFile *fin = new TFile("results_0704_final/xJdphi.root");
 
   string species = "inc";
   if(inc_or_bjet) species = "bjt";
@@ -138,8 +139,8 @@ Normalize({hMC010,hMC1030,hMC30100,hMCPP}); //temporary fix
 
 
   vector<float> syserr;
-  if (inc_or_bjet) syserr = {0.028,0.024,0.023,0.023}; //0-10%, 10-30%, 30-100%, pp
-  else syserr = {0.023,0.023,0.022,0.022};
+  if (inc_or_bjet) syserr = {0.028,0.022,0.017,0.010}; //0-10%, 10-30%, 30-100%, pp
+  else syserr = {0.027,0.019,0.014,0.007};
   int syscolor = inc_or_bjet ? kredLight : kblueLight;
 
   auto hData010sys =    makesysplot(hData010,syserr[0],syscolor);
