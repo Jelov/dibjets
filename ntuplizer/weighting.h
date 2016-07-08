@@ -112,9 +112,11 @@ TF1 * centrWeighting(TString dtinputfile, TString mcinputfile)
 
 //  cwb->Draw();
 
-     return funcratio;
+  cout<<Form("%f*exp(%f*x+%f*x*x+%f*x*x*x)",funcratio->GetParameter(0),
+    funcratio->GetParameter(1),funcratio->GetParameter(2),funcratio->GetParameter(3));
 
-  
+
+  return funcratio;
 }
 
 

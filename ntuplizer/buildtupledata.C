@@ -6,6 +6,7 @@
 
 #include "../helpers/parsecode.h"
 #include <boost/functional/hash.hpp>
+#include "Corrections.h"
 
 TString jettree;
 vector<TString> subfoldernames;
@@ -24,6 +25,10 @@ const float hiHFcut = 5500;
 const float etacut = 1.5;
 
 
+bool applyjec = true;
+Corrections jec;
+
+
 TTree *GetTree(TFile *f, TString treename)
 {
   TTree *t = (TTree *)f->Get(treename);
@@ -33,13 +38,14 @@ TTree *GetTree(TFile *f, TString treename)
   return t;
 }
 
-std::unordered_set<int> processedevents;
-bool SeenEventAlready(unsigned int run,unsigned int lumi,unsigned int event)
+std::unordered_set<size_t> processedevents;
+bool SeenEventAlready(unsigned int run,unsigned int lumi,unsigned long long event)
 {
-  vector<unsigned int> v = {run,lumi,event};
-  int hash = boost::hash_range(v.begin(),v.end());
+  vector<unsigned long long> v = {(unsigned long long)run,(unsigned long long)lumi,(unsigned long long)event};
+  size_t hash = boost::hash_range(v.begin(),v.end());
   bool f = processedevents.find(hash)!=processedevents.end();
   if (!f) processedevents.insert(hash);
+  if (f) cout<<"seen already "<<run<<" _ "<<lumi<<" _ "<<event<<endl;
   return f;
 }
 
@@ -368,9 +374,16 @@ float getHighestTriggerPt(int CaloJet60, int CaloJet80, int CaloJet100, vector<d
     return triggerPt;
 }
 
+float getjec(float pt, float eta, int bin)
+{
+  return PbPb && applyjec ? jec.factor(pt,eta,bin) : 1;
+}
+
 void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jetalgo = "akVs4PFJetAnalyzer")
 {
   if (!dt(code)) { cout<<"Not data: "<<code<<", exiting..."<<endl; return;}
+
+  Corrections jec;
   
   PbPb = isPbPb(code);
   TString sample = getSample(code);
@@ -387,15 +400,15 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:dijet:")+
       "hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
       "numTagged:"
-      "rawpt1:jtpt1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
-      "rawpt2:jtpt2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:"+
-      "rawpt3:jtpt3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:"+
-      "SLord:rawptSL:jtptSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:"+
-      "NSLord:rawptNSL:jtptNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1";
+      "rawpt1:jtpt1:jtptsansjec1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:discr_ssvHighEff1:discr_ssvHighPur1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
+      "rawpt2:jtpt2:jtptsansjec2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:discr_ssvHighEff2:discr_ssvHighPur2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:"+
+      "rawpt3:jtpt3:jtptsansjec3:jtphi3:jteta3:discr_csvV1_3:ndiscr_csvV1_3:discr_ssvHighEff3:discr_ssvHighPur3:svtxm3:discr_prob3:svtxdls3:svtxpt3:svtxntrk3:nsvtx3:nselIPtrk3:dphi31:dphi32:"+
+      "SLord:rawptSL:jtptSL:jtptsansjecSL:jtphiSL:jtetaSL:discr_csvV1_SL:ndiscr_csvV1_SL:discr_ssvHighEffSL:discr_ssvHighPurSL:svtxmSL:discr_probSL:svtxdlsSL:svtxptSL:svtxntrkSL:nsvtxSL:nselIPtrkSL:dphiSL1:"+
+      "NSLord:rawptNSL:jtptNSL:jtptsansjecNSL:jtphiNSL:jtetaNSL:discr_csvV1_NSL:ndiscr_csvV1_NSL:discr_ssvHighEffNSL:discr_ssvHighPurNSL:svtxmNSL:discr_probNSL:svtxdlsNSL:svtxptNSL:svtxntrkNSL:nsvtxNSL:nselIPtrkNSL:dphiNSL1";
 
 
   TString incvars = TString("prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:")+
-      "rawpt:jtpt:jtphi:jteta:discr_csvV1:ndiscr_csvV1:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
+      "rawpt:jtpt:jtptsansjec:jtphi:jteta:discr_csvV1:ndiscr_csvV1:discr_ssvHighEff:discr_ssvHighPur:svtxm:discr_prob:svtxdls:svtxpt:svtxntrk:nsvtx:nselIPtrk";
 
 
   for (auto w:weights) cout<<w<<"\t";
@@ -427,6 +440,9 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTreeReaderArray<float> jtphi(reader, "jtphi");
     TTreeReaderArray<float> discr_csvV1(reader, "discr_csvV1");
     TTreeReaderArray<float> ndiscr_csvV1(reader, "ndiscr_csvV1");
+
+    TTreeReaderArray<float> discr_ssvHighEff(reader, "discr_ssvHighEff");
+    TTreeReaderArray<float> discr_ssvHighPur(reader, "discr_ssvHighPur");
 
     TTreeReaderArray<float> discr_prob(reader, "discr_prob");
     TTreeReaderArray<float> svtxm(reader, "svtxm");
@@ -544,7 +560,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       }
       if (!continuereading) break;
 
-
       //for testing - only 2% of data
       //if (evCounter>2*onep) break;
 
@@ -555,7 +570,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         cout<<" \r"<<evCounter/onep<<"%   "<<" total time "<<(int)round((t1-t0)*nev/(evCounter+.1))<<" s "<<flush;
       }
 
-      if (SeenEventAlready(*run,*lumi,*event)) continue;
+      if (PbPb && SeenEventAlready(*run,*lumi,*event)) continue; //in pp weight is 0 if repeating
 
       int bPFJet60 = !PbPb ? *PFJet60 : 1;
       int bPFJet80 = !PbPb ? *PFJet80 : 1;
@@ -566,7 +581,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
       if (!PbPb)
         weight = getweight(subfoldernames[i], bPFJet60, bPFJet80);
-
 
       if (PbPb && sample=="j60")
         weight = *CaloJet60;
@@ -580,7 +594,6 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         goodevent&=*(*f);
 
       if (!goodevent) weight = 0;
-
 
       if (weight==0) continue;
 
@@ -604,6 +617,8 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
             if( ((*muMaxTRK)[j]-(*muMaxGBL)[j]) / ((*muMaxTRK)[j]+(*muMaxGBL)[j]) > 0.1) continue;
           }
   
+          float jtptcorrected = jtpt[j]*getjec(jtpt[j],jteta[j],*bin);
+
           if (!foundJ1) { //looking for the leading jet
               ind1 = j;
               foundJ1=true;
@@ -653,7 +668,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
             //at this point foundLJ = true always, so triggermatched is determined
             vector<float> vinc = {weight, (float)triggermatched, (float) *bin, *vz, *hiHF,(float)*CSV60, (float)*CSV80,
               (float)*CaloJet40, (float)*CaloJet60, (float)*CaloJet80,(float)*CaloJet100,triggerPt,
-              (float)bPFJet60,(float)bPFJet80, rawpt[j], jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],svtxm[j],discr_prob[j],
+				  (float)bPFJet60,(float)bPFJet80, rawpt[j], jtptcorrected, jtpt[j], jtphi[j], jteta[j], discr_csvV1[j],ndiscr_csvV1[j],discr_ssvHighEff[j],discr_ssvHighPur[j],svtxm[j],discr_prob[j],
               svtxdls[j],svtxpt[j],(float)svtxntrk[j],(float)nsvtx[j],(float)nselIPtrk[j]};
     
             if (!mockSL) //no need for inc ntuple in mockSL mode
@@ -686,11 +701,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 	     (float)numTagged,
                        
         foundJ1 ? rawpt[ind1] : NaN,
+        foundJ1 ? jtpt[ind1]*getjec(jtpt[ind1],jteta[ind1],*bin) : NaN,
         foundJ1 ? jtpt[ind1] : NaN,
         foundJ1 ? jtphi[ind1] : NaN,
         foundJ1 ? jteta[ind1] : NaN,
         foundJ1 ? discr_csvV1[ind1] : NaN,
         foundJ1 ? ndiscr_csvV1[ind1] : NaN,
+        foundJ1 ? discr_ssvHighEff[ind1] : NaN,
+        foundJ1 ? discr_ssvHighPur[ind1] : NaN,
         foundJ1 ? svtxm[ind1] : NaN,
         foundJ1 ? discr_prob[ind1] : NaN,
         foundJ1 ? svtxdls[ind1] : NaN,
@@ -700,11 +718,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundJ1 ? (float)nselIPtrk[ind1] : NaN,
 
         foundJ2 ? rawpt[ind2] : NaN,
+        foundJ2 ? jtpt[ind2]*getjec(jtpt[ind2],jteta[ind2],*bin) : NaN,
         foundJ2 ? jtpt[ind2] : NaN,
         foundJ2 ? jtphi[ind2] : NaN,
         foundJ2 ? jteta[ind2] : NaN,
         foundJ2 ? discr_csvV1[ind2] : NaN,
         foundJ2 ? ndiscr_csvV1[ind2] : NaN,
+        foundJ2 ? discr_ssvHighEff[ind2] : NaN,
+        foundJ2 ? discr_ssvHighPur[ind2] : NaN,
         foundJ2 ? svtxm[ind2] : NaN,
         foundJ2 ? discr_prob[ind2] : NaN,
         foundJ2 ? svtxdls[ind2] : NaN, 
@@ -715,11 +736,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         foundJ2 && foundJ1 ? acos(cos(jtphi[ind2]-jtphi[ind1])) : NaN,
     
         foundJ3 ? rawpt[ind3] : NaN,
+        foundJ3 ? jtpt[ind3]*getjec(jtpt[ind3],jteta[ind3],*bin) : NaN,
         foundJ3 ? jtpt[ind3] : NaN,
         foundJ3 ? jtphi[ind3] : NaN,
         foundJ3 ? jteta[ind3] : NaN,
         foundJ3 ? discr_csvV1[ind3] : NaN,
         foundJ3 ? ndiscr_csvV1[ind3] : NaN,
+        foundJ3 ? discr_ssvHighEff[ind3] : NaN,
+        foundJ3 ? discr_ssvHighPur[ind3] : NaN,
         foundJ3 ? svtxm[ind3] : NaN,
         foundJ3 ? discr_prob[ind3] : NaN,
         foundJ3 ? svtxdls[ind3] : NaN, 
@@ -732,11 +756,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
         foundSL ? (float)SLord : NaN,
         foundSL ? rawpt[indSL] : NaN,
+        foundSL ? jtpt[indSL]*getjec(jtpt[indSL],jteta[indSL],*bin) : NaN,
         foundSL ? jtpt[indSL] : NaN,
         foundSL ? jtphi[indSL] : NaN,
         foundSL ? jteta[indSL] : NaN,
         foundSL ? discr_csvV1[indSL] : NaN,
         foundSL ? ndiscr_csvV1[indSL] : NaN,
+        foundSL ? discr_ssvHighEff[indSL] : NaN,
+        foundSL ? discr_ssvHighPur[indSL] : NaN,
         foundSL ? svtxm[indSL] : NaN,
         foundSL ? discr_prob[indSL] : NaN,
         foundSL ? svtxdls[indSL] : NaN, 
@@ -748,11 +775,14 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
         foundNSL ? (float)NSLord : NaN,
         foundNSL ? rawpt[indNSL] : NaN,
+        foundNSL ? jtpt[indNSL]*getjec(jtpt[indNSL],jteta[indNSL],*bin) : NaN,
         foundNSL ? jtpt[indNSL] : NaN,
         foundNSL ? jtphi[indNSL] : NaN,
         foundNSL ? jteta[indNSL] : NaN,
         foundNSL ? discr_csvV1[indNSL] : NaN,
         foundNSL ? ndiscr_csvV1[indNSL] : NaN,
+        foundNSL ? discr_ssvHighEff[indNSL] : NaN,
+        foundNSL ? discr_ssvHighPur[indNSL] : NaN,
         foundNSL ? svtxm[indNSL] : NaN,
         foundNSL ? discr_prob[indNSL] : NaN,
         foundNSL ? svtxdls[indNSL] : NaN, 
