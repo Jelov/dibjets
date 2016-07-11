@@ -45,7 +45,7 @@ bool SeenEventAlready(unsigned int run,unsigned int lumi,unsigned long long even
   size_t hash = boost::hash_range(v.begin(),v.end());
   bool f = processedevents.find(hash)!=processedevents.end();
   if (!f) processedevents.insert(hash);
-  if (f) cout<<"seen already "<<run<<" _ "<<lumi<<" _ "<<event<<endl;
+  // if (f) cout<<"seen already "<<run<<" _ "<<lumi<<" _ "<<event<<endl;
   return f;
 }
 
@@ -167,12 +167,26 @@ int triggeredLeadingJetCSV(float leadjtphi, float leadjteta, vector<Double_t> &t
   return -1;
 }
 
-int triggeredLeadingJetCalo(float leadjtphi, float leadjteta, vector<Double_t> &trigpt, vector<Double_t> &trigphi, vector<Double_t> &trigeta)
+int triggeredLeadingJetCalo(float leadjtpt, float leadjtphi, float leadjteta, vector<Double_t> &trigpt, vector<Double_t> &trigphi, vector<Double_t> &trigeta)
 {
+  //returns closest deta-dphi jet
+
+  // vector<float> caloDist;
+  // for (unsigned i=0;i<trigpt.size();i++) caloDist.push_back(matchingDistance(leadjtphi, leadjteta, trigphi[i], trigeta[i]));
+  // int bestmatchCalo = std::min_element(caloDist.begin(), caloDist.end()) - caloDist.begin();
+  // if (caloDist.size()>0 && matches(caloDist[bestmatchCalo])) return bestmatchCalo;
+
+  // return -1;
+
   vector<float> caloDist;
-  for (unsigned i=0;i<trigpt.size();i++) caloDist.push_back(matchingDistance(leadjtphi, leadjteta, trigphi[i], trigeta[i]));
-  int bestmatchCalo = std::min_element(caloDist.begin(), caloDist.end()) - caloDist.begin();
-  if (caloDist.size()>0 && matches(caloDist[bestmatchCalo])) return bestmatchCalo;
+  for (unsigned i=0;i<trigpt.size();i++) {
+    float d = matchingDistance(leadjtphi, leadjteta, trigphi[i], trigeta[i]);
+    // caloDist.push_back(matches(d) ? abs(leadjtpt-trigpt[i]) : 9999);
+    caloDist.push_back(matches(d) ? trigpt[i] : -1);
+  }
+
+  int bestmatchCalo = std::max_element(caloDist.begin(), caloDist.end()) - caloDist.begin();
+  if (caloDist.size()>0) return bestmatchCalo;
 
   return -1;
 }
@@ -186,6 +200,10 @@ void Init(TString sample)
   }
   else if (PbPb && sample=="bjt") {
     subfoldernames = {"PbPb_BJetSD/puTowerExclLimitV2/0000","PbPb_BJetSD/puTowerExclLimitV2/0001","PbPb_BJetSD/puTowerExclLimitV2/0002"};
+  }
+  else if (PbPb && sample=="j40") {
+    subfoldernames = {"PbPb_Jet40/puTowerExclLimitV2/0000","PbPb_Jet40/puTowerExclLimitV2/0001","PbPb_Jet40/puTowerExclLimitV2/0002"};
+    weights = {1.,1.,1.};
   }
   else if (PbPb && sample=="j60") {
     subfoldernames = {"PbPb_Jet6080/puTowerExclLimitV2/0000","PbPb_Jet6080/puTowerExclLimitV2/0001","PbPb_Jet6080/puTowerExclLimitV2/0002"};
@@ -356,9 +374,13 @@ bool SLcondition(float csv, float pt, float bin)
   return false;
 }
 
-float getHighestTriggerPt(int CaloJet60, int CaloJet80, int CaloJet100, vector<double> &calo60pt,vector<double> &calo80pt, vector<double> &calo100pt)
+float getHighestTriggerPt(int CaloJet40, int CaloJet60, int CaloJet80, int CaloJet100, vector<double> &calo40pt, vector<double> &calo60pt,vector<double> &calo80pt, vector<double> &calo100pt)
 {
   float triggerPt = NaN;
+  if (CaloJet40)
+    for (double x:calo40pt)
+      if (x>triggerPt) triggerPt = x;
+
   if (CaloJet60)
     for (double x:calo60pt)
       if (x>triggerPt) triggerPt = x;
@@ -398,7 +420,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
   TString outputfilenameinc = outputfolder+"/"+code+"_inc.root";
 
   TString djvars = TString("run:lumi:event:prew:triggermatched:bin:vz:hiHF:hltCSV60:hltCSV80:hltCaloJet40:hltCaloJet60:hltCaloJet80:hltCaloJet100:triggerPt:hltPFJet60:hltPFJet80:dijet:")+
-      "hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
+      "hltCalo40jtpt:hltCalo40jtphi:hltCalo40jteta:hltCalo60jtpt:hltCalo60jtphi:hltCalo60jteta:hltCalo80jtpt:hltCalo80jtphi:hltCalo80jteta:hltCSV60jtpt:hltCSV60jtphi:hltCSV60jteta:hltCSV80jtpt:hltCSV80jtphi:hltCSV80jteta:"+
       "numTagged:"
       "rawpt1:jtpt1:jtptsansjec1:jtphi1:jteta1:discr_csvV1_1:ndiscr_csvV1_1:discr_ssvHighEff1:discr_ssvHighPur1:svtxm1:discr_prob1:svtxdls1:svtxpt1:svtxntrk1:nsvtx1:nselIPtrk1:"+
       "rawpt2:jtpt2:jtptsansjec2:jtphi2:jteta2:discr_csvV1_2:ndiscr_csvV1_2:discr_ssvHighEff2:discr_ssvHighPur2:svtxm2:discr_prob2:svtxdls2:svtxpt2:svtxntrk2:nsvtx2:nselIPtrk2:dphi21:"+
@@ -503,6 +525,11 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
     TTreeReaderValue<vector<Double_t> > csv80eta(readercsv80object, "eta");
     TTreeReaderValue<vector<Double_t> > csv80phi(readercsv80object, "phi");
     
+    TTreeReader readerCalo40object("hltobject/HLT_HIPuAK4CaloJet40_Eta5p1_v",f);
+    TTreeReaderValue<vector<Double_t> > calo40pt(readerCalo40object, "pt");
+    TTreeReaderValue<vector<Double_t> > calo40eta(readerCalo40object, "eta");
+    TTreeReaderValue<vector<Double_t> > calo40phi(readerCalo40object, "phi");
+
     TTreeReader readerCalo60object("hltobject/HLT_HIPuAK4CaloJet60_Eta5p1_v",f);
     TTreeReaderValue<vector<Double_t> > calo60pt(readerCalo60object, "pt");
     TTreeReaderValue<vector<Double_t> > calo60eta(readerCalo60object, "eta");
@@ -553,6 +580,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
         readerskim.Next();
         readercsv60object.Next();
         readercsv80object.Next();
+        readerCalo40object.Next();
         readerCalo60object.Next();
         readerCalo80object.Next();
         readerCalo100object.Next();
@@ -599,7 +627,7 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 
 
       int ind1=-1, ind2=-1, ind3=-1, indSL=-1, indNSL=-1; //indices of leading/subleading jets in jet array
-      int indTrigCSV60=-1, indTrigCSV80=-1, indTrigCalo60=-1, indTrigCalo80=-1;
+      int indTrigCSV60=-1, indTrigCSV80=-1, indTrigCalo40=-1, indTrigCalo60=-1, indTrigCalo80=-1;
       int SLord = 0, NSLord = 0;
       bool foundJ1=false, foundJ2 = false, foundJ3 = false, foundSL = false, foundNSL = false; //found/not found yet, for convenience
 
@@ -627,10 +655,11 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
 		         indTrigCSV60 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv60pt, *csv60phi, *csv60eta);
 		         indTrigCSV80 = triggeredLeadingJetCSV(jtphi[j], jteta[j], *csv80pt, *csv80phi, *csv80eta);
              // actually, I don't need matching of calo jet to leading jet
-		         indTrigCalo60 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo60pt, *calo60phi, *calo60eta);
-		         indTrigCalo80 = triggeredLeadingJetCalo(jtphi[j], jteta[j], *calo80pt, *calo80phi, *calo80eta);
+             indTrigCalo40 = triggeredLeadingJetCalo(jtpt[j],jtphi[j], jteta[j], *calo40pt, *calo40phi, *calo40eta);
+             indTrigCalo60 = triggeredLeadingJetCalo(jtpt[j],jtphi[j], jteta[j], *calo60pt, *calo60phi, *calo60eta);
+		         indTrigCalo80 = triggeredLeadingJetCalo(jtpt[j],jtphi[j], jteta[j], *calo80pt, *calo80phi, *calo80eta);
 
-             triggerPt = getHighestTriggerPt(*CaloJet60, *CaloJet80, *CaloJet100, *calo60pt,*calo80pt,*calo100pt);
+             triggerPt = getHighestTriggerPt(*CaloJet40,*CaloJet60, *CaloJet80, *CaloJet100, *calo40pt,*calo60pt,*calo80pt,*calo100pt);
 	        }
              
 	        triggermatched = !PbPb || indTrigCSV60!=-1 || indTrigCSV80!=-1;
@@ -681,6 +710,10 @@ void buildtupledata(TString code)//(TString collision = "PbPbBJet", TString jeta
       vdj = {(float)*run, (float)*lumi, (float)*event, weight, (float)triggermatched, (float)*bin, *vz,*hiHF,
         (float)*CSV60, (float)*CSV80,(float)*CaloJet40,(float)*CaloJet60, (float)*CaloJet80,(float)*CaloJet100,triggerPt,(float)bPFJet60,(float)bPFJet80, 
         foundJ1 && foundJ2 ? (float)1 : (float)0,
+
+        indTrigCalo40!=-1 ? (float)(*calo40pt)[indTrigCalo40] : NaN,
+        indTrigCalo40!=-1 ? (float)(*calo40phi)[indTrigCalo40] : NaN,
+        indTrigCalo40!=-1 ? (float)(*calo40eta)[indTrigCalo40] : NaN,
 
         indTrigCalo60!=-1 ? (float)(*calo60pt)[indTrigCalo60] : NaN,
         indTrigCalo60!=-1 ? (float)(*calo60phi)[indTrigCalo60] : NaN,
