@@ -71,6 +71,25 @@ void CumDefPlot(vector<float> numbers, TH1F *hist, TString name)
 
 }
 
+TGraph *getgraph(TH1F *h)
+{
+  vector<float> x,y,dx,dy;
+  for (int i=0;i<h->GetNbinsX();i++) {
+    x.push_back(h->GetBinLowEdge(i+1));
+    y.push_back(h->GetBinContent(i+1));
+    dy.push_back(h->GetBinError(i+1));
+    dx.push_back(0);
+  }
+  auto g = new TGraphErrors(x.size(),&x[0],&y[0],&dx[0],&dy[0]);
+  g->SetMarkerColor(h->GetMarkerColor());
+  g->SetMarkerSize(h->GetMarkerSize());
+  g->SetLineColor(h->GetLineColor());
+  g->SetMinimum(h->GetMinimum());
+  g->SetMaximum(h->GetMaximum());
+
+  return g;
+
+}
 
 void makeplots(int binMin, int binMax, bool MC, float sys)
 {
@@ -564,10 +583,15 @@ hxjuneclallSUBcumcor.push_back(geth(Form("hxjuneclallSUBcumcor%.2f",csvrange[i])
   if (MC && !pp) plotsecondline = "Pythia 6 + Hydjet";
   if (!MC) plotsecondline = "Data";
 
+  auto g = getgraph(hmeanxjuneclallSUBcumcor);
+
   float nomvalue=hmeanxjuneclallSUBcumcor->GetBinContent(csvrange.size()-2);
   auto c = getc();
-  hmeanxjuneclallSUBcumcor->Draw();
-  hmeanxjuneclallSUBcumcor->GetXaxis()->SetTitle("Subleading jet CSV threshold");
+  g->Draw("AP");//hmeanxjuneclallSUBcumcor
+  g->GetXaxis()->SetRangeUser(0,1);
+  g->GetXaxis()->SetTitle("Subleading jet CSV threshold");
+  g->GetYaxis()->SetTitle(hmeanxjuneclallSUBcumcor->GetYaxis()->GetTitle());
+
   auto linenom = new TLine(0,nomvalue,1,nomvalue);
   linenom->SetLineColor(kBlack);
   //linenom->SetLineStyle(2);
@@ -605,7 +629,7 @@ hxjuneclallSUBcumcor.push_back(geth(Form("hxjuneclallSUBcumcor%.2f",csvrange[i])
 }
 
 
-void csvvarmc(bool MC = true)
+void csvvarmc(bool MC = false)
 {
   TString s = MC ? "mc" : "data";
   macro m("csvvarmc_"+s+"_0704",false);

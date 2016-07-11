@@ -7,6 +7,7 @@
 #include "TLegend.h"
 #include "TMath.h"
 #include "../helpers/config.h"
+#include "TSystem.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ Double_t fit_pt3(Double_t *x, Double_t *par)
 }
 
 
-void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= true, bool useGenPt=false, int cBin=1, bool doResid=false, bool savePlots=true)
+void deriveOffTagEff(bool ppPbPb=true, bool requireFCR=false, bool doRebin= true, bool useGenPt=false, int cBin=1, float csv = 0.9, bool doResid=false, bool savePlots=true)
 {
 
   // cBin =0 --> 1-100%
@@ -57,84 +58,90 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
   
   nt->SetBranchAddress("bProdCode",&bProdCode);
   nt->SetBranchAddress("bin",&bin);
-   nt->SetBranchAddress("weight",&weight);
-   nt->SetBranchAddress("pthat",&pthat);
+  nt->SetBranchAddress("weight",&weight);
+  nt->SetBranchAddress("pthat",&pthat);
   nt->SetBranchAddress("jtpt1",&jtpt1);
   nt->SetBranchAddress("refpt1",&refpt1);
   nt->SetBranchAddress("jteta1",&jteta1);
   nt->SetBranchAddress("discr_csvV1_1",&discr_csvV1_1);
   nt->SetBranchAddress("refparton_flavorForB1",&refparton_flavorForB1);
-  nt->SetBranchAddress("jtptSB",&jtptSB);
-  nt->SetBranchAddress("refptSB",&refptSB);
-  nt->SetBranchAddress("jtetaSB",&jtetaSB);
-  nt->SetBranchAddress("discr_csvV1_SB",&discr_csvV1_SB);
-  nt->SetBranchAddress("refparton_flavorForBSB",&refparton_flavorForBSB);
-  nt->SetBranchAddress("dphiSB1",&dphiSB1);
-  
+  nt->SetBranchAddress("jtptSignal2",&jtptSB);
+  nt->SetBranchAddress("refptSignal2",&refptSB);
+  nt->SetBranchAddress("jtetaSignal2",&jtetaSB);
+  nt->SetBranchAddress("discr_csvV1_Signal2",&discr_csvV1_SB);
+  nt->SetBranchAddress("refparton_flavorForBSignal2",&refparton_flavorForBSB);
+  nt->SetBranchAddress("dphiSignal21",&dphiSB1);
+
+  // nt->SetBranchAddress("jtptSB",&jtptSB);
+  // nt->SetBranchAddress("refptSB",&refptSB);
+  // nt->SetBranchAddress("jtetaSB",&jtetaSB);
+  // nt->SetBranchAddress("discr_csvV1_SB",&discr_csvV1_SB);
+  // nt->SetBranchAddress("refparton_flavorForBSB",&refparton_flavorForBSB);
+  // nt->SetBranchAddress("dphiSB1",&dphiSB1);  
 
   float maxPtLead = 200;
   float maxPtPart = 140;
   
   TH1F *hLeadPt=new TH1F("hLeadPt","hLeadPt;Leading jet p_{T} (GeV);Counts",20,100,maxPtLead);
-  TH1F *hLeadEta=new TH1F("hLeadEta","hLeadEta;Leading jet #eta;Counts",20,-2.,2.);
+  TH1F *hLeadEta=new TH1F("hLeadEta","hLeadEta;Leading jet #eta;Counts",20,-etacut,etacut);
   TH1F *hPartPt=new TH1F("hPartPt","hPartPt;Partner jet p_{T} (GeV);Counts",20,40,maxPtPart);
-  TH1F *hPartEta=new TH1F("hPartEta","hPartEta;Partner jet #eta;Counts",20,-2.,2.);
+  TH1F *hPartEta=new TH1F("hPartEta","hPartEta;Partner jet #eta;Counts",20,-etacut,etacut);
   TH1F *hCent=new TH1F("hCent","hCent;Centrality (%);Counts",10,0,100);
   TH1F *hXj=new TH1F("hXj","hXj;x_{J};Counts",10,0,1);
 
   
   TH1F *hTagLeadPt=new TH1F("hTagLeadPt","hTagLeadPt;Leading jet p_{T} (GeV);Counts",20,100,maxPtLead);
-  TH1F *hTagLeadEta=new TH1F("hTagLeadEta","hTagLeadEta;Leading jet #eta;Counts",20,-2.,2.);
+  TH1F *hTagLeadEta=new TH1F("hTagLeadEta","hTagLeadEta;Leading jet #eta;Counts",20,-etacut,etacut);
   TH1F *hTagPartPt=new TH1F("hTagPartPt","hTagPartPt;Partner jet p_{T} (GeV);Counts",20,40,maxPtPart);
-  TH1F *hTagPartEta=new TH1F("hTagPartEta","hTagPartEta;Partner jet #eta;Counts",20,-2.,2.);
+  TH1F *hTagPartEta=new TH1F("hTagPartEta","hTagPartEta;Partner jet #eta;Counts",20,-etacut,etacut);
   TH1F *hTagLeadCent=new TH1F("hTagLeadCent","hTagLeadCent;Centrality (%);Counts",10,0,100);
   TH1F *hTagPartCent=new TH1F("hTagPartCent","hTagPartCent;Centrality (%);Counts",10,0,100);
   
   TH1F *hTagEffLeadPt=new TH1F("hTagEffLeadPt","hTagEffLeadPt;Leading jet p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hTagEffLeadEta=new TH1F("hTagEffLeadEta","hTagEffLeadEta;Leading jet #eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hTagEffLeadEta=new TH1F("hTagEffLeadEta","hTagEffLeadEta;Leading jet #eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hTagEffPartPt=new TH1F("hTagEffPartPt","hTagEffPartPt;Partner jet p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hTagEffPartEta=new TH1F("hTagEffPartEta","hTagEffPartEta;Partner jet #eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hTagEffPartEta=new TH1F("hTagEffPartEta","hTagEffPartEta;Partner jet #eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hTagEffLeadCent=new TH1F("hTagEffLeadCent","hTagEffLeadCent;Centrality (%);Tagging Efficiency",10,0,100);
   TH1F *hTagEffPartCent=new TH1F("hTagEffPartCent","hTagEffPartCent;Centrality (%);Tagging Efficiency",10,0,100);
   TH1F *hTagXj=new TH1F("hTagXj","hXj;x_{J};Counts",10,0,1);
 
   
   TH1F *hw1TagLeadPt=new TH1F("hw1TagLeadPt","hw1TagLeadPt;p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hw1TagLeadEta=new TH1F("hw1TagLeadEta","hw1TagLeadEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw1TagLeadEta=new TH1F("hw1TagLeadEta","hw1TagLeadEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw1TagPartPt=new TH1F("hw1TagPartPt","hw1TagPartPt;p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hw1TagPartEta=new TH1F("hw1TagPartEta","hw1TagPartEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw1TagPartEta=new TH1F("hw1TagPartEta","hw1TagPartEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw1TagCent=new TH1F("hw1TagCent","hw1TagCent;p_{T} (GeV);Tagging Efficiency",10,0,100);
   TH1F *hw1TagXj=new TH1F("hw1TagXj","hXj;x_{J};Counts",10,0,1);
   
   TH1F *hw1TagEffLeadPt=new TH1F("hw1TagEffLeadPt","hw1TagEffLeadPt;p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hw1TagEffLeadEta=new TH1F("hw1TagEffLeadEta","hw1TagEffLeadEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw1TagEffLeadEta=new TH1F("hw1TagEffLeadEta","hw1TagEffLeadEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw1TagEffPartPt=new TH1F("hw1TagEffPartPt","hw1TagEffPartPt;p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hw1TagEffPartEta=new TH1F("hw1TagEffPartEta","hw1TagEffPartEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw1TagEffPartEta=new TH1F("hw1TagEffPartEta","hw1TagEffPartEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw1TagEffPartCent=new TH1F("hw1TagEffPartCent","hw1TagEffPartCent;p_{T} (GeV);Tagging Efficiency",10,0,100);
   TH1F *hw1TagEffXj=new TH1F("hw1TagEffXj","hXj;x_{J};Counts",10,0,1);
   
   TH1F *hw2TagLeadPt=new TH1F("hw2TagLeadPt","hw2TagLeadPt;p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hw2TagLeadEta=new TH1F("hw2TagLeadEta","hw2TagLeadEta;#eta;Tagging Efficiency",20,-2.,2.);  
+  TH1F *hw2TagLeadEta=new TH1F("hw2TagLeadEta","hw2TagLeadEta;#eta;Tagging Efficiency",20,-etacut,etacut);  
   TH1F *hw2TagPartPt=new TH1F("hw2TagPartPt","hw2TagPartPt;p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hw2TagPartEta=new TH1F("hw2TagPartEta","hw2TagPartEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw2TagPartEta=new TH1F("hw2TagPartEta","hw2TagPartEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw2TagCent=new TH1F("hw2TagCent","hw2TagCent;p_{T} (GeV);Tagging Efficiency",10,0,100);
 
   TH1F *hw2TagEffLeadPt=new TH1F("hw2TagEffLeadPt","hw2TagEffLeadPt;p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hw2TagEffLeadEta=new TH1F("hw2TagEffLeadEta","hw2TagEffLeadEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw2TagEffLeadEta=new TH1F("hw2TagEffLeadEta","hw2TagEffLeadEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw2TagEffPartPt=new TH1F("hw2TagEffPartPt","hw2TagEffPartPt;p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hw2TagEffPartEta=new TH1F("hw2TagEffPartEta","hw2TagEffPartEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw2TagEffPartEta=new TH1F("hw2TagEffPartEta","hw2TagEffPartEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw2TagEffCent=new TH1F("hw2TagEffCent","hw2TagEffCent;p_{T} (GeV);Tagging Efficiency",10,0,100);
   
   TH1F *hw3TagLeadPt=new TH1F("hw3TagLeadPt","hw3TagLeadPt;p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hw3TagLeadEta=new TH1F("hw3TagLeadEta","hw3TagLeadEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw3TagLeadEta=new TH1F("hw3TagLeadEta","hw3TagLeadEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw3TagPartPt=new TH1F("hw3TagPartPt","hw3TagPartPt;p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hw3TagPartEta=new TH1F("hw3TagPartEta","hw3TagPartEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw3TagPartEta=new TH1F("hw3TagPartEta","hw3TagPartEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw3TagCent=new TH1F("hw3TagCent","hw3TagCent;p_{T} (GeV);Tagging Efficiency",10,0,100);
 
   TH1F *hw3TagEffLeadPt=new TH1F("hw3TagEffLeadPt","hw3TagEffLeadPt;p_{T} (GeV);Tagging Efficiency",20,100,maxPtLead);
-  TH1F *hw3TagEffLeadEta=new TH1F("hw3TagEffLeadEta","hw3TagEffLeadEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw3TagEffLeadEta=new TH1F("hw3TagEffLeadEta","hw3TagEffLeadEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw3TagEffPartPt=new TH1F("hw3TagEffPartPt","hw3TagEffPartPt;p_{T} (GeV);Tagging Efficiency",20,40,maxPtPart);
-  TH1F *hw3TagEffPartEta=new TH1F("hw3TagEffPartEta","hw3TagEffPartEta;#eta;Tagging Efficiency",20,-2.,2.);
+  TH1F *hw3TagEffPartEta=new TH1F("hw3TagEffPartEta","hw3TagEffPartEta;#eta;Tagging Efficiency",20,-etacut,etacut);
   TH1F *hw3TagEffCent=new TH1F("hw3TagEffCent","hw3TagEffCent;p_{T} (GeV);Tagging Efficiency",10,0,100);
   
   
@@ -151,13 +158,13 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
   TF1 *fLeadPt = new TF1("piecewisePt1",fit_pt2,100,maxPtLead,4);
   //  TF1 *fLeadPt = new TF1("piecewisePt1",fit_pt3,100,maxPtLead,5);
   TF1 *fLeadEta = NULL;
-  //fLeadEta=new TF1("fLeadEta","pol4",-2.,2.);
-  fLeadEta=new TF1("fLeadEta","[0]+[1]*x*x+[2]*x*x*x*x",-2.,2.);
-  //else fLeadEta=new TF1("fLeadEta","pol6",-2.,2.);
+  //fLeadEta=new TF1("fLeadEta","pol4",-etacut,etacut);
+  fLeadEta=new TF1("fLeadEta","[0]+[1]*x*x+[2]*x*x*x*x",-etacut,etacut);
+  //else fLeadEta=new TF1("fLeadEta","pol6",-etacut,etacut);
   TF1 *fPartEta = NULL;
-  //fPartEta=new TF1("fPartEta","pol4",-2.,2.);
-  fPartEta=new TF1("fPartEta","[0]+[1]*x*x+[2]*x*x*x*x",-2.,2.);
-  //else fPartEta=new TF1("fPartEta","pol6",-2.,2.);
+  //fPartEta=new TF1("fPartEta","pol4",-etacut,etacut);
+  fPartEta=new TF1("fPartEta","[0]+[1]*x*x+[2]*x*x*x*x",-etacut,etacut);
+  //else fPartEta=new TF1("fPartEta","pol6",-etacut,etacut);
   //TF1 *fPartPt = new TF1("fPartPt","pol4",40,maxPtPart);
   TF1 *fPartPt = NULL;
   //if(ppPbPb)fPartPt=new TF1("fPartPt","pol5",40,maxPtPart);
@@ -194,13 +201,14 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
       if(ptSB<40) continue;
       if(dphiSB1<2./3.*acos(-1.)) continue;
       if(refptSB<20) continue;
+      if(abs(refparton_flavorForBSB)!=5) continue;      
 	   
       hCent->Fill(bin/2.,weight);
       
       totCounts0 += weight;
       
-      if(discr_csvV1_1<0.9) continue;
-      //if(discr_csvV1_SB<0.9) continue;
+      if(discr_csvV1_1<csv) continue;
+      //if(discr_csvV1_SB<csv) continue;
       
       hTagLeadCent->Fill(bin/2.,weight);
       
@@ -252,6 +260,7 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
      if(ptSB<40) continue;
      if(dphiSB1<2./3.*acos(-1.)) continue;
      if(refptSB<20) continue;
+     if(abs(refparton_flavorForBSB)!=5) continue;       
       
      hLeadPt->Fill(pt1,weight);
      hLeadEta->Fill(jteta1,weight);
@@ -261,7 +270,7 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
      
      totCounts0a += weight;
      
-     if(discr_csvV1_1<0.9) continue;
+     if(discr_csvV1_1<csv) continue;
 	      
      float centTagEffCorr = 1.;
      if(ppPbPb) centTagEffCorr=1./fLeadCent->Eval(bin/2.);
@@ -314,13 +323,14 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
       if(ptSB<40) continue;
       if(dphiSB1<2./3.*acos(-1.)) continue;
       if(refptSB<20) continue;
+      if(abs(refparton_flavorForBSB)!=5) continue;        
       
       //hCent->Fill(bin/2.,weight);
       
       totCounts0 += weight;
       
-      //if(discr_csvV1_1<0.9) continue;
-      if(discr_csvV1_SB<0.9) continue;
+      //if(discr_csvV1_1<csv) continue;
+      if(discr_csvV1_SB<csv) continue;
       
       hTagPartCent->Fill(bin/2.,weight);
       
@@ -369,8 +379,9 @@ void deriveOffTagEff(bool ppPbPb=false, bool requireFCR=false, bool doRebin= tru
      if(ptSB<40) continue;
      if(dphiSB1<2./3.*acos(-1.)) continue;
      if(refptSB<20) continue;
+      if(abs(refparton_flavorForBSB)!=5) continue;       
      
-     if(discr_csvV1_SB<0.9) continue;
+     if(discr_csvV1_SB<csv) continue;
 
 
      float centTagEffCorr = 1.;
@@ -437,9 +448,10 @@ for (Long64_t i=0; i<nentries;i++) {
      if(ptSB<40) continue;
      if(dphiSB1<2./3.*acos(-1.)) continue;
      if(refptSB<20) continue;
+      if(abs(refparton_flavorForBSB)!=5) continue;       
      
-     if(discr_csvV1_1<0.9) continue;
-     if(discr_csvV1_SB<0.9) continue;
+     if(discr_csvV1_1<csv) continue;
+     if(discr_csvV1_SB<csv) continue;
 
      float centTagEffCorr = 1.;
      if(ppPbPb) centTagEffCorr=1./fLeadCent->Eval(bin/2.)/fPartCent->Eval(bin/2.);
@@ -527,9 +539,10 @@ for (Long64_t i=0; i<nentries;i++) {
       if(ptSB<40) continue;
       if(dphiSB1<2./3.*acos(-1.)) continue;
       if(refptSB<20) continue;
+      if(abs(refparton_flavorForBSB)!=5) continue;        
 	   
-      if(discr_csvV1_1<0.9) continue;
-      if(discr_csvV1_SB<0.9) continue;
+      if(discr_csvV1_1<csv) continue;
+      if(discr_csvV1_SB<csv) continue;
       
       float centTagEffCorr = 1.;
       if(ppPbPb) centTagEffCorr=1./fLeadCent->Eval(bin/2.)/fPartCent->Eval(bin/2.);
@@ -614,8 +627,8 @@ for (Long64_t i=0; i<nentries;i++) {
       if(dphiSB1<2./3.*acos(-1.)) continue;
       
       
-      if(discr_csvV1_1<0.9) continue;
-      if(discr_csvV1_SB<0.9) continue;
+      if(discr_csvV1_1<csv) continue;
+      if(discr_csvV1_SB<csv) continue;
       
       float centTagEffCorr = 1.;
       if(ppPbPb) centTagEffCorr=1./fLeadCent->Eval(bin/2.)/fPartCent->Eval(bin/2.);
@@ -891,14 +904,19 @@ for (Long64_t i=0; i<nentries;i++) {
    cout<<" Mean xJ corrected = "<<hw1TagXj->GetMean()<<endl;
 
   
+    TString folder = Form("tagging_jtsignal2v4_%.2f",csv);
+    folder.ReplaceAll(".","p");
+
+    gSystem->MakeDirectory(folder);
+
     TFile *fout = NULL;
   if(ppPbPb){    
-    if(requireFCR) fout=new TFile(Form("offTagEff_PbPb_fcr_cBin_%i_v3.root",cBin),"recreate");
-    else fout=new TFile(Form("offTagEff_PbPb_all_cBin%i_v3.root",cBin),"recreate");
+    if(requireFCR) fout=new TFile(Form("%s/offTagEff_PbPb_fcr_cBin_%i_v4.root",folder.Data(),cBin),"recreate");
+    else fout=new TFile(Form("%s/offTagEff_PbPb_all_cBin%i_v4.root",folder.Data(),cBin),"recreate");
   }
   else{
-    if(requireFCR) fout=new TFile("offTagEff_pp_fcr_v3.root","recreate");
-    else fout=new TFile("offTagEff_pp_all_v3.root","recreate");
+    if(requireFCR) fout=new TFile(Form("%s/offTagEff_pp_fcr_v4.root",folder.Data()),"recreate");
+    else fout=new TFile(Form("%s/offTagEff_pp_all_v4.root",folder.Data()),"recreate");
   }
 
   fout->cd();
@@ -926,6 +944,13 @@ for (Long64_t i=0; i<nentries;i++) {
   hw1TagEffLeadPt->Write();
 
 
+hTagEffLeadCent->Write();
+hTagEffPartCent->Write();
+hTagEffLeadPt->Write();
+hTagEffLeadEta->Write();
+hTagEffPartPt->Write();
+hTagEffPartEta->Write();
+
   if(ppPbPb){
     fLeadCent->Write();
     fPartCent->Write();
@@ -942,6 +967,7 @@ for (Long64_t i=0; i<nentries;i++) {
 
   if(savePlots){
     
+    gSystem->MakeDirectory("savedPlots");
     
     if(ppPbPb){
       c0->SaveAs(Form("savedPlots/tagEffVsLeadCent_cBin_%i.pdf",cBin));

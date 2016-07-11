@@ -1,5 +1,5 @@
-#include "./CMS_lumi.C"
 #include "../helpers/plotting.h"
+#include "../helpers/config.h"
 
 float weightedsum(TH1F *h, int bin1, int bin2)
 {
@@ -15,8 +15,10 @@ TGraphErrors *makesysplot(TH1F *h, float dmu, int color)
   auto h1 = (TH1F *)h->Clone("h1");
   auto h2 = (TH1F *)h->Clone("h2");
 
-  h1->SetTitle("variation 1");
-  h2->SetTitle("variation 2");
+  //if (h->GetTitle()=="Data b-jets 12")
+    h->SetTitle("Data b-jets");
+  h1->SetTitle("variation up");
+  h2->SetTitle("variation down");
 
   float mu = h->GetMean();
 
@@ -60,6 +62,7 @@ TGraphErrors *makesysplot(TH1F *h, float dmu, int color)
 
 
   //draw true value, variation1 and variation2
+  plotytitle = "Event fractions";
   Draw({h,h1,h2},{"E1","hist","hist","e1p"});
 
 
@@ -103,23 +106,9 @@ TGraphErrors *makesysplot(TH1F *h, float dmu, int color)
 
 void plotXJ(int inc_or_bjet=1)
 {
-  macro m("plotXJ_0704");
-
- writeExtraText = true;       // if extra text
-  extraText  = "Preliminary";  // default extra text is "Preliminary"
-  //lumi_sqrtS = "25.8 pb^{-1} (5.02 TeV pp) + 404 #mub^{-1} (5.02 TeV PbPb)";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
-  lumi_sqrtS = "404 #mub^{-1} (5.02 TeV PbPb)";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
-
-  int iPeriod = 0;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
-
-  // second parameter in example_plot is iPos, which drives the position of the CMS logo in the plot
-  int iPos=11; // : top-left, left-aligned
-  //int  iPos=33;// : top-right, right-aligned
-  // iPos=22 : center, centered
-  // mode generally : 
-  //   iPos = 10*(alignement 1/2/3) + position (1/2/3 = left/center/right)
+  macro m("plotXJ_0708_default");
   
-  TFile *fin = new TFile("results_0704_final/xJdphi.root");
+  TFile *fin = new TFile("results_0708_default/xJdphi.root");
 
   string species = "inc";
   if(inc_or_bjet) species = "bjt";
@@ -137,10 +126,9 @@ void plotXJ(int inc_or_bjet=1)
 
 Normalize({hMC010,hMC1030,hMC30100,hMCPP}); //temporary fix
 
-
   vector<float> syserr;
-  if (inc_or_bjet) syserr = {0.028,0.022,0.017,0.010}; //0-10%, 10-30%, 30-100%, pp
-  else syserr = {0.027,0.019,0.014,0.007};
+  if (inc_or_bjet) syserr = {0.023,0.018,0.014,0.008}; //0-10%, 10-30%, 30-100%, pp
+  else syserr = {0.023,0.016,0.010,0.007};
   int syscolor = inc_or_bjet ? kredLight : kblueLight;
 
   auto hData010sys =    makesysplot(hData010,syserr[0],syscolor);

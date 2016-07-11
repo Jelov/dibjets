@@ -341,6 +341,6 @@ void dphisignalconsistency()
 
 void hydjetestimation(bool firstRun = true)
 {
-  macro m("hydjetestimation",firstRun);
+  macro m("hydjetestimation_eta1p5",firstRun);
   dphisignalconsistency();
 }

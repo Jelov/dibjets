@@ -9,18 +9,19 @@ bool pthatcondition(float pthat)
 	//return true;
 }
 
-float jtpt1min = 100;//120;
-float jtpt2min = 40;//30;
+float jtpt1min = 100;
+float jtpt2min = 40;
 
 void skiplightreweight()
 {
-	TString outfilename = "skiplightreweight.root";
+	TString outfilename = "skiplightreweight_13merged.root";
 
 	auto fmc = config.getfile_djt("mcppbfa");
 	auto fdt = config.getfile_djt("dtppjpf");
 
 	auto fout = new TFile(outfilename ,"recreate");
 
+	seth(10,0,1);
 
 	auto h12all = geth("h12all","ALL"); // jet12
 	auto h12fcr = geth("h12fcr","FCR"); // jet12
@@ -83,19 +84,18 @@ void skiplightreweight()
 	
 	float pi23 = 2./3*acos(-1);
 
-	vector<TString> mcvariables = {"jtpt1","jtpt2","jtptSL","discr_csvV1_1","discr_csvV1_2","discr_csvV1_SL","SLord",
-	"dphi21","dphiSL1","weight","bProdCode","pthat"};
-	vector<TString> dtvariables = {"jtpt1","jtpt2","jtptSL","discr_csvV1_1","discr_csvV1_2","discr_csvV1_SL","SLord",
-	"dphi21","dphiSL1","weight","hltPFJet80"};
+	unordered_set<int> eventstomiss = {646529,664401,720507};
 
-	Fill(fmc, mcvariables, [&] (dict &m) -> void {
+
+	Fill(fmc, [&] (dict &m) {
 		float w = m["weight"];
+		if (eventstomiss.find((int)m["event"])!=eventstomiss.end()) return;
 
 		if (m["jtpt1"]>jtpt1min && m["jtpt2"]>jtpt2min && m["discr_csvV1_1"]>0.9 && m["discr_csvV1_2"]>0.9) {
 			float dphi21= m["dphi21"];
 
 			if ( pthatcondition(m["pthat"])) { h12dphiall->Fill(dphi21,w); h12dphiNSall->Fill(dphi21,w);}
-			if ( pthatcondition(m["pthat"]) && m["bProdCode"]==1) { h12dphifcr->Fill(dphi21,w); h12dphiNSfcr->Fill(dphi21,w);}
+			if ( pthatcondition(m["pthat"]) && (m["bProdCode"]==1 || m["bProdCode"]==3)) { h12dphifcr->Fill(dphi21,w); h12dphiNSfcr->Fill(dphi21,w);}
 			if ( pthatcondition(m["pthat"]) && m["bProdCode"]==2) { h12dphifex->Fill(dphi21,w); h12dphiNSfex->Fill(dphi21,w);}
 			if ( pthatcondition(m["pthat"]) && m["bProdCode"]==0) { h12dphigsp->Fill(dphi21,w); h12dphiNSgsp->Fill(dphi21,w);}
 
@@ -103,7 +103,7 @@ void skiplightreweight()
 				float xj = m["jtpt2"]/m["jtpt1"];
 				float slord = m["SLord"];
 				if ( pthatcondition(m["pthat"])) {h12all->Fill(xj,w);h12ordall->Fill(slord,w);}
-				if ( pthatcondition(m["pthat"]) && m["bProdCode"]==1) {h12fcr->Fill(xj,w);h12ordfcr->Fill(slord,w);}
+				if ( pthatcondition(m["pthat"]) && (m["bProdCode"]==1 || m["bProdCode"]==3)) {h12fcr->Fill(xj,w);h12ordfcr->Fill(slord,w);}
 				if ( pthatcondition(m["pthat"]) && m["bProdCode"]==2) {h12fex->Fill(xj,w);h12ordfex->Fill(slord,w);}
 				if ( pthatcondition(m["pthat"]) && m["bProdCode"]==0) {h12gsp->Fill(xj,w);h12ordgsp->Fill(slord,w);}
 			}
@@ -113,7 +113,7 @@ void skiplightreweight()
 			float dphiSL = m["dphiSL1"];
 
 			if ( pthatcondition(m["pthat"])) { hSLdphiall->Fill(dphiSL,w); hSLdphiNSall->Fill(dphiSL,w);}
-			if ( pthatcondition(m["pthat"]) && m["bProdCode"]==1) { hSLdphifcr->Fill(dphiSL,w); hSLdphiNSfcr->Fill(dphiSL,w);}
+			if ( pthatcondition(m["pthat"]) && (m["bProdCode"]==1 || m["bProdCode"]==3)) { hSLdphifcr->Fill(dphiSL,w); hSLdphiNSfcr->Fill(dphiSL,w);}
 			if ( pthatcondition(m["pthat"]) && m["bProdCode"]==2) { hSLdphifex->Fill(dphiSL,w); hSLdphiNSfex->Fill(dphiSL,w);}
 			if ( pthatcondition(m["pthat"]) && m["bProdCode"]==0) { hSLdphigsp->Fill(dphiSL,w); hSLdphiNSgsp->Fill(dphiSL,w);}
 
@@ -121,7 +121,7 @@ void skiplightreweight()
 				float xj = m["jtptSL"]/m["jtpt1"];
 				float slord = m["SLord"];
 				if ( pthatcondition(m["pthat"])) {hSLall->Fill(xj,w); hSLordall->Fill(slord,w);}
-				if ( pthatcondition(m["pthat"]) && m["bProdCode"]==1) {hSLfcr->Fill(xj,w);hSLordfcr->Fill(slord,w);}
+				if ( pthatcondition(m["pthat"]) && (m["bProdCode"]==1 || m["bProdCode"]==3)) {hSLfcr->Fill(xj,w);hSLordfcr->Fill(slord,w);}
 				if ( pthatcondition(m["pthat"]) && m["bProdCode"]==2) {hSLfex->Fill(xj,w);hSLordfex->Fill(slord,w);}
 				if ( pthatcondition(m["pthat"]) && m["bProdCode"]==0) {hSLgsp->Fill(xj,w);hSLordgsp->Fill(slord,w);}
 			}
@@ -129,7 +129,7 @@ void skiplightreweight()
 
 	});
 
-	Fill(fdt, dtvariables, [&] (dict &m) -> void {
+	Fill(fdt, [&] (dict &m) {
 		float w = m["weight"];
 		if (m["jtpt1"]>jtpt1min && m["jtpt2"]>jtpt2min && m["discr_csvV1_1"]>0.9 && m["discr_csvV1_2"]>0.9) {
 			float xj = m["jtpt2"]/m["jtpt1"];

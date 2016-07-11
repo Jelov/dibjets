@@ -20,10 +20,10 @@ void findfunc()
   // hn->Fit(f)
   
 
-  auto fpp = new TF1("fpp;p_{T} [GeV];mistag probability","expo",40,200);
-  auto f1 = new TF1("fPb1;p_{T} [GeV];mistag probability","expo",40,200);
-  auto f2 = new TF1("fPb2;p_{T} [GeV];mistag probability","expo",40,200);
-  auto f3 = new TF1("fPb3;p_{T} [GeV];mistag probability","expo",40,200);
+  auto fpp = new TF1("fpp","expo",40,200);
+  auto f1 = new TF1("fPb1","expo",40,200);
+  auto f2 = new TF1("fPb2","expo",40,200);
+  auto f3 = new TF1("fPb3","expo",40,200);
   seth(18,40,200);
 
 
@@ -34,6 +34,7 @@ void findfunc()
   ntpp->Project("hd","jtpt","weight*(pthat>50 && refpt>20 && abs(refparton_flavorForB)!=5)");
   ntpp->Project("hn","jtpt","weight*(pthat>50 && refpt>20 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn->Divide(hn,hd,1,1,"B");
+  // hn->Scale(1/hn->Integral());
   hn->Fit(fpp);
 
   auto nt = (TTree *)config.getfile_inc("mcPbqcd")->Get("nt");
@@ -43,6 +44,7 @@ void findfunc()
   nt->Project("hd1","jtpt","weight*(pthat>50 && refpt>20 && bin < 20 && abs(refparton_flavorForB)!=5)");
   nt->Project("hn1","jtpt","weight*(pthat>50 && refpt>20 && bin < 20 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn1->Divide(hn1,hd1,1,1,"B");
+  // hn1->Scale(1/hn1->Integral());
   hn1->Fit(f1);
 
   auto hd2 = geth("hd2");
@@ -50,6 +52,7 @@ void findfunc()
   nt->Project("hd2","jtpt","weight*(pthat>50 && refpt>20 && bin>=20 && bin<60 && abs(refparton_flavorForB)!=5)");
   nt->Project("hn2","jtpt","weight*(pthat>50 && refpt>20 && bin>=20 && bin<60 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn2->Divide(hn2,hd2,1,1,"B");
+  // hn2->Scale(1/hn2->Integral());
   hn2->Fit(f2);
 
   auto hd3 = geth("hd3");
@@ -57,6 +60,7 @@ void findfunc()
   nt->Project("hd3","jtpt","weight*(pthat>50 && refpt>20 && bin>=60 && abs(refparton_flavorForB)!=5)");
   nt->Project("hn3","jtpt","weight*(pthat>50 && refpt>20 && bin>=60 && abs(refparton_flavorForB)!=5 && discr_csvV1>0.9)");
   hn3->Divide(hn3,hd3,1,1,"B");
+  // hn3->Scale(1/hn3->Integral());
   hn3->Fit(f3);
 
 
@@ -79,7 +83,7 @@ void findfunc()
   // hn3->SetMinimum(0);
 
 
-  auto fout = new TFile("../ntuplizer/BXmistagfunc.root","recreate");
+  auto fout = new TFile("../correctionfiles/BXmistagfunc.root","recreate");
   fout->cd();
   fpp->Write();
   f1->Write();
@@ -115,7 +119,7 @@ void findfunc()
 
   l->Draw();
 
-  SavePlots(c,"func");
+  SavePlot(c,"func");
 
   float x = 0.55;
   float y = 0.75;
@@ -126,26 +130,26 @@ void findfunc()
   hn->Draw();
   fpp->Draw("same");
   t->DrawLatexNDC(x,y,"pp");
-  SavePlots(cpp,"pp");
+  SavePlot(cpp,"pp");
 
 
   auto c1 = getc();
   hn1->Draw();
   f1->Draw("same");
   t->DrawLatexNDC(x,y,"PbPb 0-10%");
-  SavePlots(c1,"bin_0_20");
+  SavePlot(c1,"bin_0_20");
 
   auto c2 = getc();
   hn2->Draw();
   f2->Draw("same");
   t->DrawLatexNDC(x,y,"PbPb 10-30%");
-  SavePlots(c2,"bin_20_60");
+  SavePlot(c2,"bin_20_60");
 
   auto c3 = getc();
   hn3->Draw();
   f3->Draw("same");
   t->DrawLatexNDC(x,y,"PbPb 30-100%");
-  SavePlots(c3,"bin_60");
+  SavePlot(c3,"bin_60");
 
 
   fout->Close();
@@ -185,7 +189,7 @@ void findfunc()
 
 void BXmistags()
 {
-  macro m("BXmistags",true);
+  macro m("BXmistags_0708",true);
   findfunc();
   // run();
 }

@@ -22,6 +22,7 @@
 #include "TSystem.h"
 #include "TGraphErrors.h"
 #include "TMultiGraph.h"
+#include "config.h"
 
 using namespace std;
 
@@ -54,7 +55,6 @@ TCanvas *getc()
 
 }
 
-bool firstRunMacro = true;
 TString plotfoldername;
 TString histoutputfilename;
 bool plotsaveadddate = false;
@@ -241,7 +241,7 @@ bool plotcompatibility = false;
 TString centralityLabel = "";
 
 
-TString plotytitle = "Counts";
+TString plotytitle = "";
 bool plotdivide = true;
 bool plotputmean = false;
 bool plotputwidth = false;
@@ -371,6 +371,7 @@ TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
       if (plotymin!=9999) h->SetMinimum(plotymin);
 
       h->Draw(options[i]);
+      if (plotytitle!="") h->GetYaxis()->SetTitle(plotytitle);
     } else h->Draw(options[i]+"same");
     i++;
     
@@ -1257,6 +1258,7 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
   h1->Draw("P,same");
 
   hstack->GetYaxis()->SetTitle(title);
+  hstack->GetYaxis()->CenterTitle(1);
   hstack->GetXaxis()->SetLabelSize(0);
 
   //h2->Draw();
@@ -1279,6 +1281,10 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
   cout<<"Compatibility : chi2 = "<<h1->Chi2Test(h2, "WW")<<", KS = "<<h1->KolmogorovTest(h2)<<endl;
 
   pad1->Draw();
+
+
+  CMS_lumi(pad1, iPeriod, iPos ); 
+
   c1->cd();
 
   TPad *pad2 = new TPad("pad2","pad2",0,0.,1,0.35);
@@ -1298,11 +1304,12 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
   } else
     h3->Add(h1,h2,1,-1);
 
-  h3->GetYaxis()->SetTitle(plotdivide ? "ratio" : "difference");
+  h3->GetYaxis()->SetTitle(plotdivide ? "Data / MC" : "Data - MC");
   h3->GetYaxis()->CenterTitle();
   if (caption!="")
     h3->GetXaxis()->SetTitle(caption);
   h3->GetXaxis()->SetTitleOffset(3.5);
+  h3->GetYaxis()->SetTitleOffset(2.);
 
   if (plotdiffmax!=9999)
   {
@@ -1313,6 +1320,8 @@ void DrawCompare(TH1F *h1, THStack *hstack, TString caption = "")
 
   h3->SetMarkerStyle(21);
   h3->Draw("ep");
+  h3->GetXaxis()->CenterTitle(1);
+
 
   TLatex *Tl2 = new TLatex();
   if (plotputmean) {

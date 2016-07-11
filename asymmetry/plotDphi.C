@@ -1,9 +1,9 @@
-#include "./CMS_lumi.C"
+// #include "./CMS_lumi.C"
 #include "../helpers/plotting.h"
 
 void plotDphi(int inc_or_bjet=0)
 {
-  macro m("plotDphi");
+  macro m("plotDphi_0708");
 
  writeExtraText = true;       // if extra text
   extraText  = "Preliminary";  // default extra text is "Preliminary"
@@ -19,7 +19,7 @@ void plotDphi(int inc_or_bjet=0)
   // mode generally : 
   //   iPos = 10*(alignement 1/2/3) + position (1/2/3 = left/center/right)
   
-  TFile *fin = new TFile("results_0702_newweight/xJdphi.root");
+  TFile *fin = new TFile("results_0708_default/xJdphi.root");
 
   string species = "inc";
   if(inc_or_bjet) species = "bjt";
@@ -44,6 +44,15 @@ void plotDphi(int inc_or_bjet=0)
   TF1 *fMC30100 = (TF1*) fin->Get(Form("fit_dphi_mc_%s_30_100",species.c_str()));
   TF1 *fMCPP = (TF1*) fin->Get(Form("fit_dphi_mc_%s_pp",species.c_str()));
 
+
+hData010->SetMaximum(0.6);
+hData1030->SetMaximum(0.6);
+hData30100->SetMaximum(0.6);
+hDataPP->SetMaximum(0.6);
+hMC010->SetMaximum(0.6);
+hMC1030->SetMaximum(0.6);
+hMC30100->SetMaximum(0.6);
+hMCPP->SetMaximum(0.6);
 
 
   // if(inc_or_bjet) hMCPP = (TH1F*) fin->Get(Form("dphi_data_%s_0_10;1",species.c_str()));
@@ -71,7 +80,7 @@ void plotDphi(int inc_or_bjet=0)
   
   CMS_lumi(c1, iPeriod, iPos ); 
     
-  TLegend *l =new TLegend(0.6,0.6,0.9,0.8);
+  TLegend *l =new TLegend(0.5,0.6,0.8,0.8);
 l->AddEntry(hData010,"Data","P");
 l->AddEntry(hMC010,"Pythia6","l");
  if(inc_or_bjet)l->SetHeader("b-dijets");

@@ -3,19 +3,35 @@
 #include "../helpers/config.h"
 #include "../helpers/physics.h"
 #include "tageffcorrections.h"
+#include <unordered_map>
+
+
+// TString jtptSB          = "jtptSB";
+// TString jtetaSB         = "jtetaSB";
+// TString dphiSB1         = "dphiSB1";
+// TString discr_csvV1_SB  = "discr_csvV1_SB";
+// TString pairCodeSB1     = "pairCodeSB1";
+// TString refptSB         = "refptSB";
+
+TString jtptSB          = "jtptSignal2";
+TString jtetaSB         = "jtetaSignal2";
+TString dphiSB1         = "dphiSignal21";
+TString discr_csvV1_SB  = "discr_csvV1_Signal2";
+TString pairCodeSB1     = "pairCodeSignal21";
+TString refptSB         = "refptSignal2";
 
 
 void findtruthpp()
 {
-  buildh(10,0,1);
+  seth(10,0,1);
   auto hmcppxJTrue = geth("hmcppxJTrue","true;x_{J};Event fractions");
   auto hmcppxJTrueTag = geth("hmcppxJTrueTag","true tagged;x_{J};Event fractions");
   auto hmcppxJTrueTagCorr = geth("hmcppxJTrueTagCorr","true tagged corrected;x_{J};Event fractions");
 
-
   TFile *fmcpp = new TFile(config.getFileName_djt("mcppbfa"));
-  Fill(fmcpp,{"pthat","weight","jtpt1","jteta1","refpt1","discr_csvV1_1","jtptSB","jtetaSB","dphiSB1","bProdCode", "discr_csvV1_SB","refparton_flavorForB1","pairCodeSB1"},[&] (dict &m) {
+  Fill(fmcpp,[&] (dict &m) {
     if (m["pthat"]<pthatcut) return;
+    if (m[pairCodeSB1]!=0) return;
     // if (m["pthat"]<80) return;
     
     // if (m["bProdCode"]!=1) return;
@@ -24,16 +40,16 @@ void findtruthpp()
     // float w = m["weight"];
     // if (m["bProdCode"]==2) return;
 
-    float corr = getppcorrection(m["jtpt1"],m["jteta1"],m["jtptSB"],m["jtetaSB"]);
+    float corr = tageffcorrectionpp(m["jtpt1"],m["jteta1"],m[jtptSB],m[jtetaSB]);
     float wb = w*corr;
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSB"]>pt2cut && m["dphiSB1"]>PI23)
-      hmcppxJTrue->Fill(m["jtptSB"]/m["jtpt1"],w);
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSB]>pt2cut && m[dphiSB1]>PI23)
+      hmcppxJTrue->Fill(m[jtptSB]/m["jtpt1"],w);
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSB"]>pt2cut && m["dphiSB1"]>PI23
-        && m["discr_csvV1_1"]>0.9 && m["discr_csvV1_SB"]>0.9) {
-      hmcppxJTrueTag->Fill(m["jtptSB"]/m["jtpt1"],w);
-      hmcppxJTrueTagCorr->Fill(m["jtptSB"]/m["jtpt1"],wb);
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSB]>pt2cut && m[dphiSB1]>PI23
+        && m["discr_csvV1_1"]>0.9 && m[discr_csvV1_SB]>0.9) {
+      hmcppxJTrueTag->Fill(m[jtptSB]/m["jtpt1"],w);
+      hmcppxJTrueTagCorr->Fill(m[jtptSB]/m["jtpt1"],wb);
     }
 
 
@@ -96,7 +112,7 @@ void findtruthpp()
   l->Draw();
   TLatex *Tl = new TLatex();
   Tl->DrawLatexNDC(0.2, 0.8, aktstring);
-  SavePlots(c,"closurepp");
+  SavePlot(c,"closurepp");
 }
 
 
@@ -107,7 +123,7 @@ void findtruthPbPb(int binMin, int binMax)
   buildNamesuffix = TString::Format("_bin_%d_%d",binMin, binMax);
   //  buildTitlesuffix = TString::Format("%d-%d %%",binMin/2, binMax/2);
 
-  buildh(10,0,1);
+  seth(10,0,1);
   auto hmcPbPbxJTrue = geth("hmcPbPbxJTrue","PbPb true;x_{J};Event fractions");
   auto hmcPbPbxJTrueTag = geth("hmcPbPbxJTrueTag","PbPb true tagged;x_{J};Event fractions");
   auto hmcPbPbxJTrueTagCorr = geth("hmcPbPbxJTrueTagCorr","PbPb true tagged corrected;x_{J};Event fractions");
@@ -115,28 +131,28 @@ void findtruthPbPb(int binMin, int binMax)
   auto hmcPbPbxJTrueTagCorrEta = geth("hmcPbPbxJTrueTagCorrEta","PbPb true tagged corrected eta;x_{J};Event fractions");
   auto hmcPbPbxJTrueTagCorrBin = geth("hmcPbPbxJTrueTagCorrBin","PbPb true tagged corrected bin;x_{J};Event fractions");
 
-  buildh(12,20,140);//10,40,100);
+  seth(12,20,140);//10,40,100);
   auto hpt2true = geth("hpt2true","true;p_{T,2} GeV");
   auto hpt2truetag = geth("hpt2truetag","true tagged;p_{T,2} GeV");
   auto hpt2truetagovertrue = geth("hpt2truetagovertrue","true tagged/true;p_{T,2} GeV");
   auto hpt2truetagcorr = geth("hpt2truetagcorr","true tagged corrected;p_{T,2} GeV");
   auto hpt2truetagcorrovertrue = geth("hpt2truetagcorrovertrue","true tagged corrected/true;p_{T,2} GeV");
 
-  buildh(10,100,200);
+  seth(10,100,200);
   auto hpt1true = geth("hpt1true","true;p_{T,1} GeV");
   auto hpt1truetag = geth("hpt1truetag","true tagged;p_{T,1} GeV");
   auto hpt1truetagovertrue = geth("hpt1truetagovertrue","true tagged/true;p_{T,1} GeV");
   auto hpt1truetagcorr = geth("hpt1truetagcorr","true tagged corrected;p_{T,1} GeV");
   auto hpt1truetagcorrovertrue = geth("hpt1truetagcorrovertrue","true tagged corrected/true;p_{T,1} GeV");
 
-  buildh(10,0,200);
+  seth(10,0,200);
   auto hbintrue = geth("hbintrue","true;bin");
   auto hbintruetag = geth("hbintruetag","true tagged;bin");
   auto hbintruetagovertrue = geth("hbintruetagovertrue","true tagged/true;bin");
   auto hbintruetagcorr = geth("hbintruetagcorr","true tagged corrected;bin");
   auto hbintruetagcorrovertrue = geth("hbintruetagcorrovertrue","true tagged corrected/true;bin");
 
-  buildh(10,-2,2);
+  seth(20,-2,2);
   auto heta2true = geth("heta2true","true;#eta_{2}");
   auto heta2truetag = geth("heta2truetag","true tagged;#eta_{2}");
   auto heta2truetagovertrue = geth("heta2truetagovertrue","true tagged/true;#eta_{2}");
@@ -149,21 +165,26 @@ void findtruthPbPb(int binMin, int binMax)
   auto heta1truetagcorr = geth("heta1truetagcorr","true tagged corrected;#eta_{1}");
   auto heta1truetagcorrovertrue = geth("heta1truetagcorrovertrue","true tagged corrected/true;#eta_{1}");
 
-  Fill(fmc,{"bin","pthat","weight","jtpt1","jteta1","refpt1","discr_csvV1_1","jtptSB","refptSB","jtetaSB","dphiSB1","bProdCode", "discr_csvV1_SB","refparton_flavorForB1","pairCodeSB1"},[&] (dict &m) {
+  unordered_set<int> eventstodiscard = {1805770,1116573,1084397};//,
+                                        // 5755734,1599758,395810,
+                                      // 1363321,211625,3195128};
+//
+
+  Fill(fmc,[&] (dict &m) {
     if (m["bin"]<binMin || m["bin"]>=binMax) return;
     if (m["pthat"]<pthatcut) return;
-    // if (m["pthat"]<80) return;
+    if (m[pairCodeSB1]!=0) return;
 
-    // if (m["bProdCode"]!=1) return;
-    float w = m["weight"]*processweight((int)m["bProdCode"]); //because we have only leading B and second B
+    // if (m["bProdCode"]>1) return;
 
-    // float w = m["weight"];
-    // if (m["bProdCode"]==2) return;
+    if (eventstodiscard.find(m["event"])!=eventstodiscard.end()) return; //kill large-weight GSP event
+
+    float w = m["weight"]*processweight((int)m["bProdCode"]); //because we have only b-dijets
 
 
-    float corr = getPbPbcorrection(m["jtpt1"],m["jteta1"],m["jtptSB"],m["jtetaSB"],m["bin"]);
-    // float corrpt  = getPbPbcorrectionPt(m["jtpt1"],m["jtptSB"]);
-    // float correta = getPbPbcorrectionEta(m["jteta1"],m["jtetaSB"]);
+    float corr = tageffcorrectionPbPb(m["jtpt1"],m["jteta1"],m[jtptSB],m[jtetaSB],m["bin"]);
+    // float corrpt  = getPbPbcorrectionPt(m["jtpt1"],m[jtptSB]);
+    // float correta = getPbPbcorrectionEta(m["jteta1"],m[jtetaSB]);
     // float corrbin = getPbPbcorrectionBin(m["bin"]);
 
 
@@ -171,37 +192,37 @@ void findtruthPbPb(int binMin, int binMax)
 
 
 
-   if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSB"]>pt2cut && m["refptSB"]>20 && m["dphiSB1"]>PI23) {
-      hmcPbPbxJTrue->Fill(m["jtptSB"]/m["jtpt1"],w);
-      hpt2true->Fill(m["jtptSB"],w);
+   if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSB]>pt2cut && m[refptSB]>20 && m[dphiSB1]>PI23) {
+      hmcPbPbxJTrue->Fill(m[jtptSB]/m["jtpt1"],w);
+      hpt2true->Fill(m[jtptSB],w);
       hpt1true->Fill(m["jtpt1"],w);
-      heta2true->Fill(m["jtetaSB"],w);
+      heta2true->Fill(m[jtetaSB],w);
       heta1true->Fill(m["jteta1"],w);
       hbintrue->Fill(m["bin"],w);
    }
 
-    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m["jtptSB"]>pt2cut && m["refptSB"]>20 && m["dphiSB1"]>PI23
-        && m["discr_csvV1_1"]>0.9 &&  m["discr_csvV1_SB"]>0.9) { //
+    if (m["jtpt1"]>pt1cut && m["refpt1"]>50 && abs(m["refparton_flavorForB1"])==5 && m[jtptSB]>pt2cut && m[refptSB]>20 && m[dphiSB1]>PI23
+        && m["discr_csvV1_1"]>0.9 &&  m[discr_csvV1_SB]>0.9) { //
 
-     //corrpt *= m["jtptSB"] < 60 ? 1./0.7 : 1;
-     //wb *= m["jtptSB"] < 60 ? 1./0.7 : 1;
+     //corrpt *= m[jtptSB] < 60 ? 1./0.7 : 1;
+     //wb *= m[jtptSB] < 60 ? 1./0.7 : 1;
 
-      hmcPbPbxJTrueTag->Fill(m["jtptSB"]/m["jtpt1"],w);
-      hmcPbPbxJTrueTagCorr->Fill(m["jtptSB"]/m["jtpt1"],wb);
-      // hmcPbPbxJTrueTagCorrPt->Fill(m["jtptSB"]/m["jtpt1"],w*corrpt);
-      // hmcPbPbxJTrueTagCorrEta->Fill(m["jtptSB"]/m["jtpt1"],w*corrpt*correta);
-      // hmcPbPbxJTrueTagCorrBin->Fill(m["jtptSB"]/m["jtpt1"],w*corrpt*correta*corrbin);
+      hmcPbPbxJTrueTag->Fill(m[jtptSB]/m["jtpt1"],w);
+      hmcPbPbxJTrueTagCorr->Fill(m[jtptSB]/m["jtpt1"],wb);
+      // hmcPbPbxJTrueTagCorrPt->Fill(m[jtptSB]/m["jtpt1"],w*corrpt);
+      // hmcPbPbxJTrueTagCorrEta->Fill(m[jtptSB]/m["jtpt1"],w*corrpt*correta);
+      // hmcPbPbxJTrueTagCorrBin->Fill(m[jtptSB]/m["jtpt1"],w*corrpt*correta*corrbin);
 
 
-      hpt2truetag->Fill(m["jtptSB"],w);
+      hpt2truetag->Fill(m[jtptSB],w);
       hpt1truetag->Fill(m["jtpt1"],w);
-      heta2truetag->Fill(m["jtetaSB"],w);
+      heta2truetag->Fill(m[jtetaSB],w);
       heta1truetag->Fill(m["jteta1"],w);
       hbintruetag->Fill(m["bin"],w);
 
-      hpt2truetagcorr->Fill(m["jtptSB"],wb);
+      hpt2truetagcorr->Fill(m[jtptSB],wb);
       hpt1truetagcorr->Fill(m["jtpt1"],wb);
-      heta2truetagcorr->Fill(m["jtetaSB"],wb);
+      heta2truetagcorr->Fill(m[jtetaSB],wb);
       heta1truetagcorr->Fill(m["jteta1"],wb);
       hbintruetagcorr->Fill(m["bin"],wb);
 
@@ -256,7 +277,7 @@ void findtruthPbPb(int binMin, int binMax)
   l->Draw();
   TLatex *Tl = new TLatex();
   Tl->DrawLatexNDC(0.2, 0.8, aktstring);
-  SavePlots(c,Form("closure%d%d",binMin,binMax));
+  SavePlot(c,Form("closure%d%d",binMin,binMax));
 
 
     // //if (binMin==0 && binMax==200) {
@@ -287,18 +308,20 @@ void findtruthPbPb(int binMin, int binMax)
 plotymin = 0;
 plotymax = 0.2;
 
-hpt2truetagovertrue->Divide(hpt2truetag,hpt2true,1,1,"B");
-hpt1truetagovertrue->Divide(hpt1truetag,hpt1true,1,1,"B");
-heta2truetagovertrue->Divide(heta2truetag,heta2true,1,1,"B");
-heta1truetagovertrue->Divide(heta1truetag,heta1true,1,1,"B");
-hbintruetagovertrue->Divide(hbintruetag,hbintrue,1,1,"B");
+Draw({hpt2truetag,hpt2true});
+Draw({hpt2truetagcorr,hpt2true});
+hpt2truetagovertrue->Divide(hpt2truetag,hpt2true,1,1); //"B"
+hpt1truetagovertrue->Divide(hpt1truetag,hpt1true,1,1); //"B"
+heta2truetagovertrue->Divide(heta2truetag,heta2true,1,1); //"B"
+heta1truetagovertrue->Divide(heta1truetag,heta1true,1,1); //"B"
+hbintruetagovertrue->Divide(hbintruetag,hbintrue,1,1); //"B"
 
 
-hpt2truetagcorrovertrue->Divide(hpt2truetagcorr,hpt2true,1,1,"B");
-hpt1truetagcorrovertrue->Divide(hpt1truetagcorr,hpt1true,1,1,"B");
-heta2truetagcorrovertrue->Divide(heta2truetagcorr,heta2true,1,1,"B");
-heta1truetagcorrovertrue->Divide(heta1truetagcorr,heta1true,1,1,"B");
-hbintruetagcorrovertrue->Divide(hbintruetagcorr,hbintrue,1,1,"B");
+hpt2truetagcorrovertrue->Divide(hpt2truetagcorr,hpt2true,1,1); //"B"
+hpt1truetagcorrovertrue->Divide(hpt1truetagcorr,hpt1true,1,1); //"B"
+heta2truetagcorrovertrue->Divide(heta2truetagcorr,heta2true,1,1); //"B"
+heta1truetagcorrovertrue->Divide(heta1truetagcorr,heta1true,1,1); //"B"
+hbintruetagcorrovertrue->Divide(hbintruetagcorr,hbintrue,1,1); //"B"
 
  NormalizeAllHists();
 
@@ -319,12 +342,12 @@ Draw({hbintruetagovertrue,hbintruetagcorrovertrue});
 void tageffcorr()
 {
 
-  macro m("taggeffcorr_20160512");
+  macro m("taggeffcorr_0708");
   //looptupledryrun = false;
   //applyCorrection = true;
 
 
-  loadTagEffCorrections();
+  inittageffcorr(0.9,0.9);
 
   findtruthpp();
   findtruthPbPb(60,200);

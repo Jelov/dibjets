@@ -6,6 +6,7 @@
 #include <map>
 #include "TNtuple.h"
 #include "plotting.h"
+#include "config.h"
 
 //#define dict map<TString,float>
 

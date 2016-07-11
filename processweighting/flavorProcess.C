@@ -1,12 +1,7 @@
 #include "../helpers/plotting.h"
 #include "../helpers/looptuple.h"
 #include "../helpers/physics.h"
-
-// bool pthatcondition(float pthat)
-// {
-//    return pthat>65;
-//   //return true;
-//}
+#include "../helpers/config.h"
 
 bool dphiAScut = true;
 
@@ -20,8 +15,8 @@ bool dphicut(float dphi)
 
 }
 
-float jtpt1min = 120;
-float jtpt2min = 30;
+float jtpt1min = 100;//120;
+float jtpt2min = 40;//30;
 
 void flavorProcessFile(bool mc, TString filename, TString filenameout)
 {
@@ -46,23 +41,13 @@ void flavorProcessFile(bool mc, TString filename, TString filenameout)
 	// auto h23gsp = geth("h23gsp","GSP jet23");
 
 
+	unordered_set<int> eventstomiss = {646529,664401,720507};
 
-	vector<TString> variables = {"jtpt1","jtpt2","jtpt3","discr_csvV1_1","discr_csvV1_2","discr_csvV1_3",
-								 "dphi21","dphi31","weight"};
-
-	if (mc) {
-		variables.push_back("bProdCode");
-		variables.push_back("pthat");
-	} else
-		variables.push_back("hltPFJet80");
-
-
-	//!(m["discr_csvV1_3"]>0.5 && m["jtpt3"]>30) == (m["discr_csvV1_3"]<0.5 && m["jtpt3"]>30) || m["jtpt3"]<30
-
-	Fill(f, variables, [&] (dict &m) -> void {
+	Fill(f, [&] (dict &m) {
 		float w = m["weight"];
-		if (!mc && w<0) return;//m["hltPFJet80"]!=1
+		if (!mc && w<0) return;
 		if (mc && m["pthat"]<pthatcut) return;
+		if (mc && eventstomiss.find((int)m["event"])!=eventstomiss.end()) return;
 
 		if (m["jtpt1"]>jtpt1min && m["jtpt2"]>jtpt2min && m["jtpt3"]>jtpt2min && dphicut(m["dphi21"]) && m["discr_csvV1_1"]>0.9 && m["discr_csvV1_2"]>0.9 && !(m["discr_csvV1_3"]>0.5)) {
 			float xj = m["jtpt2"]/m["jtpt1"];
@@ -120,11 +105,11 @@ void flavorProcessFile(bool mc, TString filename, TString filenameout)
 void flavorProcess()
 {
 	dphiAScut = true;
-	flavorProcessFile(true,"/Users/istaslis/Documents/CMS/bjet2015/ntuples/mcppbfaak4PF_djt.root", "flavorProcesshists_mcAS.root");
-	flavorProcessFile(false,"/Users/istaslis/Documents/CMS/bjet2015/ntuples/dtppjpfak4PF_djt.root", "flavorProcesshists_dataAS.root");
+	flavorProcessFile(true,config.getFileName_djt("mcppbfa"), "flavorProcesshists_mcAS.root");
+	flavorProcessFile(false,config.getFileName_djt("dtppjpf"), "flavorProcesshists_dataAS.root");
 
 	dphiAScut = false;
-	flavorProcessFile(true,"/Users/istaslis/Documents/CMS/bjet2015/ntuples/mcppbfaak4PF_djt.root", "flavorProcesshists_mcNS.root");
-	flavorProcessFile(false,"/Users/istaslis/Documents/CMS/bjet2015/ntuples/dtppjpfak4PF_djt.root", "flavorProcesshists_dataNS.root");
+	flavorProcessFile(true,config.getFileName_djt("mcppbfa"), "flavorProcesshists_mcNS.root");
+	flavorProcessFile(false,config.getFileName_djt("dtppjpf"), "flavorProcesshists_dataNS.root");
 
 }

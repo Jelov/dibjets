@@ -20,6 +20,9 @@ void drawText(const char *text, float xp, float yp, int color = kBlack, int size
   tex->SetNDC();
   tex->Draw("same");
 }
+Int_t kmagenta, kviolet , kblue   , kazure  , kcyan   , kteal   , kgreen  , kspring , kyellow , korange , kred    , kpink;
+Int_t kmagentaLight,kvioletLight ,kblueLight   ,kazureLight  ,kcyanLight   ,ktealLight   ,kgreenLight  ,kspringLight ,kyellowLight ,korangeLight ,kredLight    ,kpinkLight;
+
 
 void InitStyle()
 {
@@ -46,9 +49,6 @@ void InitStyle()
   
   TColor *pal = new TColor();
   // good for primary marker colors                                                                                         
-
-Int_t kmagenta, kviolet , kblue   , kazure  , kcyan   , kteal   , kgreen  , kspring , kyellow , korange , kred    , kpink;
-Int_t kmagentaLight,kvioletLight ,kblueLight   ,kazureLight  ,kcyanLight   ,ktealLight   ,kgreenLight  ,kspringLight ,kyellowLight ,korangeLight ,kredLight    ,kpinkLight;
 
                                    
   

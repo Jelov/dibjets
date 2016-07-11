@@ -1,3 +1,5 @@
+float etacut = 1.5;
+
 void iterTrigEffCorr(bool write =true)
 {
 //////////////////////////////////////////////////////////
@@ -9,7 +11,7 @@ void iterTrigEffCorr(bool write =true)
   TH1::SetDefaultSumw2();
   
   
-  TFile *f = new TFile("./merged_dtPbjakPu4PF_djt.root");
+  TFile *f = new TFile("../../ntuples/eta1p5_jecv2/dtPbjclakPu4PF_djt.root");//"./merged_dtPbjakPu4PF_djt.root");
   TNtuple *nt = (TNtuple *) f->Get("nt");
 
 //Declaration of leaves types
@@ -204,21 +206,21 @@ void iterTrigEffCorr(bool write =true)
   TH1F *hw3CentBJet = new TH1F("hw3CentBJet","hw3CentBJet",20,0,100);
   TH1F *hw3CentBJetEff = new TH1F("hw3CentBJetEff","hw3CentBJetEff",20,0,100);
   
-  TH1F *hEtaJet = new TH1F("hEtaJet","hEtaJet",20,-2.,2.);
-  TH1F *hEtaBJet = new TH1F("hEtaBJet","hEtaBJet",20,-2.,2.);
-  TH1F *hEtaBJetEff = new TH1F("hEtaBJetEff","hEtaBJetEff",20,-2.,2.);
+  TH1F *hEtaJet = new TH1F("hEtaJet","hEtaJet",20,-etacut,etacut);
+  TH1F *hEtaBJet = new TH1F("hEtaBJet","hEtaBJet",20,-etacut,etacut);
+  TH1F *hEtaBJetEff = new TH1F("hEtaBJetEff","hEtaBJetEff",20,-etacut,etacut);
   
-  TH1F *hw1EtaJet = new TH1F("hw1EtaJet","hw1EtaJet",20,-2.,2.);
-  TH1F *hw1EtaBJet = new TH1F("hw1EtaBJet","hw1EtaBJet",20,-2.,2.);
-  TH1F *hw1EtaBJetEff = new TH1F("hw1EtaBJetEff","hw1EtaBJetEff",20,-2.,2.);
+  TH1F *hw1EtaJet = new TH1F("hw1EtaJet","hw1EtaJet",20,-etacut,etacut);
+  TH1F *hw1EtaBJet = new TH1F("hw1EtaBJet","hw1EtaBJet",20,-etacut,etacut);
+  TH1F *hw1EtaBJetEff = new TH1F("hw1EtaBJetEff","hw1EtaBJetEff",20,-etacut,etacut);
   
-  TH1F *hw2EtaJet = new TH1F("hw2EtaJet","hw2EtaJet",20,-2.,2.);
-  TH1F *hw2EtaBJet = new TH1F("hw2EtaBJet","hw2EtaBJet",20,-2.,2.);
-  TH1F *hw2EtaBJetEff = new TH1F("hw2EtaBJetEff","hw2EtaBJetEff",20,-2.,2.);
+  TH1F *hw2EtaJet = new TH1F("hw2EtaJet","hw2EtaJet",20,-etacut,etacut);
+  TH1F *hw2EtaBJet = new TH1F("hw2EtaBJet","hw2EtaBJet",20,-etacut,etacut);
+  TH1F *hw2EtaBJetEff = new TH1F("hw2EtaBJetEff","hw2EtaBJetEff",20,-etacut,etacut);
   
-  TH1F *hw3EtaJet = new TH1F("hw3EtaJet","hw3EtaJet",20,-2.,2.);
-  TH1F *hw3EtaBJet = new TH1F("hw3EtaBJet","hw3EtaBJet",20,-2.,2.);
-  TH1F *hw3EtaBJetEff = new TH1F("hw3EtaBJetEff","hw3EtaBJetEff",20,-2.,2.);
+  TH1F *hw3EtaJet = new TH1F("hw3EtaJet","hw3EtaJet",20,-etacut,etacut);
+  TH1F *hw3EtaBJet = new TH1F("hw3EtaBJet","hw3EtaBJet",20,-etacut,etacut);
+  TH1F *hw3EtaBJetEff = new TH1F("hw3EtaBJetEff","hw3EtaBJetEff",20,-etacut,etacut);
   
   
   TH1F *hPtJet = new TH1F("hPtJet","hPtJet",20,100.,200.);
@@ -254,21 +256,21 @@ void iterTrigEffCorr(bool write =true)
   TH1F *hRw3CentBJet = new TH1F("hRw3CentBJet","hRw3CentBJet",10,0,100);
   TH1F *hRw3CentBJetEff = new TH1F("hRw3CentBJetEff","hRw3CentBJetEff",10,0,100);
   
-  TH1F *hREtaJet = new TH1F("hREtaJet","hREtaJet",10,-2.,2.);
-  TH1F *hREtaBJet = new TH1F("hREtaBJet","hREtaBJet",10,-2.,2.);
-  TH1F *hREtaBJetEff = new TH1F("hREtaBJetEff","hREtaBJetEff",10,-2.,2.);
+  TH1F *hREtaJet = new TH1F("hREtaJet","hREtaJet",10,-etacut,etacut);
+  TH1F *hREtaBJet = new TH1F("hREtaBJet","hREtaBJet",10,-etacut,etacut);
+  TH1F *hREtaBJetEff = new TH1F("hREtaBJetEff","hREtaBJetEff",10,-etacut,etacut);
   
-  TH1F *hRw1EtaJet = new TH1F("hRw1EtaJet","hRw1EtaJet",10,-2.,2.);
-  TH1F *hRw1EtaBJet = new TH1F("hRw1EtaBJet","hRw1EtaBJet",10,-2.,2.);
-  TH1F *hRw1EtaBJetEff = new TH1F("hRw1EtaBJetEff","hRw1EtaBJetEff",10,-2.,2.);
+  TH1F *hRw1EtaJet = new TH1F("hRw1EtaJet","hRw1EtaJet",10,-etacut,etacut);
+  TH1F *hRw1EtaBJet = new TH1F("hRw1EtaBJet","hRw1EtaBJet",10,-etacut,etacut);
+  TH1F *hRw1EtaBJetEff = new TH1F("hRw1EtaBJetEff","hRw1EtaBJetEff",10,-etacut,etacut);
   
-  TH1F *hRw2EtaJet = new TH1F("hRw2EtaJet","hRw2EtaJet",10,-2.,2.);
-  TH1F *hRw2EtaBJet = new TH1F("hRw2EtaBJet","hRw2EtaBJet",10,-2.,2.);
-  TH1F *hRw2EtaBJetEff = new TH1F("hRw2EtaBJetEff","hRw2EtaBJetEff",10,-2.,2.);
+  TH1F *hRw2EtaJet = new TH1F("hRw2EtaJet","hRw2EtaJet",10,-etacut,etacut);
+  TH1F *hRw2EtaBJet = new TH1F("hRw2EtaBJet","hRw2EtaBJet",10,-etacut,etacut);
+  TH1F *hRw2EtaBJetEff = new TH1F("hRw2EtaBJetEff","hRw2EtaBJetEff",10,-etacut,etacut);
   
-  TH1F *hRw3EtaJet = new TH1F("hRw3EtaJet","hRw3EtaJet",10,-2.,2.);
-  TH1F *hRw3EtaBJet = new TH1F("hRw3EtaBJet","hRw3EtaBJet",10,-2.,2.);
-  TH1F *hRw3EtaBJetEff = new TH1F("hRw3EtaBJetEff","hRw3EtaBJetEff",10,-2.,2.);
+  TH1F *hRw3EtaJet = new TH1F("hRw3EtaJet","hRw3EtaJet",10,-etacut,etacut);
+  TH1F *hRw3EtaBJet = new TH1F("hRw3EtaBJet","hRw3EtaBJet",10,-etacut,etacut);
+  TH1F *hRw3EtaBJetEff = new TH1F("hRw3EtaBJetEff","hRw3EtaBJetEff",10,-etacut,etacut);
   
   
   TH1F *hRPtJet = new TH1F("hRPtJet","hRPtJet",10,100.,200.);

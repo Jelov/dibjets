@@ -41,8 +41,10 @@ TString SLord = "SLord";
 
 
 //process code reweighting: GSP, FCR, FEX, FEX2
-vector<float> processWeights = {1.2,1.,0.04,0.04};
-// vector<float> processWeights = {1.232,1.,0.266,0.04};
+// vector<float> processWeights = {1.2,1.,0.04,0.04};
+// vector<float> processWeights = {1.2,1.,0.04,1.};
+vector<float> processWeights = {1.089,1.,0.216,1};
+
 
 float processweight(int bProdCode)
 {

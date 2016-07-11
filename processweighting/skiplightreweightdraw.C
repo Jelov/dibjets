@@ -1,11 +1,11 @@
+#include "../helpers/config.h"
 #include "../helpers/plotting.h"
 #include "../helpers/looptuple.h"
-#include "../helpers/config.h"
 #include "../helpers/physics.h"
 
 void skiplightreweightdraw()
 {
-	macro m("skiplightreweightdraw");
+	macro m("skiplightreweightdraw_13merged");
 
 //for 100/40, beta=0.216,gamma=1.089
 //for 120/30, beta=0.201,gamma=0.938
@@ -18,7 +18,7 @@ float jtpt2min = 40;
 	float beta  = 0.216;
 	float gamma = 1.089;
 
-	auto f= new TFile("skiplightreweight.root");
+	auto f= new TFile("skiplightreweight_13merged.root");
 	auto h12all = (TH1F *)f->Get("h12all");
 	auto h12fcr = (TH1F *)f->Get("h12fcr");
 	auto h12fex = (TH1F *)f->Get("h12fex");
@@ -63,6 +63,7 @@ float jtpt2min = 40;
 	auto hSLordgsp = (TH1F *)f->Get("hSLordgsp");
 	auto h12orddata = (TH1F *)f->Get("h12orddata");
 	auto hSLorddata = (TH1F *)f->Get("hSLorddata");
+
 
 
 	auto h12reweighted = (TH1F *)h12all->Clone("h12reweighted");
@@ -129,13 +130,18 @@ float jtpt2min = 40;
 	aktstring+="anti-k_{T} PF Jets, R=0.4";
 	TString text12 = Form("p_{T,1}>%.f GeV, p_{T,2}>%.f GeV",jtpt1min,jtpt2min);
 	TString textSL = Form("p_{T,1}>%.f GeV, p_{T,2b}>%.f GeV",jtpt1min,jtpt2min);
-plotytitle = "";
+plotytitle = "Event fraction";
+plotdatacaption = "pp data";
+
+	textposy = 0.65;
+	lumi_sqrtS = lumi_sqrtSpp;
+
 // plotlegenddy = 0.08;
 // plotlegenddx = -0.03;
 
 
   	plotsecondline = text12;
-  	plotthirdline  = "|#Delta#phi|>2#pi/3, CSV>0.9";
+  	plotthirdline  = "|#Delta#phi|>2#pi/3, b-tagged";
   	
   	
   	plotfilenameend = "12";
@@ -162,22 +168,22 @@ plotytitle = "";
 						  TColor::GetColor(77,135,232)};//{kGreen-9, kOrange+1,kBlue+3};
 
 
-	auto h12stack = stackhists({h12fcr,h12fex,h12gsp},colors,"h12stack","(P)");
+	auto h12stack = stackhists({h12fcr,h12fex,h12gsp},colors,"h12stack","");//(P)
 	DrawCompare(h12data,h12stack,"x_{J}");
 
 
 	h12fex->Scale(beta); h12gsp->Scale(gamma);
-	auto h12stack2 = stackhists({h12fcr,h12fex,h12gsp},colors,"h12stack2","(W)");
+	auto h12stack2 = stackhists({h12fcr,h12fex,h12gsp},colors,"h12stack2","");//(W)
 	DrawCompare(h12data,h12stack2,"x_{J}");
 
 
   	plotsecondline = textSL;
-	auto hSLstack = stackhists({hSLfcr,hSLfex,hSLgsp},colors,"hSLstack","(P)");
+	auto hSLstack = stackhists({hSLfcr,hSLfex,hSLgsp},colors,"hSLstack","");//(P)
 	DrawCompare(hSLdata,hSLstack,"x_{J}");
 
 
 	hSLfex->Scale(beta); hSLgsp->Scale(gamma);
-	auto hSLstack2 = stackhists({hSLfcr,hSLfex,hSLgsp},colors,"hSLstack2","(W)");
+	auto hSLstack2 = stackhists({hSLfcr,hSLfex,hSLgsp},colors,"hSLstack2","");//(W)
 	DrawCompare(hSLdata,hSLstack2,"x_{J}");
 
 
@@ -187,7 +193,7 @@ plotytitle = "";
 
 	plotputmean = false;
 	plotylog = false;
-	plotymax = 1.3;
+	plotymax = 1.6;
 	plotymin = 0;
   	plotsecondline = text12;
 
@@ -201,21 +207,21 @@ plotytitle = "";
 	Print(hSLordreweighted);
 	Print(hSLorddata);
 
-	auto h12ordstack = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack","(P)");
+	auto h12ordstack = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack","");//(P)
 	DrawCompare(h12orddata,h12ordstack,"partner b-jet order");
 
 
 	h12ordfex->Scale(beta); h12ordgsp->Scale(gamma);
-	auto h12ordstack2 = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack2","(W)");
+	auto h12ordstack2 = stackhists({h12ordfcr,h12ordfex,h12ordgsp},colors,"h12ordstack2","");//(W)
 	DrawCompare(h12orddata,h12ordstack2,"partner b-jet order");
 
   	plotsecondline = textSL;
-	auto hSLordstack = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack","(P)");
+	auto hSLordstack = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack","");//(P)
 	DrawCompare(hSLorddata,hSLordstack,"partner b-jet order");
 
 
 	hSLordfex->Scale(beta); hSLordgsp->Scale(gamma);
-	auto hSLordstack2 = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack2","(W)");
+	auto hSLordstack2 = stackhists({hSLordfcr,hSLordfex,hSLordgsp},colors,"hSLordstack2","");//(W)
 	DrawCompare(hSLorddata,hSLordstack2,"partner b-jet order");
 
 
@@ -229,7 +235,7 @@ plotytitle = "";
 	plotputwidth = true;
 	plotymax = 10;
 	plotymin = 1E-3;
-	plotthirdline  = "CSV>0.9";
+	plotthirdline  = "b-tagged";
   	plotsecondline = text12;
 	// DrawCompare(h12dphidata,h12dphiall,"|#Delta#phi|");
 	// DrawCompare(hSLdphidata,hSLdphiall,"|#Delta#phi|");
@@ -243,20 +249,20 @@ plotytitle = "";
 
 	//plotymax = 0.5;
 
-	auto h12dphistack = stackhists({h12dphifcr,h12dphifex,h12dphigsp},colors,"h12dphistack","(P)");
+	auto h12dphistack = stackhists({h12dphifcr,h12dphifex,h12dphigsp},colors,"h12dphistack","");//(P)
 	DrawCompare(h12dphidata,h12dphistack,"|#Delta#phi|");
 
 	h12dphifex->Scale(beta); h12dphigsp->Scale(gamma);
-	auto h12dphistack2 = stackhists({h12dphifcr,h12dphifex,h12dphigsp},colors,"h12dphistack2","(W)");
+	auto h12dphistack2 = stackhists({h12dphifcr,h12dphifex,h12dphigsp},colors,"h12dphistack2","");//(W)
 	DrawCompare(h12dphidata,h12dphistack2,"|#Delta#phi|");
 
 
   	plotsecondline = textSL;
-	auto hSLdphistack = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack","(P)");
+	auto hSLdphistack = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack","");//(P)
 	DrawCompare(hSLdphidata,hSLdphistack,"|#Delta#phi|");
 
 	hSLdphifex->Scale(beta); hSLdphigsp->Scale(gamma);
-	auto hSLdphistack2 = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack2","(W)");
+	auto hSLdphistack2 = stackhists({hSLdphifcr,hSLdphifex,hSLdphigsp},colors,"hSLdphistack2","");//(W)
 	DrawCompare(hSLdphidata,hSLdphistack2,"|#Delta#phi|");
 
 
@@ -277,20 +283,20 @@ plotytitle = "";
 
 
 
-	auto h12dphiNSstack = stackhists({h12dphiNSfcr,h12dphiNSfex,h12dphiNSgsp},colors,"h12dphiNSstack","(P)");
+	auto h12dphiNSstack = stackhists({h12dphiNSfcr,h12dphiNSfex,h12dphiNSgsp},colors,"h12dphiNSstack","");//(P)
 	DrawCompare(h12dphiNSdata,h12dphiNSstack,"|#Delta#phi|");
 
 	h12dphiNSfex->Scale(beta); h12dphiNSgsp->Scale(gamma);
-	auto h12dphiNSstack2 = stackhists({h12dphiNSfcr,h12dphiNSfex,h12dphiNSgsp},colors,"h12dphiNSstack2","(W)");
+	auto h12dphiNSstack2 = stackhists({h12dphiNSfcr,h12dphiNSfex,h12dphiNSgsp},colors,"h12dphiNSstack2","");//(W)
 	DrawCompare(h12dphiNSdata,h12dphiNSstack2,"|#Delta#phi|");
 
 
   	plotsecondline = textSL;
-	auto hSLdphiNSstack = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack","(P)");
+	auto hSLdphiNSstack = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack","");//(P)
 	DrawCompare(hSLdphiNSdata,hSLdphiNSstack,"|#Delta#phi|");
 
 	hSLdphiNSfex->Scale(beta); hSLdphiNSgsp->Scale(gamma);
-	auto hSLdphiNSstack2 = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack2","(W)");
+	auto hSLdphiNSstack2 = stackhists({hSLdphiNSfcr,hSLdphiNSfex,hSLdphiNSgsp},colors,"hSLdphiNSstack2","");//(W)
 	DrawCompare(hSLdphiNSdata,hSLdphiNSstack2,"|#Delta#phi|");
 
 

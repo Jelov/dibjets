@@ -1,7 +1,7 @@
 #include "../helpers/looptuple.h"
 #include "../helpers/plotting.h"
 #include "../helpers/physics.h"
-#include "./CMS_lumi.C"
+// #include "./CMS_lumi.C"
 #include "TExec.h"
 
 TH1F *hmcincsys, *hdtincsys, *hmcbjtsys, *hdtbjtsys;
@@ -24,6 +24,7 @@ void fitPaleLine(vector<TH1F *> v)
 
 void moneyplot(TString name="")
 {
+  bool drawcalo = false;
 
   // Lumi stuff
 
@@ -45,6 +46,8 @@ void moneyplot(TString name="")
 
   auto res = ReadFromFile("results_"+name+"/results.root");
 
+  auto calores = ReadFromFile("results_0704_calotrig/results.root");
+
   int nbins = binnames.size()+1;
   seth(nbins,0,nbins);
   auto hmcinc       = geth("hmcinc","MC Inclusive;;#LTx_{J}#GT");
@@ -56,6 +59,8 @@ void moneyplot(TString name="")
   auto hdtb12       = geth("hdtb12","Data b-jets 12;;#LTx_{J}#GT");
   auto hmcb12       = geth("hmcb12","MC b-jets 12;;#LTx_{J}#GT");
   auto hmcb12Signal = geth("hmcb12Signal","MC b-jets 12 Signal;;#LTx_{J}#GT");
+
+  auto hdtb12calo   = geth("hdtb12calo","Data b-jets 12 Calo;;#LTx_{J}#GT");
 
   
   vector<TString> labels = {"pp"};
@@ -84,6 +89,7 @@ void moneyplot(TString name="")
     hmcsig->SetBinContent(nbins-i,res[Form("xj_mc_sig2_inc_mean%s",end)]);
     hmcbSB->SetBinContent(nbins-i,res[Form("xj_mc_bjtSB_mean%s",end)]);
     hmcb12Signal->SetBinContent(nbins-i,res[Form("xj_mc_b12Signal_mean%s",end)]);
+    hdtb12calo->SetBinContent(nbins-i,calores[Form("xj_data_b12_mean%s",end)]);
 
     hmcinc->SetBinError(nbins-i,res[Form("xj_mc_inc_meanerror%s",end)]);
     hdtinc->SetBinError(nbins-i,res[Form("xj_data_inc_meanerror%s",end)]);
@@ -94,6 +100,7 @@ void moneyplot(TString name="")
     hmcsig->SetBinError(nbins-i,res[Form("xj_mc_sig2_inc_meanerror%s",end)]);
     hmcbSB->SetBinError(nbins-i,res[Form("xj_mc_bjtSB_meanerror%s",end)]);
     hmcb12Signal->SetBinError(nbins-i,res[Form("xj_mc_b12Signal_meanerror%s",end)]);
+    hdtb12calo->SetBinError(nbins-i,calores[Form("xj_data_b12_meanerror%s",end)]);
 
 
   }
@@ -117,6 +124,10 @@ void moneyplot(TString name="")
   hmcb12->SetMarkerColor(kredLight);
   hmcb12->SetLineColor(kredLight);
 
+  hdtb12calo->SetMarkerStyle(24);
+  hdtb12calo->SetMarkerColor(kRed+3);
+  hdtb12calo->SetLineColor(kRed+3);
+
   /*
   hdtb12->GetXaxis()->SetLimits(0.1,nbins+0.1);
   hmcb12->GetXaxis()->SetLimits(0.1,nbins+0.1);
@@ -129,7 +140,7 @@ void moneyplot(TString name="")
   aktstring = "";
   plotoverwritecolors = false;
   plotlegendpos = BottomLeft;//BottomRight;
-  plotymin = 0.45;
+  plotymin = 0.55;
   plotymax = 0.75;
 
   // fitPaleLine({hmcb12Signal,hdtb12,hmcsig,hdtinc});
@@ -153,17 +164,16 @@ void moneyplot(TString name="")
   }
 
 
-hdtbjtsys->SetBinError(1,0.02327);
-hdtbjtsys->SetBinError(2,0.02323);
-hdtbjtsys->SetBinError(3,0.02359);
-hdtbjtsys->SetBinError(4,0.02800);
+hdtbjtsys->SetBinError(1,0.008);
+hdtbjtsys->SetBinError(2,0.014);
+hdtbjtsys->SetBinError(3,0.018);
+hdtbjtsys->SetBinError(4,0.023);
 
 
-hdtincsys->SetBinError(1,0.02236);//0.023);
-hdtincsys->SetBinError(2,0.02239);//0.023);
-hdtincsys->SetBinError(3,0.02266);//0.024);
-hdtincsys->SetBinError(4,0.02329);//0.027);
-
+hdtincsys->SetBinError(1,0.007);
+hdtincsys->SetBinError(2,0.010);
+hdtincsys->SetBinError(3,0.016);
+hdtincsys->SetBinError(4,0.023);
 
 
 hmcincsys->SetFillColor(kblueLight);   hmcincsys->SetFillStyle(1001);
@@ -188,7 +198,7 @@ Draw({hmcinc,hdtinc,hmcsig},"E1");
 TCanvas *c = new TCanvas("cmoneyinc","cmoneyinc",600,600);
 TExec *ex2 = new TExec("ex2","gStyle->SetErrorX(0)");//crazy solution, bravo root
 ex2->Draw();
-hdtincsys->SetMinimum(0.45);
+hdtincsys->SetMinimum(0.55);
 hdtincsys->SetMaximum(0.75);
 hdtincsys->Draw("E2");
 
@@ -220,7 +230,7 @@ l->Draw();
 
 TCanvas *c2 = new TCanvas("cmoneybjt","cmoneybjt",600,600);
 ex2->Draw();
-hdtbjtsys->SetMinimum(0.45);
+hdtbjtsys->SetMinimum(0.55);
 hdtbjtsys->SetMaximum(0.75);
 hdtbjtsys->Draw("E2");
 setex1->Draw();  
@@ -231,6 +241,7 @@ setex2->Draw();
 
 TLegend *l2 = getLegend();
 l2->AddEntry(hdtbjt,"Data","P");
+if (drawcalo) l2->AddEntry(hdtb12calo,"Data CaloJet trigger","P");
 l2->AddEntry(hmcbSB,"Simulation","P");
 l2->SetHeader("b-dijets");
 l2->Draw();
@@ -248,7 +259,7 @@ TCanvas *c3 = new TCanvas("c3","c3",600,600);
  hframe->SetXTitle("N_{part} (N_{coll}-weighted)");
  hframe->SetYTitle("#LTx_{J}#GT");
  hframe->SetMaximum(0.75);
- hframe->SetMinimum(0.45);
+ hframe->SetMinimum(0.55);
 
 hframe -> GetXaxis() -> CenterTitle();
 hframe -> GetYaxis() -> CenterTitle();
@@ -312,9 +323,9 @@ hframe -> GetYaxis() -> CenterTitle();
  gMC_PbPb_inc->Draw("p");
  gMC_pp_inc->Draw("p");
 
- TText *t1a = new TText(-7,0.73,"pp"); //-7,0.73,
- TText *t2a = new TText(75,0.710,"30-100%"); //100,0.697,
- TText *t3a = new TText(215,0.690,"10-30%"); //205,0.675,
+ TText *t1a = new TText(-7,0.72,"pp"); //-7,0.73,
+ TText *t2a = new TText(75,0.705,"30-100%"); //100,0.697,
+ TText *t3a = new TText(215,0.68,"10-30%"); //205,0.675,
  TText *t4a = new TText(340,0.670,"0-10%"); //340,0.665,
 
  t1a->SetTextSize(17);
@@ -344,6 +355,8 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
  TGraphErrors *gMC_PbPb_b = new TGraphErrors(3);
  TGraphErrors *gMC_pp_b = new TGraphErrors(1);
+
+ TGraphErrors *gData_PbPb_b_calo = new TGraphErrors(3);
  
  
  
@@ -356,6 +369,9 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
    gMC_PbPb_b->SetPoint(i,npart[i],hmcb12Signal->GetBinContent(i+2));
    gMC_PbPb_b->SetPointError(i,0.,hmcb12Signal->GetBinError(i+2));
+
+   gData_PbPb_b_calo->SetPoint(i,npart[i],hdtb12calo->GetBinContent(i+2));
+   gData_PbPb_b_calo->SetPointError(i,0.,hdtb12calo->GetBinError(i+2));
  }
 
    gData_pp_b->SetPoint(0,2,hdtb12->GetBinContent(1));
@@ -373,6 +389,10 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
  gData_PbPb_b->SetLineColor(kred);
  gData_PbPb_b_sys->SetFillColor(kredLight);
 
+  gData_PbPb_b_calo->SetMarkerStyle(24);
+ gData_PbPb_b_calo->SetMarkerColor(kRed+3);
+ gData_PbPb_b_calo->SetLineColor(kRed+3);
+
  gData_pp_b->SetMarkerColor(kred);
  gData_pp_b->SetLineColor(kred);
   gData_pp_b_sys->SetFillColor(kredLight);
@@ -386,17 +406,18 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
   gMC_pp_b->SetLineColor(kred);
   
  hframe->Draw();
- gData_PbPb_b_sys->Draw("e2");
+ if (!drawcalo) gData_PbPb_b_sys->Draw("e2");
  gData_PbPb_b->Draw("p");
- gData_pp_b_sys->Draw("e2");
+ if (!drawcalo) gData_pp_b_sys->Draw("e2");
  gData_pp_b->Draw("p");
+ if (drawcalo) gData_PbPb_b_calo->Draw("p");
  
  gMC_PbPb_b->Draw("p");
  gMC_pp_b->Draw("p");
 
- TText *t1b = new TText(-7,0.73,"pp"); //-7,0.702
- TText *t2b = new TText(75,0.710,"30-100%"); //25,0.687
- TText *t3b = new TText(215,0.690,"10-30%"); //205,0.665
+ TText *t1b = new TText(-7,0.72,"pp"); //-7,0.702
+ TText *t2b = new TText(75,0.705,"30-100%"); //25,0.687
+ TText *t3b = new TText(215,0.68,"10-30%"); //205,0.665
  TText *t4b = new TText(340,0.670,"0-10%"); //340,0.65
 
  t1b->SetTextSize(17);
@@ -417,28 +438,42 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
   SavePlot(c4,"moneybjtnice");
 
   auto hbjtincratio = (TH1F *)hdtb12->Clone("hbjtincratio");
+  auto hbjtincratiomc = (TH1F *)hmcb12->Clone("hbjtincratio");
+  auto hincdtmcratio = (TH1F *)hdtb12->Clone("hincdtmcratio");
+    
   auto hbjtincratiosys = (TH1F *)hdtbjtsys->Clone("hbjtincratiosys");
+   
+  hbjtincratio->Divide(hdtb12,hdtinc);
+  hbjtincratiomc->Divide(hmcb12Signal,hmcsig);
+  hincdtmcratio->Divide(hmcsig,hdtinc);    
+
+  // Print(hbjtincratiomc);
+
+//   for (int i=1;i<=4;i++) {
+// //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+//     float bv = hdtb12->GetBinContent(i);
+//     float be = hdtbjtsys->GetBinError(i);
+
+//     float iv = hdtinc->GetBinContent(i);
+//     float ie = hdtincsys->GetBinError(i);
+
+//     float rv = bv/iv;
+//     float re = sqrt(be*be*iv*iv+ie*ie*bv*bv)/(iv*iv);
+
+
+//     // hbjtincratio->SetBinContent(i,rv);
+//     // hbjtincratio->SetBinError(i,re);
+
+//   }
   
-  for (int i=1;i<=4;i++) {
-    float bv = hdtb12->GetBinContent(i);
-    float be = hdtb12->GetBinError(i);
-
-    float iv = hdtinc->GetBinContent(i);
-    float ie = hdtinc->GetBinError(i);
-
-    float rv = bv/iv;
-    float re = sqrt(be*be*iv*iv+ie*ie*bv*bv)/(iv*iv);
 
 
-    hbjtincratio->SetBinContent(i,rv);
-    hbjtincratio->SetBinError(i,re);
-
-  }
-  
-hbjtincratiosys->SetBinError(1,0.01356);
-hbjtincratiosys->SetBinError(2,0.01278);
-hbjtincratiosys->SetBinError(3,0.01532);
-hbjtincratiosys->SetBinError(4,0.03627);
+hbjtincratiosys->SetBinError(1,0.004);
+hbjtincratiosys->SetBinError(2,0.015);
+hbjtincratiosys->SetBinError(3,0.020);
+hbjtincratiosys->SetBinError(4,0.032);
 
  
  TGraphErrors *gData_PbPb_r = new TGraphErrors(3);
@@ -447,6 +482,9 @@ hbjtincratiosys->SetBinError(4,0.03627);
  TGraphErrors *gData_pp_r_sys = new TGraphErrors(1);
  TGraphErrors *gMC_PbPb_r = new TGraphErrors(3);
  TGraphErrors *gMC_pp_r = new TGraphErrors(1);
+
+TGraphErrors *gMC_r = new TGraphErrors(4);
+TGraphErrors *gDataMC_r = new TGraphErrors(4);
  
 
   for(int i=0;i<3;i++){
@@ -455,6 +493,12 @@ hbjtincratiosys->SetBinError(4,0.03627);
     
     gData_PbPb_r_sys->SetPoint(i,npart[i],hbjtincratio->GetBinContent(i+2));
     gData_PbPb_r_sys->SetPointError(i,10.,hbjtincratiosys->GetBinError(i+2));
+
+    gMC_r->SetPoint(i+1,npart[i],hbjtincratiomc->GetBinContent(i+2));
+    gMC_r->SetPointError(i+1,0.,hbjtincratiomc->GetBinError(i+2));
+
+    gDataMC_r->SetPoint(i+1,npart[i],hincdtmcratio->GetBinContent(i+2)); 
+    gDataMC_r->SetPointError(i+1,0.,hincdtmcratio->GetBinError(i+2));
   }
 
     gData_pp_r->SetPoint(0,2,hbjtincratio->GetBinContent(1));
@@ -463,8 +507,18 @@ hbjtincratiosys->SetBinError(4,0.03627);
     gData_pp_r_sys->SetPoint(0,2,hbjtincratio->GetBinContent(1));
     gData_pp_r_sys->SetPointError(0,10.,hbjtincratiosys->GetBinError(1));
   
+  gDataMC_r->SetPoint(0,2,hincdtmcratio->GetBinContent(1));
+  gDataMC_r->SetPointError(0,0.,hincdtmcratio->GetBinError(1));
+
+  gMC_r->SetPoint(0,2,hbjtincratiomc->GetBinContent(1));
+  gMC_r->SetPointError(0,0.,hbjtincratiomc->GetBinError(1));
 
  
+gMC_r->SetMarkerColor(kBlue);
+gMC_r->SetLineColor(kBlue);
+gMC_r->SetMarkerStyle(kOpenSquare);
+
+gDataMC_r->SetMarkerColor(kBlack);
 
   gData_PbPb_r->SetMarkerColor(kRed);
   gData_PbPb_r->SetLineColor(kRed);
@@ -479,7 +533,7 @@ hbjtincratiosys->SetBinError(4,0.03627);
 
 
   hframe->SetMinimum(0.9);
-  hframe->SetMaximum(1.1);
+  hframe->SetMaximum(1.15);
   hframe->SetYTitle("b-jet #LTx_{J}#GT / inclusive jet #LTx_{J}#GT");
 
 
@@ -503,12 +557,19 @@ hbjtincratiosys->SetBinError(4,0.03627);
  
  gMC_PbPb_r->Draw("p");
  gMC_pp_r->Draw("p");
+gMC_r->Draw("p");
+gDataMC_r->Draw("p");
 
+  auto lr = new TLegend(0.2,0.2,0.4,0.4);
+  lr->AddEntry(gData_PbPb_r,"Data","P");
+  lr->AddEntry(gMC_r,"Pythia 6 + Hydjet","P");
+  lr->AddEntry(gDataMC_r,"Inclusive MC/Data","P");
+  lr->Draw();
 
  TText *t1r = new TText(-7,1.015,"pp"); //-7,0.702
  TText *t2r = new TText(75,1.05,"30-100%"); //25,0.687
- TText *t3r = new TText(215,1.05,"10-30%"); //205,0.665
- TText *t4r = new TText(340,0.99,"0-10%"); //340,0.65
+ TText *t3r = new TText(215,1.06,"10-30%"); //205,0.665
+ TText *t4r = new TText(340,1.03,"0-10%"); //340,0.65
 
  t1r->SetTextSize(17);
  t2r->SetTextSize(17);
