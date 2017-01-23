@@ -1,6 +1,8 @@
 #creating folder for console output
 mkdir -p out
 
+#JEC IS TURNED OFF!!!!
+
 echo "Building data ntuples"
 sh buildtuples1.sh
 echo "Done!"

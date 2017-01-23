@@ -58,10 +58,15 @@ bool isPbPb(TString code)
 {
   TString s = TString(code(2,2));
   if (s=="Pb") return true;
-  if (s=="pp") return false;
+  if (s=="pp" || s=="p1" || s=="p2" || s=="p3") return false;
   //if here - something strange submitted   
   cout<<"Wrong collision type "<<s<<"?"<<endl;
   return false;
+}
+
+TString getdatatype(TString code)
+{
+  return TString(code(2,2));
 }
 
 TString getSample(TString code)

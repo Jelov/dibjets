@@ -49,8 +49,13 @@ int maxrepeat = 1;
 const int NaN = -999;
 const float etacut = 1.5;
 
+TString datatype = "";
+
 bool applyjec = true;
 Corrections jec;
+
+bool applysmearing = false;
+Smearing spp;
 
 void Init()
 {
@@ -442,10 +447,62 @@ float genhadronpt(float refeta, float refphi, vector<float> &bpt, vector<float> 
   return NaN;
 }
 
-float getjec(float pt, float eta, int bin)
+// float getjec(float pt, float eta, int bin)
+// {
+//   return PbPb && applyjec ? jec.factor(pt,eta,bin) : 1;
+// }
+
+
+vector<int> ordered(vector<float> ptcor)
 {
-  return PbPb && applyjec ? jec.factor(pt,eta,bin) : 1;
+  vector<int> indices(ptcor.size());
+  std::iota(begin(indices), end(indices), 0);
+
+  std::sort(
+        begin(indices), end(indices),
+        [&](size_t a, size_t b) { return ptcor[a] > ptcor[b]; }
+    );
+  return indices;
 }
+
+float getcorrected(float pt, float eta, int bin)
+{
+  if (PbPb  && applyjec) return pt*(float)jec.factor(pt,eta,bin);
+  if (!PbPb && applysmearing) return pt+(float)spp.rollpp(bin);
+
+  return pt;
+}
+
+TF1 *fppbin = 0;
+void makeppbin(TString ppcode)
+{
+  if (ppcode=="pp") {
+    applysmearing = false;
+    return;
+  }
+
+  applysmearing = true;
+  float binmin = 0, binmax = 0;
+  if (datatype=="p1") {binmin = 0; binmax = 20;}
+  if (datatype=="p2") {binmin = 20; binmax = 60;}
+  if (datatype=="p3") {binmin = 60; binmax = 200;}
+
+  fppbin = new TF1("fppbin","[0]*exp(-[1]*x-[2]*x*x-[3]*x*x*x)",binmin,binmax);
+  fppbin->SetParameters(4.53928e+04, 1.98556e-02, -2.61975e-05, 6.71250e-07);
+
+
+}
+
+int getbin(int b)
+{
+  if (PbPb) return b;
+  
+  //pp
+  if (!applysmearing) return 1;
+
+  return fppbin->GetRandom();
+}
+
 
 void do_buildtuplemc(TString code)
 {
@@ -516,7 +573,7 @@ void do_buildtuplemc(TString code)
     TTreeReaderArray<float> discr_ssvHighEff(reader,"discr_ssvHighEff");
     TTreeReaderArray<float> discr_ssvHighPur(reader,"discr_ssvHighPur");
 
-    TTreeReaderArray<int> refparton_flavorForB(reader, "refparton_flavorForB");
+    TTreeReaderArray<int> refparton_flavorForB(reader, "refparton_flavor");//"refparton_flavorForB");
     TTreeReaderArray<bool> *refparton_isGSP;
 
     newFlavorProcess = sample!="qcV"; //true;//sample=="qcs" || sample=="bfc" || sample == "bjt" || sample=="pqc" || sample == "pfc";//(!PbPb && (sample=="bjt" || sample=="bfc")) ||
@@ -634,7 +691,7 @@ void do_buildtuplemc(TString code)
         cout<<" \r"<<evCounter/onep<<"%   "<<" total time "<<(int)round((t1-t0)*nev/(evCounter+.1))<<" s "<<flush;
       }
 
-      int b = *bin;
+      int cbin = getbin(*bin);
       float centrWeight = 1;//PbPb ? centrWeights[b] : 1;
 
 
@@ -648,16 +705,25 @@ void do_buildtuplemc(TString code)
 
       float ncoll = PbPb ? *(*Ncoll) : 0;
 
+      vector<float> ptcor(*nref);
+      for (int j=0;j<*nref;j++)
+        ptcor[j] = getcorrected(jtpt[j],jteta[j],cbin);
+  
+      vector<int> orderedind = ordered(ptcor);
+
       if (abs(*vz)<15) {//event-level cuts, if not passed all foundXY = false
-        for (int j=0;j<*nref;j++) {
+
+        for (int k=0;k<*nref;k++) {
+          int j=orderedind[k];
+        // for (int j=0;j<*nref;j++) {
           if (abs(jteta[j])>etacut) continue;
 
-          float jtptcorrected = jtpt[j]*getjec(jtpt[j],jteta[j],*bin);
+          float jtptcorrected = ptcor[j];//ptcor(jtpt[j],jteta[j],cbin);
 
           //no need for inc ntuple in mockSL mode
           //for inclusive plots, subid==0 everywhere
           if (!mockSL && isSignal(j)) {
-            vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)*bin, *vz,*hiHF, ncoll,
+            vector<float> vinc = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80, newFlavorProcess ? (float)*(*bProdCode) : NaN, newFlavorProcess ? (float)*(*cProdCode) : NaN, *pthat, (float)pthats[i],(float)weights[getind(*pthat)],(float)cbin, *vz,*hiHF, ncoll,
 	      (float)subid[j], refpt[j], rawpt[j], jtptcorrected, jtpt[j], jtphi[j], jteta[j], (*csvv1)[j],ncsvv1[j],discr_ssvHighEff[j],discr_ssvHighPur[j],
               (float)refparton_flavorForB[j], getFlavorProcess(refparton_isGSP,refparton_flavorProcess,j),
               PbPb ? genhadronpt(jteta[j], jtphi[j], *bpt, *beta, *bphi, *bpdg) : NaN,
@@ -666,7 +732,7 @@ void do_buildtuplemc(TString code)
               ntinc->Fill(&vinc[0]);
 	        }
 
-          bool taggedJet = SLcondition((*csvv1)[j], jtpt[j], *bin);
+          bool taggedJet = SLcondition((*csvv1)[j], jtpt[j], cbin);
 
             //if background jumped above signal (or highest signal is outside acceptance) - then it's a "bad" event
             //this condition is propagated on every clause b/c we still need to loop jets for inclusive ntuple above
@@ -759,7 +825,7 @@ void do_buildtuplemc(TString code)
       vector<float> vdj;
 
       vdj = {(float)*run, (float)*lumi, (float)*event, (float)*CaloJet40,(float)*CaloJet60,(float)*CaloJet80, (float)*CSV60, (float)*CSV80,
-	     *pthat,(float)pthats[i], (float)evCounter-1, (float)weights[getind(*pthat)], (float)*bin, *vz,*hiHF,ncoll,
+	     *pthat,(float)pthats[i], (float)evCounter-1, (float)weights[getind(*pthat)], (float)cbin, *vz,*hiHF,ncoll,
         newFlavorProcess ? (float)*(*bProdCode) : NaN,
         newFlavorProcess ? (float)*(*cProdCode) : NaN,
         foundJ1 && foundJ2 ? (float)1 : (float)0, (float)bkgJ1,
@@ -783,7 +849,7 @@ void do_buildtuplemc(TString code)
         foundJ1 ? (float)subid[ind1] : NaN,
         foundJ1 ? refpt[ind1] : NaN,
         foundJ1 ? rawpt[ind1] : NaN,     
-        foundJ1 ? jtpt[ind1]*getjec(jtpt[ind1],jteta[ind1],*bin) : NaN,
+        foundJ1 ? ptcor[ind1] : NaN, //jtpt[ind1]*getjec(jtpt[ind1],jteta[ind1],cbin) : NaN,
         foundJ1 ? jtpt[ind1] : NaN,
         foundJ1 ? jtphi[ind1] : NaN,
         foundJ1 ? jteta[ind1] : NaN,
@@ -805,7 +871,7 @@ void do_buildtuplemc(TString code)
         foundJ2 ? (float)subid[ind2] : NaN,
         foundJ2 ? refpt[ind2] : NaN,
         foundJ2 ? rawpt[ind2] : NaN,
-        foundJ2 ? jtpt[ind2]*getjec(jtpt[ind2],jteta[ind2],*bin) : NaN,
+        foundJ2 ? ptcor[ind2] : NaN, //jtpt[ind2]*getjec(jtpt[ind2],jteta[ind2],cbin) : NaN,
         foundJ2 ? jtpt[ind2] : NaN,
         foundJ2 ? jtphi[ind2] : NaN,
         foundJ2 ? jteta[ind2] : NaN,
@@ -829,7 +895,7 @@ void do_buildtuplemc(TString code)
         foundJ3 ? (float)subid[ind3] : NaN,
         foundJ3 ? refpt[ind3] : NaN,
         foundJ3 ? rawpt[ind3] : NaN,
-        foundJ3 ? jtpt[ind3]*getjec(jtpt[ind3],jteta[ind3],*bin) : NaN,
+        foundJ3 ? ptcor[ind3] : NaN, //jtpt[ind3]*getjec(jtpt[ind3],jteta[ind3],cbin) : NaN,
         foundJ3 ? jtpt[ind3] : NaN,
         foundJ3 ? jtphi[ind3] : NaN,
         foundJ3 ? jteta[ind3] : NaN,
@@ -857,7 +923,7 @@ void do_buildtuplemc(TString code)
         foundSL ? (float)subid[indSL] : NaN,
         foundSL ? refpt[indSL] : NaN,
         foundSL ? rawpt[indSL] : NaN,
-        foundSL ? jtpt[indSL]*getjec(jtpt[indSL],jteta[indSL],*bin) : NaN,
+        foundSL ? ptcor[indSL] : NaN, //jtpt[indSL]*getjec(jtpt[indSL],jteta[indSL],cbin) : NaN,
         foundSL ? jtpt[indSL] : NaN,
         foundSL ? jtphi[indSL] : NaN,
         foundSL ? jteta[indSL] : NaN,
@@ -882,7 +948,7 @@ void do_buildtuplemc(TString code)
         foundNSL ? (float)subid[indNSL] : NaN,
         foundNSL ? refpt[indNSL] : NaN,
         foundNSL ? rawpt[indNSL] : NaN,
-        foundNSL ? jtpt[indNSL]*getjec(jtpt[indNSL],jteta[indNSL],*bin) : NaN,
+        foundNSL ? ptcor[indNSL] : NaN, //jtpt[indNSL]*getjec(jtpt[indNSL],jteta[indNSL],cbin) : NaN,
         foundNSL ? jtpt[indNSL] : NaN,
         foundNSL ? jtphi[indNSL] : NaN,
         foundNSL ? jteta[indNSL] : NaN,
@@ -907,7 +973,7 @@ void do_buildtuplemc(TString code)
         foundSB ? (float)subid[indSB] : NaN,
         foundSB ? refpt[indSB] : NaN,
         foundSB ? rawpt[indSB] : NaN,
-        foundSB ? jtpt[indSB]*getjec(jtpt[indSB],jteta[indSB],*bin) : NaN,
+        foundSB ? ptcor[indSB] : NaN, //jtpt[indSB]*getjec(jtpt[indSB],jteta[indSB],cbin) : NaN,
         foundSB ? jtpt[indSB] : NaN,
         foundSB ? jtphi[indSB] : NaN,
         foundSB ? jteta[indSB] : NaN,
@@ -933,7 +999,7 @@ void do_buildtuplemc(TString code)
         foundSignalJ2 ? (float)subid[indSignal2] : NaN,
         foundSignalJ2 ? refpt[indSignal2] : NaN,
         foundSignalJ2 ? rawpt[indSignal2] : NaN,
-        foundSignalJ2 ? jtpt[indSignal2]*getjec(jtpt[indSignal2],jteta[indSignal2],*bin) : NaN,
+        foundSignalJ2 ? ptcor[indSignal2] : NaN, //jtpt[indSignal2]*getjec(jtpt[indSignal2],jteta[indSignal2],cbin) : NaN,
         foundSignalJ2 ? jtpt[indSignal2] : NaN,
         foundSignalJ2 ? jtphi[indSignal2] : NaN,
         foundSignalJ2 ? jteta[indSignal2] : NaN,
@@ -958,7 +1024,7 @@ void do_buildtuplemc(TString code)
         foundSignalSL ? (float)subid[indSignalSL] : NaN,
         foundSignalSL ? refpt[indSignalSL] : NaN,
         foundSignalSL ? rawpt[indSignalSL] : NaN,
-        foundSignalSL ? jtpt[indSignalSL]*getjec(jtpt[indSignalSL],jteta[indSignalSL],*bin) : NaN,
+        foundSignalSL ? ptcor[indSignalSL] : NaN, //jtpt[indSignalSL]*getjec(jtpt[indSignalSL],jteta[indSignalSL],cbin) : NaN,
         foundSignalSL ? jtpt[indSignalSL] : NaN,
         foundSignalSL ? jtphi[indSignalSL] : NaN,
         foundSignalSL ? jteta[indSignalSL] : NaN,
@@ -1065,7 +1131,9 @@ void buildtuplemc(TString code)
   if (mockSL) maxrepeat = 10;
   TString mcdt = getmcdt(code);
   bParticle = PbPb; //set to true together with special pp files
+  datatype = getdatatype(code);
 
+  makeppbin(datatype);
 
   Init();
 
@@ -1104,10 +1172,10 @@ void buildtuplemc(TString code)
   
   //merge bfc sample with b-jet filtered -> bfa sample
   if (sample=="bfc" || sample=="bfV") { //bParticle && ( ???
-    TString bjtfiledjt = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_djt.root";
-    TString bfafiledjt = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_djt.root";
-    TString bjtfileinc = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_inc.root";
-    TString bfafileinc = outputfolder+"/"+mcdt+(PbPb?"Pb":"pp")+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_inc.root";
+    TString bjtfiledjt = outputfolder+"/"+mcdt+datatype+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_djt.root";//(PbPb?"Pb":"pp")
+    TString bfafiledjt = outputfolder+"/"+mcdt+datatype+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_djt.root";//(PbPb?"Pb":"pp")
+    TString bjtfileinc = outputfolder+"/"+mcdt+datatype+ (sample=="bfc"?"bjt":"bjV") +jetalgo+"_inc.root";//(PbPb?"Pb":"pp")
+    TString bfafileinc = outputfolder+"/"+mcdt+datatype+ (sample=="bfc"?"bfa":"baV") +jetalgo+"_inc.root";//(PbPb?"Pb":"pp")
     cout<<"Merging FCR sample "<<outputfilenamedj<<endl<<"   with BJT sample "<<bjtfiledjt<<endl;
   
     mergeFCRandBJT(outputfilenamedj,bjtfiledjt, bfafiledjt);
