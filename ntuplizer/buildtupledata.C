@@ -7,6 +7,7 @@
 #include "../helpers/parsecode.h"
 #include <boost/functional/hash.hpp>
 #include "Corrections.h"
+#include <numeric>
 
 TString jettree;
 vector<TString> subfoldernames;

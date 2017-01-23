@@ -14,6 +14,7 @@
 #include "TH1F.h"
 #include "TF1.h"
 #include "TCanvas.h"
+#include <numeric>
 
 /* buildtuplemc.C - makes lightweight ntuples from HiForest files
  * change samplesfolder if necessary and subfoldernames, pthats
@@ -34,7 +35,7 @@ bool mockSL = false;
 bool bParticle = false;
 
 bool newFlavorProcess = false;
-TString samplesfolder, jettree,sample;
+TString  jettree,sample;
 vector<TString> subfoldernames;
 vector<int> pthats;
 int Npthat = 0;
@@ -44,6 +45,7 @@ TString outputfilenamedj;
 TString outputfilenameinc;
 
 TString outputfolder = "/data_CMS/cms/lisniak/bjet2015/";
+TString samplesfolder = "/data_CMS/cms/mnguyen/bJet2015/mc/";
 
 int maxrepeat = 1;
 const int NaN = -999;
@@ -60,19 +62,19 @@ Smearing spp;
 void Init()
 {
   if (PbPb && sample=="qcV") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+    samplesfolder+="PbPb/pythia6";
     subfoldernames={"qcd30","qcd50","qcd80","qcd100","qcd120"};
     pthats = {           30,     50,     80,     100,      120};
     CS     = {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
   }
   else if (PbPb && sample=="bfV") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+    samplesfolder+="PbPb/pythia6";
     subfoldernames={"bfcr30","bfcr50","bfcr80","bfcr100","bfcr120"};
     pthats = {           30,     50,     80,  100,   120};
     CS     = {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
   }
   else  if (PbPb && sample=="bjV") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+    samplesfolder+="PbPb/pythia6";
     subfoldernames={"bjet30","bjet50","bjet80","bjet100","bjet120"};
     pthats =           {           30,     50,     80,  100,   120};
     CS     =           {3.360e-02,3.768e-03,4.418e-04,1.511e-04,6.159e-05};
@@ -80,76 +82,76 @@ void Init()
   }
 
   else if (PbPb && sample=="qcd") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+    samplesfolder+="PbPb/pythia6";
     subfoldernames={"qcd15/puTowerExclLimitV3","qcd30/puTowerExclLimitV3","qcd50/puTowerExclLimitV3","qcd65/puTowerExclLimitV3", "qcd80/puTowerExclLimitV3","qcd100/puTowerExclLimitV3","qcd120/puTowerExclLimitV3"};
     pthats = {15,           30,     50,     65,     80,     100,      120};
     CS     = {5.314E-01,3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
   }
   else if (PbPb && sample=="bfc") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+    samplesfolder+="PbPb/pythia6";
     subfoldernames={"bfcr15/puTowerExclLimitV3","bfcr30/puTowerExclLimitV3","bfcr50/puTowerExclLimitV3","bfcr65/puTowerExclLimitV3","bfcr80/puTowerExclLimitV3","bfcr100/puTowerExclLimitV3","bfcr120/puTowerExclLimitV3"};
     pthats = {15,           30,     50,     65,    80,  100,   120};
     CS     = {1.890e-03,1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
   }
   else  if (PbPb && sample=="bjt") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+    samplesfolder+="PbPb/pythia6";
     subfoldernames={"bjet15/puTowerExclLimitV3","bjet30/puTowerExclLimitV3","bjet50/puTowerExclLimitV3","bjet65/puTowerExclLimitV3","bjet80/puTowerExclLimitV3","bjet100/puTowerExclLimitV3","bjet120/puTowerExclLimitV3"};
     pthats =           {15,           30,     50,     65,     80,  100,   120};
     CS     =           {5.314E-01,3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
     filterefficiency = {4.62e-02,6.269e-02,7.557e-02,8.128e-02,8.640e-02,8.908e-02,9.265e-02};
   }
   // else if (PbPb && sample=="qp8") {
-  //   samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia8";
+  //   samplesfolder+="PbPb/pythia8";
   //   subfoldernames={"qcd30","qcd50","qcd80","qcd120"};
   //   pthats        ={30,50,80,120};
   //   CS = {           3.455E-02,     4.068E-03,     4.959E-04,     7.096E-05};
   // }
   // else if (PbPb && sample=="qcs") {
-  //   samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pythia6";
+  //   samplesfolder+="PbPb/pythia6";
   //   subfoldernames={"qcd30/csJets","qcd50/csJets","qcd80/csJets","qcd120/csJets"};
   //   pthats        ={30,50,80,120};
   //   CS     = {3.360e-02,3.768e-03,4.418e-04,6.159e-05};
   // } 
   else  if (PbPb && sample=="pqc") { //pyquen QCD
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pyquenColl";
+    samplesfolder+="PbPb/pyquenColl";
     subfoldernames={"qcd100/genMatchFix_puUp"};
     pthats = {100};
     CS     = {1.511e-04};
   }
   else  if (PbPb && sample=="pfc") { //pyquen B-jet FCR
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/PbPb/pyquenColl";
+    samplesfolder+="PbPb/pyquenColl";
     subfoldernames={"bfcr100/genMatchFix_puUp"};
     pthats = {100};
     CS     = {4.831e-07};
   }
   // else  if (!PbPb && sample=="qp8") {
-  //   samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/pp/pythia8";
+  //   samplesfolder+="pp/pythia8";
   //   subfoldernames={"qcd30","qcd50","qcd80","qcd120"};
   //   pthats = {           30,     50,     80,     120};
   //   CS = {3.455E-02, 4.068E-03, 4.959E-04, 7.096E-05};
   // } 
   // else  if (!PbPb && sample=="bp8") {
-  //   samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/pp/pythia8";
+  //   samplesfolder+="pp/pythia8";
   //   subfoldernames={"b30","b50","b80","b120"};
   //   pthats = {           30,     50,     80,     120};  
   //   CS = {3.455E-02, 4.068E-03, 4.959E-04, 7.096E-05}; 
   //   filterefficiency = {8.202e-02,6.674e-02,9.647e-02,1.051e-01}; 
   // } 
   else  if (!PbPb && sample=="qcd") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/pp/pythia6";
+    samplesfolder+="pp/pythia6";
     subfoldernames={"qcd15/constSubV1_csvV2","qcd30/constSubV1_csvV2","qcd50/constSubV1_csvV2","qcd65/constSubV1_csvV2","qcd80/constSubV1_csvV2","qcd100/constSubV1_csvV2","qcd120/constSubV1_csvV2"};
     pthats = {15,           30,     50,     65,     80,     100,      120};
     CS     = {5.314E-01,3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
   } 
   else  if (!PbPb && sample=="bjt") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/pp/pythia6";
+    samplesfolder+="pp/pythia6";
     subfoldernames={"bjet15/constSubV1_csvV2","bjet30/constSubV1_csvV2","bjet50/constSubV1_csvV2","bjet65/constSubV1_csvV2","bjet80/constSubV1_csvV2","bjet100/constSubV1_csvV2","bjet120/constSubV1_csvV2"};
     pthats =           {15,           30,     50,     65,     80,  100,   120};
     CS     =           {5.314E-01,3.360e-02,3.768e-03,1.161E-03,4.418e-04,1.511e-04,6.159e-05};
     filterefficiency = {4.62e-02,6.269e-02,7.557e-02,8.128e-02,8.640e-02,8.908e-02,9.265e-02};
   }
   else  if (!PbPb && sample=="bfc") {
-    samplesfolder="/data_CMS/cms/mnguyen/bJet2015/mc/pp/pythia6";
+    samplesfolder+="pp/pythia6";
     subfoldernames={"bfcr15/constSubV1_csvV2","bfcr30/constSubV1_csvV2","bfcr50/constSubV1_csvV2","bfcr65/constSubV1_csvV2","bfcr80/constSubV1_csvV2","bfcr100/constSubV1_csvV2","bfcr120/constSubV1_csvV2"};
     pthats = {15,           30,     50,     65,    80,  100,   120};
     CS     = {1.890e-03,1.242e-04,1.348e-05,4.015E-06,1.468e-06,4.831e-07,1.889e-07};
