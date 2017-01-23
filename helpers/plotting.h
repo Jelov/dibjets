@@ -294,10 +294,21 @@ void Normalize(vector<TH1 *> hists)
 void NormalizeAllHists(vector<TH1 *> except=vector<TH1 *>(0))
 {
   map<TString,int> namem;
-  for (auto h:except) namem[h->GetName()] = 1;
-  for (auto h:allhists)
+  for (auto h:except)  namem[h->GetName()] = 1;
+  for (auto h:allhists) {
+    // cout<<"normalizing ... "<<h->GetName()<<" ? "<<namem[h->GetName()]<<endl;
     if (namem[h->GetName()]!=1)
-      Normalize(allhists);
+      Normalize({h});
+  }
+}
+
+void MakeOverflowVisible(vector<TH1 *> hists)
+{
+  for (auto h:hists) {
+    int n = h->GetNbinsX();
+    h->SetBinContent(n,h->GetBinContent(n)+h->GetBinContent(n+1));
+    h->SetBinContent(1,h->GetBinContent(0)+h->GetBinContent(1));    
+  }
 }
 
 void MakeOverflowVisibleAll()
@@ -344,6 +355,9 @@ TString legendoption(TString drawoption)
 
 TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
 {
+  gStyle->SetPalette(kRainBow);
+
+
   ccounter++;
   TCanvas *c= new TCanvas(Form("%d",ccounter),Form("%d",ccounter),600,600);
 
@@ -360,8 +374,10 @@ TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
   for(auto h:hists) {
     filename+=h->GetName();
     if (plotoverwritecolors) {
-      h->SetMarkerColor(TColor::GetColorDark(i+2));
-      h->SetLineColor(TColor::GetColorDark(i+2));
+      int color = TColor::GetColorPalette(256*i/hists.size());//TColor::GetColorDark(i+2)
+      h->SetMarkerColor(color);
+      h->SetLineColor(color);
+
     }
     l->AddEntry(h,h->GetTitle(),legendoption(options[i]));
     if (options[i]=="hist") h->SetLineWidth(2);
@@ -399,7 +415,7 @@ TCanvas *Draw(vector<TH1 *> hists,vector<TString> options)
   if (plotyline!=9999) {
     TLine *line = new TLine(hists[0]->GetXaxis()->GetXmin(), plotyline, hists[0]->GetXaxis()->GetXmax(), plotyline);
     line->SetLineStyle(2);
-    line->SetLineColor(kRed);    
+    // line->SetLineColor(kRed);    
     line->Draw();
   }
 

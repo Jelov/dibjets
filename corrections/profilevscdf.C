@@ -100,7 +100,7 @@ float runbins(int b1, int b2)
   auto fdt = config.getfile_djt("dtPbjcl");
   auto ntdt = (TTree *)fdt->Get("nt");
 
-  seth(71,38,180);
+  seth(71,38,140);
   auto hdt = geth(Form("hdt%d%d",b1,b2),"Data; Max jet p_{T} [GeV]; Event fractions");
  
   ntdt->Project(hdt->GetName(),"jtpt2", Form("weight*(jtpt1>100&&bin>=%d && bin<%d && dphi21<1.05)",b1,b2));
@@ -118,7 +118,7 @@ float runbins(int b1, int b2)
   int pthatcut = 80;
 
 
-  auto p = new TProfile(Form("p%d%d",b1,b2),"prof;p_{T,2} threshold [GeV];subleading jet findiding efficiency",35,40,180);
+  auto p = new TProfile(Form("p%d%d",b1,b2),"prof;p_{T} [GeV];Subleading jet findiding efficiency",35,40,140);
 
   
   nt->Project(p->GetName(),"(subid2 == 0 && refpt2 > 20):jtptSignal2",Form("weight*(jtpt1>100 &&bin>=%d && bin<%d && pthat>%d)",b1,b2,pthatcut));
@@ -148,6 +148,7 @@ float runbins(int b1, int b2)
   auto g = getCDF(h);
   g->SetLineColor(darkgreen);
   g->SetLineWidth(3);
+  g->SetLineStyle(1);
 
   eclipsecurves.push_back(g);
   eclipsecurvenames.push_back(FloatToStr(b1/2.)+"-"+FloatToStr(b2/2.)+"%");
@@ -223,7 +224,7 @@ void draweclipsecurves()
     eclipsecurves[i]->SetMaximum(1);
     eclipsecurves[i]->Draw(i==0 ? "" : "same");
 
-    eclipsecurves[i]->GetXaxis()->SetTitle("p_{T,2} threshold [GeV]");
+    eclipsecurves[i]->GetXaxis()->SetTitle("p_{T} [GeV]");
     eclipsecurves[i]->GetYaxis()->SetTitle("found fraction");
   }
   l->Draw();

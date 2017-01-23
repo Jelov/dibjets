@@ -78,6 +78,13 @@ void makeplots(int binMin, int binMax, float fr)
   auto hmcPJsvtxpt = getv("hmcPJsvtxpt","MC;Subleading jet SV p_{T} [GeV]");
   auto hdtPJsvtxpt = geth("hdtPJsvtxpt","Data;Subleading jet SV p_{T} [GeV]");
 
+  seth(100,-0.1,0.1);//40
+  auto hmcLJip3d = getv("hmcLJip3d","MC;Leading jet SV p_{T} [GeV]");
+  auto hdtLJip3d = geth("hdtLJip3d","Data;Leading jet SV p_{T} [GeV]");
+  auto hmcPJip3d = getv("hmcPJip3d","MC;Subleading jet SV p_{T} [GeV]");
+  auto hdtPJip3d = geth("hdtPJip3d","Data;Subleading jet SV p_{T} [GeV]");
+
+
   vector<float> csvrange = {0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.85,0.9,0.95};
   int ncsv = csvrange.size();
 
@@ -430,12 +437,13 @@ void ReadROC()
 
 void taggingplots()
 {
-  macro m("taggingplots_0703",true);
+  macro m("taggingplots_0824",true);
   
   float fr = 1.;
 
-  // makeplots(-1,-1,fr);
-  // makeplots(0,20,fr);
+  makeplots(-1,-1,fr);
+  makeplots(0,20,fr);
+
   // makeplots(20,60,fr);
   // makeplots(60,200,fr);
 
@@ -456,6 +464,9 @@ roc[1]->SetTitle("PbPb 0-10%");
 
   for (unsigned i=0;i<roc.size();i++) {
     roc[i]->SetMarkerColor(TColor::GetColorDark(i+2));
+    roc[i]->SetLineColor(TColor::GetColorDark(i+2));
+    roc[i]->SetLineStyle(7);
+    roc[i]->SetMarkerStyle(i==3 ? 32 : 24+i);    
     roc[i]->Draw(i==0 ? "APL" : "PL,same");
     // l->AddEntry(roc[i],roc[i]->GetTitle(),"P");
 
@@ -470,11 +481,23 @@ roc[i]->GetYaxis()->CenterTitle();
     roc[i]->GetXaxis()->SetRangeUser(0,1);
 
   roccsvcut[i]->SetMarkerColor(TColor::GetColorDark(i+2));
-  roccsvcut[i]->SetMarkerSize(2.3);
-  roccsvcut[i]->SetMarkerStyle(29);
+  roccsvcut[i]->SetMarkerSize(1.5);//2.3);
+  roccsvcut[i]->SetMarkerStyle(20+i);  //(29);
   }
   for (unsigned i=0;i<roc.size();i++)
     roccsvcut[i]->Draw("P,same");
+
+  // for (auto g:roc) {
+  //   // auto sp = new TSpline3(TString("grs")+g->GetName(),g,"",10,10);
+  //   // sp->SetLineColor(kRed);
+  //   // sp->Draw("same");
+
+  // auto gs = new TGraphSmooth("normal");
+  // auto grout = gs->Approx(g,"linear");
+  // grout->Draw("same");
+
+  // }
+
 
   l->AddEntry(roc[0],roc[0]->GetTitle(),"P");
   l->AddEntry(roc[3],roc[3]->GetTitle(),"P");
@@ -483,6 +506,8 @@ roc[i]->GetYaxis()->CenterTitle();
   l->SetHeader("Pythia6 (+Hydjet)");
 
   l->Draw();
+
+
 
   auto ln = new TLine(0,1,1,0);
   ln->SetLineColor(kGray);

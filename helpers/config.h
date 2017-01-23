@@ -17,7 +17,7 @@ int iPos=11; // : top-left, left-aligned
 
 TString lumi_sqrtSpp = "25.8 pb^{-1} (5.02 TeV pp)";
 TString lumi_sqrtSPbPb = "404 #mub^{-1} (5.02 TeV PbPb)";
-
+TString lumi_sqrtSppPbPb = "25.8 pb^{-1} (5.02 TeV pp) + 404 #mub^{-1} (5.02 TeV PbPb)";
 
 bool file_exist(const char *fileName)
 {

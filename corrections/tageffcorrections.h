@@ -115,6 +115,7 @@ float tageffcorr::pp1(float leadingjetpt, float leadingjeteta)
 
   if (!applyCorrection) return 1;
   if (leadingjetpt>200) leadingjetpt = 200;
+  if (leadingjetpt<100) leadingjetpt = 100;
   
   return 1/(fLeadPt->Eval(leadingjetpt)*fLeadEta->Eval(leadingjeteta));
 }
@@ -124,6 +125,7 @@ float tageffcorr::pp2(float partnerjetpt, float partnerjeteta)
 
   if (!applyCorrection) return 1;
   if (partnerjetpt>140) partnerjetpt = 140;
+  if (partnerjetpt<40) partnerjetpt = 40;
 
   return 1/(fPartPt->Eval(partnerjetpt)*fPartEta->Eval(partnerjeteta));
 }

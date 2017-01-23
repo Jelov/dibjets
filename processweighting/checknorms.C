@@ -196,7 +196,7 @@ void PrintTable(float beta, float gamma)
   float s12asupd = (N12fcrAS+N12gspAS*gamma+N12fexAS*beta)/100;
 
 
-  cout<<setprecision(2);
+  cout<<setprecision(3);
 
   cout<<"Pair & Data & MC \\\\"<<endl;
   cout<<"\\hline"<<endl;

@@ -5,7 +5,7 @@
 
 void skiplightreweightdraw()
 {
-	macro m("skiplightreweightdraw_13merged");
+	macro m("skiplightreweightdraw_tinyfix");
 
 //for 100/40, beta=0.216,gamma=1.089
 //for 120/30, beta=0.201,gamma=0.938

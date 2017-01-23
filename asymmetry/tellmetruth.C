@@ -31,6 +31,7 @@ TString dtPbbjt = "dtPbbjt";
 TString dtPbjcl = "dtPbjcl";
 
 TString mcppqcd = "mcppqcd";
+TString mcppbfa = "mcppbfa";
 TString mcPbbfa = "mcPbbfa";
 TString mcPbqcd = "mcPbqcd";
 
@@ -39,6 +40,7 @@ TF1 *fmistagpp = 0, *fmistagfPb1, *fmistagfPb2, *fmistagfPb3;
 
 
 float NSfracbjt = 1;
+bool ppsmearing = false;
 
 void loadmistagsampling()
 {
@@ -99,6 +101,9 @@ void findtruthpp(float datafraction = 1.)
 {
   TFile *fdtpp = new TFile(config.getFileName_djt(dtppjpf));
 
+  TFile *fmcpp = new TFile("/Users/istaslis/Documents/CMS/bjet2015/ntuples/eta1p5/mcppbfaak4PF_djt.root");//config.getFileName_djt(mcppbfa)); //BFA!!!
+
+
   seth(10,0,1);
   auto hdtppxJAS = geth("hdtppxJAS","Data b-jets;x_{J}");
   auto hdtINCppxJAS = geth("hdtINCppxJAS","Data Inclusive;x_{J}");
@@ -124,21 +129,24 @@ void findtruthpp(float datafraction = 1.)
 
   //rj
   seth(15,100,250);
-  auto hrjincdt = geth("hrjincdt","Data;p_{T,1} [GeV];r_{J}");
-  auto hrjincmc = geth("hrjincmc","Pythia 6;p_{T,1} [GeV];r_{J}");
-  auto hrjbjtdt = geth("hrjbjtdt","b-jets data;p_{T,1} [GeV];r_{J}");
-  auto hrjbjtmc = geth("hrjbjtmc","b-jets MC;p_{T,1} [GeV];r_{J}");
+  auto hrjincdt = geth("hrjincdt","Data;p_{T,1} [GeV];R_{J}");
+  auto hrjincmc = geth("hrjincmc","Pythia 6;p_{T,1} [GeV];R_{J}");
+  auto hrjbjtdt = geth("hrjbjtdt","b-jets data;p_{T,1} [GeV];R_{J}");
+  auto hrjbjtmc = geth("hrjbjtmc","b-jets MC;p_{T,1} [GeV];R_{J}");
 
   auto hrjincdtden = geth("hrjincdtden");
   auto hrjincmcden = geth("hrjincmcden");
   auto hrjbjtdtden = geth("hrjbjtdtden");
   auto hrjbjtmcden = geth("hrjbjtmcden");
 
+  TString origpt1 = ppsmearing ? "jtptsansjec1" : "jtpt1";
+  TString origpt2 = ppsmearing ? "jtptsansjec2" : "jtpt2";
 
   Fill(fdtpp,[&] (dict &d) {
     if (d["numTagged"]>6) return;
     float w = d["weight"];
-    float corr = tageffcorrectionpp(d["jtpt1"],d["jteta1"],d["jtpt2"],d["jteta2"]);//(d["jtpt1"],d["jteta1"],d[jtptSL],d[jtetaSL]);
+    float corr = tageffcorrectionpp(d[origpt1],d["jteta1"],d[origpt2],d["jteta2"]);//(d["jtpt1"],d["jteta1"],d[jtptSL],d[jtetaSL]);
+
     float wb = w*corr;
     //if the subleading jet is sampled, the weight is increased by sampling weight
     //and subleading jet must be anti-tagged
@@ -172,7 +180,6 @@ void findtruthpp(float datafraction = 1.)
 
     },datafraction);
 
-  TFile *fmcpp = new TFile(config.getFileName_djt("mcppbfa")); //BFA!!!
   Fill(fmcpp,[&] (dict &m) {
     if (m["numTagged"]>6) return;
     if (m["pthat"]<pthatcut) return;
@@ -211,7 +218,7 @@ void findtruthpp(float datafraction = 1.)
     if (m["jtpt1"]>pt1cut && abs(m["refparton_flavorForB1"])==5)
       hrjbjtmcden->Fill(m["jtpt1"],w2);
 
-  });
+  },datafraction);
 
   auto b12sub = (TH1F *)hmc12ppxJAS->Clone("b12sub");
   b12sub->Add(hmc12ppxJNS,-1);
@@ -234,7 +241,7 @@ void findtruthpp(float datafraction = 1.)
     }
     if (m["jtpt1"]>pt1cut)hrjincmcden->Fill(m["jtpt1"],w);
 
-  });
+  },datafraction);
 
   SetData({hdtppxJAS,hdtINCppxJAS,hdt12ppxJAS,hdphippINCdata,hdphippBJTdata,hdphippBJT12data});
   SetMC({hmcppxJAS,hmcppxJASsigBB,hmcppxJASsignal2,hmcppqcdxJAS,hmc12ppxJAS,hdphippINCmc,hdphippBJTmc,hdphippBJT12mc});
@@ -480,10 +487,10 @@ void findtruthPbPb(int binMin, int binMax)
   auto hbinSLisB = geth("hbinSLisB");
 
   seth(15,100,250);
-  auto hrjincdtAS = geth("hrjincdtAS","Data;p_{T,1} [GeV];r_{J}");
-  auto hrjincmcAS = geth("hrjincmcAS","Pythia 6 + Hydjet;p_{T,1} [GeV];r_{J}");
-  auto hrjbjtdtAS = geth("hrjbjtdtAS","b-jets data;p_{T,1} [GeV];r_{J}");
-  auto hrjbjtmcAS = geth("hrjbjtmcAS","b-jets MC;p_{T,1} [GeV];r_{J}");
+  auto hrjincdtAS = geth("hrjincdtAS","Data;p_{T,1} [GeV];R_{J}");
+  auto hrjincmcAS = geth("hrjincmcAS","Pythia 6 + Hydjet;p_{T,1} [GeV];R_{J}");
+  auto hrjbjtdtAS = geth("hrjbjtdtAS","b-jets data;p_{T,1} [GeV];R_{J}");
+  auto hrjbjtmcAS = geth("hrjbjtmcAS","b-jets MC;p_{T,1} [GeV];R_{J}");
 
   auto hrjincdtNS = geth("hrjincdtNS");
   auto hrjincmcNS = geth("hrjincmcNS");
@@ -1083,7 +1090,7 @@ plotdiffmax = 9999;
 
 }
 
-void tellmetruth(TString name = "", int eclmode = 0, int bkgsubtractionmode = 0, bool applytagg = true, bool tagLJ = true, bool tagSJ = true, float csvmode1 = 0.9, float csvmode2 = 0.9)
+void tellmetruth(TString name = "", int eclmode = 0, int bkgsubtractionmode = 0, bool applytagg = true, bool tagLJ = true, bool tagSJ = true, float csvmode1 = 0.9, float csvmode2 = 0.9, int smearingmode = 0)
 {
   name = "results_"+name;
   macro m(name);
@@ -1129,10 +1136,15 @@ void tellmetruth(TString name = "", int eclmode = 0, int bkgsubtractionmode = 0,
   // dtPbbjt = "dtPbjcl";
   // applyTriggerCorr=false;
 
+  vector<TString> dtppfiles = {"dtppjpf","dtp1jpf","dtp2jpf","dtp3jpf"};
+  vector<TString> mcppfiles = {"mcppqcd","mcp1qcd","mcp2qcd","mcp3qcd"};
+  vector<TString> mcppbfafiles = {"mcppbfa","mcp1bfa","mcp2bfa","mcp3bfa"};
+  ppsmearing = smearingmode!=0;
+  dtppjpf = dtppfiles[smearingmode];
+  mcppqcd = mcppfiles[smearingmode];
+  mcppbfa = mcppbfafiles[smearingmode];
+  findtruthpp(); //fraction of data to process
 
-
-
-  findtruthpp(1.0); //fraction of data to process
   findtruthPbPb(60,200);
   findtruthPbPb(20,60); 
   findtruthPbPb(0,20);

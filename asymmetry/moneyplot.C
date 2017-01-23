@@ -4,6 +4,10 @@
 // #include "./CMS_lumi.C"
 #include "TExec.h"
 
+ // ncoll weighted values from Shengquan
+ float npart[3] = {102.,239.9,363.4};
+ 
+
 TH1F *hmcincsys, *hdtincsys, *hmcbjtsys, *hdtbjtsys;
 
 float addIn2(float v1, float v2)
@@ -22,15 +26,32 @@ void fitPaleLine(vector<TH1F *> v)
   }
 }
 
+void CopyToGraph(TGraphErrors *g, TH1F *h)
+{
+    for(int i=0;i<3;i++){
+    g->SetPoint(i+1,npart[i],h->GetBinContent(i+2));
+    g->SetPointError(i+1,0.,h->GetBinError(i+2));
+  }
+  g->SetPoint(0,2,h->GetBinContent(1));
+  g->SetPointError(0,0.,h->GetBinError(1));
+  cout<<"???"<<h->GetBinContent(1)<<endl;
+}
+
 void moneyplot(TString name="")
 {
   bool drawcalo = false;
+
+  bool drawsimulation = false;
+  bool drawsmeareddata = true;
+  bool drawsmearedsys = true;
+  bool drawsmearedmc = false;
+  bool drawsys = true;
 
   // Lumi stuff
 
   writeExtraText = true;       // if extra text
   extraText  = "Preliminary";  // default extra text is "Preliminary"
-  lumi_sqrtS = "25.8 pb^{-1} (5.02 TeV pp) + 404 #mub^{-1} (5.02 TeV PbPb)";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+  lumi_sqrtS = lumi_sqrtSppPbPb;       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
   int iPeriod = 0;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
 
@@ -45,6 +66,9 @@ void moneyplot(TString name="")
   macro m("moneyplot_"+name);
 
   auto res = ReadFromFile("results_"+name+"/results.root");
+  auto resppsmeared1 = ReadFromFile("results_0712_ppsmear1/results.root");
+  auto resppsmeared2 = ReadFromFile("results_0712_ppsmear2/results.root");
+  auto resppsmeared3 = ReadFromFile("results_0712_ppsmear3/results.root");
 
   auto calores = ReadFromFile("results_0704_calotrig/results.root");
 
@@ -62,6 +86,11 @@ void moneyplot(TString name="")
 
   auto hdtb12calo   = geth("hdtb12calo","Data b-jets 12 Calo;;#LTx_{J}#GT");
 
+  auto hdtipp       = geth("hdtpps","Data pp Smeared;;#LTx_{J}#GT");
+  auto hdtbpp       = geth("hdtbpp","Data b-jets Smeared;;#LTx_{J}#GT");
+  auto hmcipp       = geth("hmcipp","MC qcd Smeared;;#LTx_{J}#GT");
+  auto hmcbpp       = geth("hmcbpp","MC b-jet Smeared;;#LTx_{J}#GT");
+
   
   vector<TString> labels = {"pp"};
   for (int i=binnames.size()-1;i>=0;i--) labels.push_back(binnames[i]);
@@ -76,6 +105,11 @@ void moneyplot(TString name="")
   RenameBinLabelsX(hmcb12,labels);
   RenameBinLabelsX(hmcb12Signal,labels);
   RenameBinLabelsX(hmcbSB,labels);
+  RenameBinLabelsX(hdtipp,labels);
+  RenameBinLabelsX(hdtbpp,labels);
+  RenameBinLabelsX(hmcipp,labels);
+  RenameBinLabelsX(hmcbpp,labels);
+
 
   for(unsigned i=0;i<bins.size();i++) {
     const char * end = i<bins.size()-1 ? Form("%d%d",(int)bins[i],(int)bins[i+1]) : "pp"; //pp==-1-1
@@ -102,12 +136,41 @@ void moneyplot(TString name="")
     hmcb12Signal->SetBinError(nbins-i,res[Form("xj_mc_b12Signal_meanerror%s",end)]);
     hdtb12calo->SetBinError(nbins-i,calores[Form("xj_data_b12_meanerror%s",end)]);
 
-
   }
 
-  SetB({hmcbjt,hdtbjt,hdtb12,hmcb12,hmcb12Signal,hmcbSB});
-  SetInc({hmcinc,hdtinc,hmcsig});
-  SetMC({hmcinc,hmcbjt,hmcsig,hmcbSB,hmcb12,hmcb12Signal});
+  hdtipp->SetBinContent(nbins-0,resppsmeared1["xj_data_inc_meanpp"]);
+  hdtipp->SetBinError(nbins-0,resppsmeared1["xj_data_inc_meanerrorpp"]);
+  hdtbpp->SetBinContent(nbins-0,resppsmeared1["xj_data_b12_meanpp"]);
+  hdtbpp->SetBinError(nbins-0,resppsmeared1["xj_data_b12_meanerrorpp"]);
+  hmcipp->SetBinContent(nbins-0,resppsmeared1["xj_mc_inc_meanpp"]);
+  hmcipp->SetBinError(nbins-0,resppsmeared1["xj_mc_inc_meanerrorpp"]);
+  hmcbpp->SetBinContent(nbins-0,resppsmeared1["xj_mc_b12Signal_meanpp"]);
+  hmcbpp->SetBinError(nbins-0,resppsmeared1["xj_mc_b12Signal_meanerrorpp"]);
+
+  hdtipp->SetBinContent(nbins-1,resppsmeared2["xj_data_inc_meanpp"]);
+  hdtipp->SetBinError(nbins-1,resppsmeared2["xj_data_inc_meanerrorpp"]);
+  hdtbpp->SetBinContent(nbins-1,resppsmeared2["xj_data_b12_meanpp"]);
+  hdtbpp->SetBinError(nbins-1,resppsmeared2["xj_data_b12_meanerrorpp"]);
+  hmcipp->SetBinContent(nbins-1,resppsmeared2["xj_mc_inc_meanpp"]);
+  hmcipp->SetBinError(nbins-1,resppsmeared2["xj_mc_inc_meanerrorpp"]);
+  hmcbpp->SetBinContent(nbins-1,resppsmeared2["xj_mc_b12Signal_meanpp"]);
+  hmcbpp->SetBinError(nbins-1,resppsmeared2["xj_mc_b12Signal_meanerrorpp"]);
+
+  hdtipp->SetBinContent(nbins-2,resppsmeared3["xj_data_inc_meanpp"]);
+  hdtipp->SetBinError(nbins-2,resppsmeared3["xj_data_inc_meanerrorpp"]);
+  hdtbpp->SetBinContent(nbins-2,resppsmeared3["xj_data_b12_meanpp"]);
+  hdtbpp->SetBinError(nbins-2,resppsmeared3["xj_data_b12_meanerrorpp"]);
+  hmcipp->SetBinContent(nbins-2,resppsmeared3["xj_mc_inc_meanpp"]);
+  hmcipp->SetBinError(nbins-2,resppsmeared3["xj_mc_inc_meanerrorpp"]);
+  hmcbpp->SetBinContent(nbins-2,resppsmeared3["xj_mc_b12Signal_meanpp"]);
+  hmcbpp->SetBinError(nbins-2,resppsmeared3["xj_mc_b12Signal_meanerrorpp"]);
+
+  hmcipp->SetMarkerStyle(kOpenCircle);
+  hmcbpp->SetMarkerStyle(kOpenCircle);
+
+  SetB({hmcbjt,hdtbjt,hdtb12,hmcb12,hmcb12Signal,hmcbSB,hdtbpp});//,hdtbpp
+  SetInc({hmcinc,hdtinc,hdtipp,hmcsig});
+  SetMC({hmcinc,hmcbjt,hmcsig,hmcbSB,hmcb12,hmcb12Signal,hdtipp,hdtbpp});
   SetData({hdtinc,hdtbjt,hdtb12});
   hmcsig->SetMarkerColor(kblue);
   hmcsig->SetLineColor(kblue);
@@ -127,6 +190,11 @@ void moneyplot(TString name="")
   hdtb12calo->SetMarkerStyle(24);
   hdtb12calo->SetMarkerColor(kRed+3);
   hdtb12calo->SetLineColor(kRed+3);
+
+
+  hdtipp->SetMarkerColor(kblue);
+
+// hdtbpp
 
   /*
   hdtb12->GetXaxis()->SetLimits(0.1,nbins+0.1);
@@ -187,12 +255,12 @@ hmcbjtsys->SetMarkerSize(0);
 hdtbjtsys->SetMarkerSize(0);
 
 plotputgrid = true;
-Draw({hmcinc,hdtinc,hmcbjt,hdtbjt,hdtb12,hmcsig,hmcbSB,hmcb12,hmcb12Signal},"E1");
+// Draw({hmcinc,hdtinc,hmcbjt,hdtbjt,hdtb12,hmcsig,hmcbSB,hmcb12,hmcb12Signal},"E1");
 
-Draw({hmcinc,hdtinc,hdtb12,hmcsig,hmcb12,hmcb12Signal},"E1");
+// Draw({hmcinc,hdtinc,hdtb12,hmcsig,hmcb12,hmcb12Signal},"E1");
 
-Draw({hdtb12,hmcb12,hmcb12Signal},"E1");
-Draw({hmcinc,hdtinc,hmcsig},"E1");
+// Draw({hdtb12,hmcb12,hmcb12Signal},"E1");
+// Draw({hmcinc,hdtinc,hmcsig},"E1");
 
   
 TCanvas *c = new TCanvas("cmoneyinc","cmoneyinc",600,600);
@@ -207,6 +275,9 @@ setex1->Draw();
 
 hmcsig->Draw("E1,same");
 hdtinc->Draw("E1,same");
+
+hdtipp->Draw("E1,same");
+
 TExec *setex2 = new TExec("setex2","gStyle->SetErrorX(0.1)");
 setex2->Draw();
 
@@ -215,7 +286,9 @@ setex2->Draw();
  
 TLegend *l = getLegend();
 l->AddEntry(hdtinc,"Data","P");
-l->AddEntry(hmcsig,"Simulation","P");
+if (drawsimulation) l->AddEntry(hmcsig,"Simulation","P");
+if (drawsmeareddata) l->AddEntry(hdtipp,drawsmeareddata ? "pp-based reference" : "Simulation","P");
+if (drawsmearedmc) l->AddEntry(hmcipp,"Pythia smeared","P");
 l->SetHeader("Inclusive dijets");
 l->Draw();
 
@@ -223,7 +296,7 @@ l->Draw();
  // writing the lumi information and the CMS "logo"
   CMS_lumi(c, iPeriod, iPos );
 
- SavePlot(c,"moneyplotINC");
+ // SavePlot(c,"moneyplotINC");
 
 
 
@@ -237,15 +310,20 @@ setex1->Draw();
 
 hmcbSB->Draw("E1,same");
 hdtbjt->Draw("E1,same");
+
+hdtbpp->Draw("E1,same");
+
 setex2->Draw();
 
 TLegend *l2 = getLegend();
 l2->AddEntry(hdtbjt,"Data","P");
 if (drawcalo) l2->AddEntry(hdtb12calo,"Data CaloJet trigger","P");
-l2->AddEntry(hmcbSB,"Simulation","P");
-l2->SetHeader("b-dijets");
+if (drawsimulation) l2->AddEntry(hmcbSB,"Simulation","P");
+if (drawsmeareddata) l2->AddEntry(hdtbpp,drawsmeareddata ? "pp-based reference" : "Simulation","P");
+if (drawsmearedmc) l2->AddEntry(hmcbpp,"Pythia smeared","P");
+l2->SetHeader("b dijets");
 l2->Draw();
-SavePlot(c2,"moneyplotBJT");
+// SavePlot(c2,"moneyplotBJT");
 
 
  
@@ -256,7 +334,7 @@ TCanvas *c3 = new TCanvas("c3","c3",600,600);
 
 
  TH1F *hframe = new TH1F("hframe","hframe",1,-24.99,400);
- hframe->SetXTitle("N_{part} (N_{coll}-weighted)");
+ hframe->SetXTitle("#LTN_{part}#GT (N_{coll}-weighted)");
  hframe->SetYTitle("#LTx_{J}#GT");
  hframe->SetMaximum(0.75);
  hframe->SetMinimum(0.55);
@@ -271,10 +349,15 @@ hframe -> GetYaxis() -> CenterTitle();
 
  TGraphErrors *gMC_PbPb_inc = new TGraphErrors(3);
  TGraphErrors *gMC_pp_inc = new TGraphErrors(1);
+
+ TGraphErrors *gData_PbPb_ppsmeared = new TGraphErrors(3);
+ TGraphErrors *gData_PbPb_qcdsmeared = new TGraphErrors(3);
+ TGraphErrors *gData_PbPb_bjtsmeared = new TGraphErrors(3);
+
+ TGraphErrors *gData_PbPb_ppsmearedsys = new TGraphErrors(3);
+
  
- // ncoll weighted values from Shengquan
- float npart[3] = {102.,239.9,363.4};
- 
+
  
  for(int i=0;i<3;i++){
    gData_PbPb_inc->SetPoint(i,npart[i],hdtinc->GetBinContent(i+2));
@@ -285,6 +368,18 @@ hframe -> GetYaxis() -> CenterTitle();
 
    gMC_PbPb_inc->SetPoint(i,npart[i],hmcsig->GetBinContent(i+2));
    gMC_PbPb_inc->SetPointError(i,0.,hmcsig->GetBinError(i+2));
+
+   gData_PbPb_ppsmeared->SetPoint(i,npart[i],hdtipp->GetBinContent(i+2));
+   gData_PbPb_ppsmeared->SetPointError(i,0.,hdtipp->GetBinError(i+2));
+
+   gData_PbPb_ppsmearedsys->SetPoint(i,npart[i],hdtipp->GetBinContent(i+2));
+   gData_PbPb_ppsmearedsys->SetPointError(i,10.,hdtincsys->GetBinError(1));
+
+   gData_PbPb_qcdsmeared->SetPoint(i,npart[i],hmcipp->GetBinContent(i+2)); 
+   gData_PbPb_qcdsmeared->SetPointError(i,0.,hmcipp->GetBinError(i+2));
+
+   gData_PbPb_bjtsmeared->SetPoint(i,npart[i],hmcbpp->GetBinContent(i+2)); 
+   gData_PbPb_bjtsmeared->SetPointError(i,0.,hmcbpp->GetBinError(i+2));
  }
 
    gData_pp_inc->SetPoint(0,2,hdtinc->GetBinContent(1));
@@ -314,19 +409,38 @@ hframe -> GetYaxis() -> CenterTitle();
   gMC_pp_inc->SetMarkerColor(kblue);
   gMC_pp_inc->SetLineColor(kblue);
   
+// gData_PbPb_qcdsmeared->SetMarkerStyle(kOpenCircle);
+// gData_PbPb_bjtsmeared->SetMarkerStyle(kOpenCircle);
+
+  gData_PbPb_ppsmearedsys->SetFillStyle(3005);
+  gData_PbPb_ppsmearedsys->SetFillColor(kblue);
+
+    gData_PbPb_ppsmeared->SetMarkerColor(kblue);
+    gData_PbPb_ppsmeared->SetLineColor(kblue);
+  gData_PbPb_ppsmeared->SetMarkerStyle(kOpenSquare);
+
  hframe->Draw();
- gData_PbPb_inc_sys->Draw("e2");
+
+
+ if (drawsys) gData_PbPb_inc_sys->Draw("e2");
  gData_PbPb_inc->Draw("p");
- gData_pp_inc_sys->Draw("e2");
+ if (drawsys) gData_pp_inc_sys->Draw("e2");
  gData_pp_inc->Draw("p");
+
+if (drawsmeareddata) gData_PbPb_ppsmeared->Draw("p");
+if (drawsmearedmc) gData_PbPb_qcdsmeared->Draw("p");
+
+if (drawsmearedsys) gData_PbPb_ppsmearedsys->Draw("e2");
  
- gMC_PbPb_inc->Draw("p");
- gMC_pp_inc->Draw("p");
+ if (drawsimulation) gMC_PbPb_inc->Draw("p");
+ if (drawsimulation) gMC_pp_inc->Draw("p");
+
+
 
  TText *t1a = new TText(-7,0.72,"pp"); //-7,0.73,
  TText *t2a = new TText(75,0.705,"30-100%"); //100,0.697,
- TText *t3a = new TText(215,0.68,"10-30%"); //205,0.675,
- TText *t4a = new TText(340,0.670,"0-10%"); //340,0.665,
+ TText *t3a = new TText(215,0.69,"10-30%"); //205,0.675,
+ TText *t4a = new TText(340,0.680,"0-10%"); //340,0.665,
 
  t1a->SetTextSize(17);
  t2a->SetTextSize(17);
@@ -343,7 +457,7 @@ hframe -> GetYaxis() -> CenterTitle();
 
   l->Draw();
 
-  SavePlot(c3,"moneyincnice");
+  SavePlot(c3,Form("moneyincnice_%s%s",drawsmeareddata ? "pp" : "mc", drawsmearedsys ? "sys" : ""));
 
 TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
@@ -358,6 +472,8 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
  TGraphErrors *gData_PbPb_b_calo = new TGraphErrors(3);
  
+ TGraphErrors *gData_PbPb_b_ppsmeared = new TGraphErrors(3);
+ TGraphErrors *gData_PbPb_b_ppsmearedsys = new TGraphErrors(3);
  
  
  for(int i=0;i<3;i++){
@@ -372,6 +488,13 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
    gData_PbPb_b_calo->SetPoint(i,npart[i],hdtb12calo->GetBinContent(i+2));
    gData_PbPb_b_calo->SetPointError(i,0.,hdtb12calo->GetBinError(i+2));
+
+   gData_PbPb_b_ppsmeared->SetPoint(i,npart[i],hdtbpp->GetBinContent(i+2));
+   gData_PbPb_b_ppsmeared->SetPointError(i,0.,hdtbpp->GetBinError(i+2));
+
+   gData_PbPb_b_ppsmearedsys->SetPoint(i,npart[i],hdtbpp->GetBinContent(i+2));
+   gData_PbPb_b_ppsmearedsys->SetPointError(i,10.,hdtbjtsys->GetBinError(1));
+
  }
 
    gData_pp_b->SetPoint(0,2,hdtb12->GetBinContent(1));
@@ -405,20 +528,34 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
   gMC_pp_b->SetMarkerColor(kred);
   gMC_pp_b->SetLineColor(kred);
   
+  gData_PbPb_b_ppsmearedsys->SetFillStyle(3005);
+  gData_PbPb_b_ppsmearedsys->SetFillColor(kred);
+
+    gData_PbPb_b_ppsmeared->SetMarkerColor(kred);
+    gData_PbPb_b_ppsmeared->SetLineColor(kred);
+  gData_PbPb_b_ppsmeared->SetMarkerStyle(kOpenSquare);
  hframe->Draw();
- if (!drawcalo) gData_PbPb_b_sys->Draw("e2");
+
+ if (drawsys)  gData_PbPb_b_sys->Draw("e2");
  gData_PbPb_b->Draw("p");
- if (!drawcalo) gData_pp_b_sys->Draw("e2");
+ if (drawsys)  gData_pp_b_sys->Draw("e2");
  gData_pp_b->Draw("p");
  if (drawcalo) gData_PbPb_b_calo->Draw("p");
+
+ if (drawsmeareddata) gData_PbPb_b_ppsmeared->Draw("p");
+ if (drawsmearedmc) gData_PbPb_bjtsmeared->Draw("p");
  
- gMC_PbPb_b->Draw("p");
- gMC_pp_b->Draw("p");
+ if (drawsmearedsys) gData_PbPb_b_ppsmearedsys->Draw("e2");
+
+ if (drawsimulation) gMC_PbPb_b->Draw("p");
+ if (drawsimulation) gMC_pp_b->Draw("p");
+
+
 
  TText *t1b = new TText(-7,0.72,"pp"); //-7,0.702
  TText *t2b = new TText(75,0.705,"30-100%"); //25,0.687
- TText *t3b = new TText(215,0.68,"10-30%"); //205,0.665
- TText *t4b = new TText(340,0.670,"0-10%"); //340,0.65
+ TText *t3b = new TText(215,0.69,"10-30%"); //205,0.665
+ TText *t4b = new TText(340,0.680,"0-10%"); //340,0.65
 
  t1b->SetTextSize(17);
  t2b->SetTextSize(17);
@@ -435,7 +572,7 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
 
   l2->Draw();
 
-  SavePlot(c4,"moneybjtnice");
+  SavePlot(c4,Form("moneybjtnice_%s%s",drawsmeareddata ? "pp" : "mc", drawsmearedsys ? "sys" : ""));
 
   auto hbjtincratio = (TH1F *)hdtb12->Clone("hbjtincratio");
   auto hbjtincratiomc = (TH1F *)hmcb12->Clone("hbjtincratio");
@@ -447,27 +584,30 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
   hbjtincratiomc->Divide(hmcb12Signal,hmcsig);
   hincdtmcratio->Divide(hmcsig,hdtinc);    
 
-  // Print(hbjtincratiomc);
 
-//   for (int i=1;i<=4;i++) {
-// //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  auto hbjtPbppratio = (TH1F *)hdtb12->Clone("hbjtPbppratio");
+  auto hincPbppratio = (TH1F *)hdtb12->Clone("hincPbppratio");
+
+  auto hbjtincppratio = (TH1F *)hdtb12->Clone("hbjtincppratio");
+
+bool Pbppratio = false;
+
+  if (Pbppratio) {
+    hbjtPbppratio->Divide(hdtb12,hdtbpp);
+    hincPbppratio->Divide(hdtinc,hdtipp);
+  } else {
+    hbjtPbppratio->Add(hdtb12,hdtbpp,1,-1);
+    hincPbppratio->Add(hdtinc,hdtipp,1,-1);
+  }
 
 
-//     float bv = hdtb12->GetBinContent(i);
-//     float be = hdtbjtsys->GetBinError(i);
-
-//     float iv = hdtinc->GetBinContent(i);
-//     float ie = hdtincsys->GetBinError(i);
-
-//     float rv = bv/iv;
-//     float re = sqrt(be*be*iv*iv+ie*ie*bv*bv)/(iv*iv);
+  hbjtincppratio->Divide(hdtbpp,hdtipp);
 
 
-//     // hbjtincratio->SetBinContent(i,rv);
-//     // hbjtincratio->SetBinError(i,re);
 
-//   }
-  
+
+
+
 
 
 hbjtincratiosys->SetBinError(1,0.004);
@@ -486,6 +626,9 @@ hbjtincratiosys->SetBinError(4,0.032);
 TGraphErrors *gMC_r = new TGraphErrors(4);
 TGraphErrors *gDataMC_r = new TGraphErrors(4);
  
+ 
+  TGraphErrors *gppSmeared_r = new TGraphErrors(4);
+
 
   for(int i=0;i<3;i++){
     gData_PbPb_r->SetPoint(i,npart[i],hbjtincratio->GetBinContent(i+2));
@@ -499,6 +642,9 @@ TGraphErrors *gDataMC_r = new TGraphErrors(4);
 
     gDataMC_r->SetPoint(i+1,npart[i],hincdtmcratio->GetBinContent(i+2)); 
     gDataMC_r->SetPointError(i+1,0.,hincdtmcratio->GetBinError(i+2));
+
+    gppSmeared_r->SetPoint(i+1,npart[i],hbjtincppratio->GetBinContent(i+2)); 
+    gppSmeared_r->SetPointError(i+1,0.,hbjtincppratio->GetBinError(i+2));
   }
 
     gData_pp_r->SetPoint(0,2,hbjtincratio->GetBinContent(1));
@@ -513,10 +659,18 @@ TGraphErrors *gDataMC_r = new TGraphErrors(4);
   gMC_r->SetPoint(0,2,hbjtincratiomc->GetBinContent(1));
   gMC_r->SetPointError(0,0.,hbjtincratiomc->GetBinError(1));
 
- 
+  gppSmeared_r->SetPoint(0,2,hbjtincppratio->GetBinContent(1));
+  gppSmeared_r->SetPointError(0,0.,hbjtincppratio->GetBinError(1));
+
+
 gMC_r->SetMarkerColor(kBlue);
 gMC_r->SetLineColor(kBlue);
 gMC_r->SetMarkerStyle(kOpenSquare);
+
+gppSmeared_r->SetMarkerColor(kBlue);
+gppSmeared_r->SetLineColor(kBlue);
+gppSmeared_r->SetMarkerStyle(kOpenSquare);
+
 
 gDataMC_r->SetMarkerColor(kBlack);
 
@@ -535,7 +689,6 @@ gDataMC_r->SetMarkerColor(kBlack);
   hframe->SetMinimum(0.9);
   hframe->SetMaximum(1.15);
   hframe->SetYTitle("b-jet #LTx_{J}#GT / inclusive jet #LTx_{J}#GT");
-
 
 
 
@@ -558,11 +711,14 @@ gDataMC_r->SetMarkerColor(kBlack);
  gMC_PbPb_r->Draw("p");
  gMC_pp_r->Draw("p");
 gMC_r->Draw("p");
+// gppSmeared_r->Draw("p");
 gDataMC_r->Draw("p");
 
-  auto lr = new TLegend(0.2,0.2,0.4,0.4);
+  auto lr = new TLegend(0.2,0.2,0.4,0.35);
   lr->AddEntry(gData_PbPb_r,"Data","P");
   lr->AddEntry(gMC_r,"Pythia 6 + Hydjet","P");
+  // lr->AddEntry(gppSmeared_r,"pp-based reference","P");
+  
   lr->AddEntry(gDataMC_r,"Inclusive MC/Data","P");
   lr->Draw();
 
@@ -583,7 +739,118 @@ gDataMC_r->Draw("p");
 
   CMS_lumi(c5, iPeriod, iPos ); 
 
-SavePlot(c5,"bjtincratio");
+SavePlot(c5,"bjtincratio_withunqueched");
+
+auto hdtbppsys = (TH1F *)hdtbpp->Clone("hdtbppsys");
+auto hdtippsys = (TH1F *)hdtipp->Clone("hdtippsys");
+
+for (int i=1;i<=hdtbjtsys->GetNbinsX();i++) {
+  hdtbjtsys->SetBinContent(i,hdtb12->GetBinContent(i));
+  hdtincsys->SetBinContent(i,hdtinc->GetBinContent(i));
+
+  hdtbppsys->SetBinError(i,hdtbjtsys->GetBinError(1));
+  hdtippsys->SetBinError(i,hdtincsys->GetBinError(1));
+}
+
+if (Pbppratio) {
+  hdtbjtsys->Divide(hdtbppsys);
+  hdtincsys->Divide(hdtippsys);
+} else {
+  hdtbjtsys->Add(hdtbppsys,-1);
+  hdtincsys->Add(hdtippsys,-1);  
+}
+
+  for (int i=0;i<3;i++) {
+    gData_PbPb_b_sys->SetPoint(i+2,npart[i],hdtbjtsys->GetBinContent(i+2));
+    gData_PbPb_b_sys->SetPointError(i+2,10,hdtbjtsys->GetBinError(i+2));
+
+    gData_PbPb_inc_sys->SetPoint(i+2,npart[i],hdtincsys->GetBinContent(i+2));
+    gData_PbPb_inc_sys->SetPointError(i+2,10,hdtincsys->GetBinError(i+2));
+
+  }
+
+gData_PbPb_b_sys->SetFillColorAlpha(gData_PbPb_b_sys->GetFillColor(),0.5);
+gData_PbPb_inc_sys->SetFillColorAlpha(gData_PbPb_inc_sys->GetFillColor(),0.5);
+
+gData_PbPb_b_sys->SetLineColor(kred);
+gData_PbPb_inc_sys->SetLineColor(kblue);
+
+gData_PbPb_b_sys->SetLineWidth(2);
+gData_PbPb_inc_sys->SetLineWidth(2);
+
+
+
+
+
+ TGraphErrors *gData_bjt_r = new TGraphErrors(4);
+ TGraphErrors *gData_inc_r = new TGraphErrors(4);
+
+ // gData_bjt_r->SetPoint(0,2,1);
+ // gData_bjt_r->SetPointError(0,2,0);
+ // gData_inc_r->SetPoint(0,2,1);
+ // gData_inc_r->SetPointError(0,2,0);
+
+
+
+  // for(int i=0;i<3;i++){
+  //   gData_bjt_r->SetPoint(i+1,npart[i],hbjtPbppratio->GetBinContent(i+2));
+  //   gData_bjt_r->SetPointError(i+1,0.,hbjtPbppratio->GetBinError(i+2));
+  //   gData_inc_r->SetPoint(i+1,npart[i],hincPbppratio->GetBinContent(i+2));
+  //   gData_inc_r->SetPointError(i+1,0.,hincPbppratio->GetBinError(i+2));
+  // }
+CopyToGraph(gData_bjt_r,hbjtPbppratio);
+CopyToGraph(gData_inc_r,hincPbppratio);
+
+  gData_inc_r->SetMarkerStyle(kFullCircle);
+  gData_inc_r->SetMarkerColor(kblue);
+  gData_inc_r->SetLineColor(kblue);
+
+  gData_bjt_r->SetMarkerStyle(kFullCircle);
+  gData_bjt_r->SetMarkerColor(kred);
+  gData_bjt_r->SetLineColor(kred);
+
+
+
+  if (Pbppratio) {
+    hframe->SetMinimum(0.85);
+    hframe->SetMaximum(1.05);
+    hframe->SetYTitle("PbPb #LTx_{J}#GT / pp #LTx_{J}#GT");
+  } else {
+    hframe->SetMinimum(-0.15);
+    hframe->SetMaximum(0.05);
+    hframe->SetYTitle("PbPb #LTx_{J}#GT - pp #LTx_{J}#GT");
+
+  }
+
+
+
+  TCanvas *c6 = new TCanvas("c4","c4",600,600);
+
+ hframe->Draw();
+
+  // TLine *line2 = new TLine(-7,1,400,1);
+  // line->SetLineColor(kGray);
+  // line->SetLineWidth(2);
+  // line->SetLineStyle(7);
+  line->Draw();
+
+ gData_PbPb_b_sys->Draw("e5");
+ gData_PbPb_inc_sys->Draw("e5");
+ gData_bjt_r->Draw("p");
+ gData_inc_r->Draw("p");
+
+
+  auto lPbpp = new TLegend(0.2,0.2,0.4,0.35);
+  lPbpp->AddEntry(gData_bjt_r,"b dijets","P");
+  lPbpp->AddEntry(gData_inc_r,"Inclusive dijets","P");
+  lPbpp->Draw();
+
+
+
+
+  CMS_lumi(c6, iPeriod, iPos ); 
+
+SavePlot(c6, Pbppratio ? "PbPbppratio" : "PbPbppdiff");
 
 }
 

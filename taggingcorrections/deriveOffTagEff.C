@@ -7,6 +7,7 @@
 #include "TLegend.h"
 #include "TMath.h"
 #include "../helpers/config.h"
+#include "../helpers/physics.h"
 #include "TSystem.h"
 
 using namespace std;
@@ -765,13 +766,13 @@ for (Long64_t i=0; i<nentries;i++) {
   hw3TagEffPartEta->SetLineColor(4);
   hw3TagEffCent->SetLineColor(4);
 
-  TLegend *leg=new TLegend(0.6,0.7,0.9,0.9);
+  TLegend *leg=new TLegend(0.6,0.7,0.85,0.85);
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
   leg->AddEntry(hTagEffLeadPt,"Uncorrected","p");
   leg->AddEntry(hw1TagEffLeadPt,"Corrected","p");
 
-  TLegend *leg2=new TLegend(0.2,0.7,0.5,0.9);
+  TLegend *leg2=new TLegend(0.2,0.7,0.5,0.85);
   leg2->SetBorderSize(0);
   leg2->SetFillStyle(0);
   leg2->AddEntry(hTagEffLeadPt,"Leading","p");

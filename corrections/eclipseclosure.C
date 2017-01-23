@@ -57,10 +57,10 @@ void checkclosure(int binMin, int binMax)
   auto f = config.getfile_djt(bjets ? "mcPbbfa" :"mcPbqcd");
 
   seth(10,0,1);
-  auto hxjASsiguncorr = geth("hxjASsiguncorr","Signal, eclipsed;x_{J};Event fractions");
+  auto hxjASsiguncorr = geth("hxjASsiguncorr","Signal, not eclipsed;x_{J};Event fractions");
   auto hxjASsigcorr = geth("hxjASsigcorr","Signal, corrected;x_{J};Event fractions");
 
-  auto hxjAStrue = geth("hxjAStrue","Signal, not eclipsed;x_{J};Event fractions");
+  auto hxjAStrue = geth("hxjAStrue","Signal, full;x_{J};Event fractions");
   auto hxjAScorr = geth("hxjAScorr","Away-side weighted;x_{J};Event fractions");
   auto hxjNScorr = geth("hxjNScorr","Near-side weighted;x_{J};Event fractions");
 
@@ -198,8 +198,8 @@ void drawallcurves()
   auto l = new TLegend(0.66,0.3,0.83,0.7);
   gStyle->SetPalette(kRainBow);
 
-  for (int i=0;i<binbounds.size()-1;i++) {
-    auto  fecl = new TF1(Form("feclipse%d",i),"exp(-[0]*exp(-[1]*x))",40,160);
+  for (unsigned i=0;i<binbounds.size()-1;i++) {
+    auto  fecl = new TF1(Form("feclipse%d",i),"exp(-[0]*exp(-[1]*x))",40,140);
     fecl->SetParameters(par0dt[i],par1dt[i]);
 
     // fecl->SetLineColorAlpha(kgreen,1-0.9*((float)i)/binbounds.size());
@@ -208,8 +208,8 @@ void drawallcurves()
     fecl->SetMaximum(1);
     fecl->Draw(i==0 ? "" : "same");
 
-    fecl->GetXaxis()->SetTitle("p_{T,2} threshold [GeV]");
-    fecl->GetYaxis()->SetTitle("subleading jet findiding efficiency");
+    fecl->GetXaxis()->SetTitle("p_{T} [GeV]");
+    fecl->GetYaxis()->SetTitle("Subleading jet findiding efficiency");
     fecl->GetXaxis()->CenterTitle();
     fecl->GetYaxis()->CenterTitle();
   }
@@ -229,11 +229,9 @@ void eclipseclosure(int eclmode = 0, int bkgsubtractionmode = 0, bool incjetBJET
 
   TString incbjt = bjets ? "bjt":"inc";
 
-  macro m(Form("eclipseclosure0707_%d_%d_%s",eclipsemode,bkgsubmode,incbjt.Data()));
+  macro m(Form("eclipseclosure0830_%d_%d_%s",eclipsemode,bkgsubmode,incbjt.Data()));
 
   drawallcurves();
-
-  return;
 
   checkclosure(0,20);
   checkclosure(20,60);

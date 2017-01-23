@@ -8,7 +8,7 @@ void plotDphi(int inc_or_bjet=0)
  writeExtraText = true;       // if extra text
   extraText  = "Preliminary";  // default extra text is "Preliminary"
   //lumi_sqrtS = "25.8 pb^{-1} (5.02 TeV pp) + 404 #mub^{-1} (5.02 TeV PbPb)";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
-  lumi_sqrtS = "404 #mub^{-1} (5.02 TeV PbPb)";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+  lumi_sqrtS = lumi_sqrtSPbPb;       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
   int iPeriod = 0;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
 
@@ -83,7 +83,7 @@ hMCPP->SetMaximum(0.6);
   TLegend *l =new TLegend(0.5,0.6,0.8,0.8);
 l->AddEntry(hData010,"Data","P");
 l->AddEntry(hMC010,"Pythia6","l");
- if(inc_or_bjet)l->SetHeader("b-dijets");
+ if(inc_or_bjet)l->SetHeader("b dijets");
  else l->SetHeader("Inclusive dijets");
  l->SetFillStyle(0);
  l->Draw();
@@ -130,7 +130,7 @@ l->AddEntry(hMC010,"Pythia6","l");
   
   CMS_lumi(c3, iPeriod, iPos );
 
-  lumi_sqrtS = "25.8 pb^{-1} (5.02 TeV pp)";
+  lumi_sqrtS = lumi_sqrtSpp;
 
     l->Draw();
 
