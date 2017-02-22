@@ -1,47 +1,51 @@
 #Analysis procedure
 
-1. pp process reweighting
-
-    ```
-	 cd processweighting
-	 rb flavorProcess.C+
-	 rl checknorms.C
-    ```
-    use the values of beta and gamma in
-
-    ```
-	 rb skiplightreweight.C+
-	 rb skiplightreweightdraw.C+
-    ```
-	Copy those values into `helpers/physics.h` : `vector<float> processWeights`.
-
-2. Estimate hydjet amount.
-
-	```
-	cd mistag
-	rb hydjetestimation.C+
-	```
-	Copy output values to `helpers/physics.h` : `vector<float> bkgfractionInNearSide `.
-	Check results with
-	
-	```
-	rb hydjetclosure.C+
-	```
-	
-3. Get the result plots
-
-	```
-	cd asymmetry
-	rb tellmetruth.C+
-	```
-	
-	Or to test all possibilities
-	
-	```
-	sh runall.sh
-	```
-	
-	
 ##Remarks
 * To prevent confusion, centrality bin number in the code is always 0-200 (except tagging efficiency correction functions), and shown as 0-100% only in the plotting.
-* For the additional help on the helpers, look at `helpers/README.md`.
+* For additional help on ntuplizer see `ntuplizer/README.md`.
+* For the additional help on the helpers and general code constructions (`Draw`, `Fill`, `macro m()`) , look at `helpers/README.md`.
+
+
+
+## How to run the thing
+
+* change working dir in helpers/config.h
+
+```C++
+  TString workdir = "/data_CMS/cms/lisniak/bjet2015/";
+  TString tuplesfolderPbPb = workdir+"redoana/";
+  TString tuplesfolderpp = workdir+"redoana/";
+```
+
+* create BXmistag functions:
+
+```sh
+mkdir correctionfiles
+cd systematics
+root -l -b -q BXmistags.C
+```
+
+* create trigger efficiency corrections (`iterTrigEffCorr.C`) and offline tagging corrections (`deriveOffTagEff.C`):
+
+```sh
+cd taggingcorrections
+root -l -b -q  iterTrigEffCorr.C
+sh runcorr.sh
+cp -r tagging_jtsignal2v4_0p90/ ../correctionfiles
+```
+
+* tell me the truth!
+  * `runall.sh` calculates all the xJ distributions with corrections applied for normal data (default) and smeared data (ppsmear1,2,3). You can look for distribution in `results_redoana_default/xJdphi.root` and mean values are stored in  `results_redoana_default/results.txt` .
+  * `moneyplot.C` draws a few money plots
+  * `plotXJ.C` draws beautiful xJ distributions. Make sure it reads the right input `results_***` folder!
+
+```sh
+cd asymmetry
+sh runall.sh
+#to check the progress
+tail -f redoana_default
+#after it finishes
+root -l -b -q moneyplot.C\(\"redoana\"\)
+root -l -b -q plotXJ.C
+```
+
