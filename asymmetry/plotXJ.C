@@ -110,11 +110,11 @@ void doPlotXJ(TString outname, int inc_or_bjet=1, bool useMC = true, bool addppu
   // bool useMC = true;
   // bool addppunc = false;
   
-  TFile *fin = new TFile("results_0708_default/xJdphi.root");
+  TFile *fin = new TFile("results_redoana_default/xJdphi.root");
 
-  TFile *fpps1 = new TFile("results_0712_ppsmear1/xJdphi.root");
-  TFile *fpps2 = new TFile("results_0712_ppsmear2/xJdphi.root");
-  TFile *fpps3 = new TFile("results_0712_ppsmear3/xJdphi.root");
+  TFile *fpps1 = new TFile("results_redoana_ppsmear1/xJdphi.root");
+  TFile *fpps2 = new TFile("results_redoana_ppsmear2/xJdphi.root");
+  TFile *fpps3 = new TFile("results_redoana_ppsmear3/xJdphi.root");
 
 
   string species = "inc";
@@ -300,14 +300,7 @@ SavePlot(c4,"xJpp"+species);
 
 void plotXJ()
 {
-  doPlotXJ("plotXJ_0708_pythia",0,true,false);
-  doPlotXJ("plotXJ_0708_pythia",1,true,false);
-
-  doPlotXJ("plotXJ_0708_ppsmear",0,false,false);
-  doPlotXJ("plotXJ_0708_ppsmear",1,false,false);
-
-  doPlotXJ("plotXJ_0708_ppsmearunc",0,false,true);
-  doPlotXJ("plotXJ_0708_ppsmearunc",1,false,true);
+  doPlotXJ("plotXJ_redoana_default",0,false,true);
 }
 
 

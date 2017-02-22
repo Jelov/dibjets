@@ -101,7 +101,7 @@ void findtruthpp(float datafraction = 1.)
 {
   TFile *fdtpp = new TFile(config.getFileName_djt(dtppjpf));
 
-  TFile *fmcpp = new TFile("/Users/istaslis/Documents/CMS/bjet2015/ntuples/eta1p5/mcppbfaak4PF_djt.root");//config.getFileName_djt(mcppbfa)); //BFA!!!
+  TFile *fmcpp = config.getfile_djt(mcppbfa); //new TFile("/Users/istaslis/Documents/CMS/bjet2015/ntuples/eta1p5/mcppbfaak4PF_djt.root");//config.getFileName_djt(mcppbfa)); //BFA!!!
 
 
   seth(10,0,1);

@@ -146,7 +146,9 @@ kpinkLight    = pal->GetColor(255,192,224);
    gStyle->SetFillStyle(4000);
 
    gStyle->SetLegendFont(43);
-   gStyle->SetLegendTextSize(20);
+
+   //not working on some root versions
+   //   gStyle->SetLegendTextSize(20);
 
    gROOT->ForceStyle();
 

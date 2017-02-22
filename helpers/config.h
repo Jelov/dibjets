@@ -29,15 +29,15 @@ bool firstRunMacro = true;
 
 class Config {
 public:
-  TString workdir = "/Users/istaslis/Documents/CMS/bjet2015";
+  TString workdir = "/data_CMS/cms/lisniak/bjet2015/";
 
-  TString tuplesfolderPbPb = workdir+"/ntuples/eta1p5_jecv2";
-  TString tuplesfolderpp = workdir+"/ntuples/eta1p5";
+  TString tuplesfolderPbPb = workdir+"redoana/";
+  TString tuplesfolderpp = workdir+"redoana/";
 
   // TString tuplesfolderPbPb = workdir+"/ntuples/eta1p5";
   // TString tuplesfolderpp = workdir+"/ntuples/eta1p5";
 
-  TString tagcorfolder = workdir+"/dibjets/correctionfiles";
+  TString tagcorfolder = "../correctionfiles";
 
   TString PbPbjetalgo = "akPu4PF";
   TString ppjetalgo = "ak4PF";

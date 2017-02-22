@@ -1,3 +1,4 @@
+#include "../helpers/config.h"
 float etacut = 1.5;
 
 void iterTrigEffCorr(bool write =true)
@@ -11,7 +12,7 @@ void iterTrigEffCorr(bool write =true)
   TH1::SetDefaultSumw2();
   
   
-  TFile *f = new TFile("../../ntuples/eta1p5_jecv2/dtPbjclakPu4PF_djt.root");//"./merged_dtPbjakPu4PF_djt.root");
+  TFile *f = config.getfile_djt("dtPbjcl");//new TFile("../../ntuples/eta1p5_jecv2/dtPbjclakPu4PF_djt.root");//"./merged_dtPbjakPu4PF_djt.root");
   TNtuple *nt = (TNtuple *) f->Get("nt");
 
 //Declaration of leaves types
@@ -639,7 +640,7 @@ void iterTrigEffCorr(bool write =true)
    
    TFile *fout=NULL;
    if(write) {
-     fout=new TFile("trigEffCorr.root","recreate");
+     fout=new TFile("../correctionfiles/trigEffCorr.root","recreate");
 
      fitCent->SetParameters(fitCent->GetParameter(0), fitCent->GetParameter(1), fitCent->GetParameter(2));
      fitPt->Write();

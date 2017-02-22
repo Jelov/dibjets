@@ -65,12 +65,12 @@ void moneyplot(TString name="")
 
   macro m("moneyplot_"+name);
 
-  auto res = ReadFromFile("results_"+name+"/results.root");
-  auto resppsmeared1 = ReadFromFile("results_0712_ppsmear1/results.root");
-  auto resppsmeared2 = ReadFromFile("results_0712_ppsmear2/results.root");
-  auto resppsmeared3 = ReadFromFile("results_0712_ppsmear3/results.root");
+  auto res = ReadFromFile("results_"+name+"_default/results.root");
+  auto resppsmeared1 = ReadFromFile("results_"+name+"_ppsmear1/results.root");
+  auto resppsmeared2 = ReadFromFile("results_"+name+"_ppsmear2/results.root");
+  auto resppsmeared3 = ReadFromFile("results_"+name+"_ppsmear3/results.root");
 
-  auto calores = ReadFromFile("results_0704_calotrig/results.root");
+  //  auto calores = ReadFromFile("results_0704_calotrig/results.root");
 
   int nbins = binnames.size()+1;
   seth(nbins,0,nbins);
@@ -123,7 +123,7 @@ void moneyplot(TString name="")
     hmcsig->SetBinContent(nbins-i,res[Form("xj_mc_sig2_inc_mean%s",end)]);
     hmcbSB->SetBinContent(nbins-i,res[Form("xj_mc_bjtSB_mean%s",end)]);
     hmcb12Signal->SetBinContent(nbins-i,res[Form("xj_mc_b12Signal_mean%s",end)]);
-    hdtb12calo->SetBinContent(nbins-i,calores[Form("xj_data_b12_mean%s",end)]);
+    //    hdtb12calo->SetBinContent(nbins-i,calores[Form("xj_data_b12_mean%s",end)]);
 
     hmcinc->SetBinError(nbins-i,res[Form("xj_mc_inc_meanerror%s",end)]);
     hdtinc->SetBinError(nbins-i,res[Form("xj_data_inc_meanerror%s",end)]);
@@ -134,7 +134,7 @@ void moneyplot(TString name="")
     hmcsig->SetBinError(nbins-i,res[Form("xj_mc_sig2_inc_meanerror%s",end)]);
     hmcbSB->SetBinError(nbins-i,res[Form("xj_mc_bjtSB_meanerror%s",end)]);
     hmcb12Signal->SetBinError(nbins-i,res[Form("xj_mc_b12Signal_meanerror%s",end)]);
-    hdtb12calo->SetBinError(nbins-i,calores[Form("xj_data_b12_meanerror%s",end)]);
+    //    hdtb12calo->SetBinError(nbins-i,calores[Form("xj_data_b12_meanerror%s",end)]);
 
   }
 
@@ -187,9 +187,9 @@ void moneyplot(TString name="")
   hmcb12->SetMarkerColor(kredLight);
   hmcb12->SetLineColor(kredLight);
 
-  hdtb12calo->SetMarkerStyle(24);
-  hdtb12calo->SetMarkerColor(kRed+3);
-  hdtb12calo->SetLineColor(kRed+3);
+  //  hdtb12calo->SetMarkerStyle(24);
+  //  hdtb12calo->SetMarkerColor(kRed+3);
+  //  hdtb12calo->SetLineColor(kRed+3);
 
 
   hdtipp->SetMarkerColor(kblue);
@@ -317,7 +317,7 @@ setex2->Draw();
 
 TLegend *l2 = getLegend();
 l2->AddEntry(hdtbjt,"Data","P");
-if (drawcalo) l2->AddEntry(hdtb12calo,"Data CaloJet trigger","P");
+//if (drawcalo) l2->AddEntry(hdtb12calo,"Data CaloJet trigger","P");
 if (drawsimulation) l2->AddEntry(hmcbSB,"Simulation","P");
 if (drawsmeareddata) l2->AddEntry(hdtbpp,drawsmeareddata ? "pp-based reference" : "Simulation","P");
 if (drawsmearedmc) l2->AddEntry(hmcbpp,"Pythia smeared","P");
@@ -486,8 +486,8 @@ TCanvas *c4 = new TCanvas("c4","c4",600,600);
    gMC_PbPb_b->SetPoint(i,npart[i],hmcb12Signal->GetBinContent(i+2));
    gMC_PbPb_b->SetPointError(i,0.,hmcb12Signal->GetBinError(i+2));
 
-   gData_PbPb_b_calo->SetPoint(i,npart[i],hdtb12calo->GetBinContent(i+2));
-   gData_PbPb_b_calo->SetPointError(i,0.,hdtb12calo->GetBinError(i+2));
+   //   gData_PbPb_b_calo->SetPoint(i,npart[i],hdtb12calo->GetBinContent(i+2));
+   //   gData_PbPb_b_calo->SetPointError(i,0.,hdtb12calo->GetBinError(i+2));
 
    gData_PbPb_b_ppsmeared->SetPoint(i,npart[i],hdtbpp->GetBinContent(i+2));
    gData_PbPb_b_ppsmeared->SetPointError(i,0.,hdtbpp->GetBinError(i+2));

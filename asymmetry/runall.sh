@@ -1,13 +1,20 @@
 root -l <<< ".L tellmetruth.C+"
 
-root -l -b -q tellmetruth.C+\(\"0714_nojec\",0,0,true,true,true,0.9,0.9,0\) >0714_nojec &
+root -l -b -q tellmetruth.C+\(\"redoana_default\",0,0,true,true,true,0.9,0.9\) >redoana_default &
+
+root -l -b -q tellmetruth.C+\(\"redoana_ppsmear1\",0,0,true,true,true,0.9,0.9,1\) >redoana_ppsmear1 &
+root -l -b -q tellmetruth.C+\(\"redoana_ppsmear2\",0,0,true,true,true,0.9,0.9,2\) >redoana_ppsmear2 &
+root -l -b -q tellmetruth.C+\(\"redoana_ppsmear3\",0,0,true,true,true,0.9,0.9,3\) >redoana_ppsmear3 &
+
+
+#root -l -b -q tellmetruth.C+\(\"0714_nojec\",0,0,true,true,true,0.9,0.9,0\) >0714_nojec &
 
 
 #root -l -b -q tellmetruth.C+\(\"0712_ppsmear1\",0,0,true,true,true,0.9,0.9,1\) >0712_ppsmear1 &
 #root -l -b -q tellmetruth.C+\(\"0712_ppsmear2\",0,0,true,true,true,0.9,0.9,2\) >0712_ppsmear2 &
 #root -l -b -q tellmetruth.C+\(\"0712_ppsmear3\",0,0,true,true,true,0.9,0.9,3\) >0712_ppsmear3 &
 
-# root -l -b -q tellmetruth.C+\(\"0708_default\",0,0,true,true,true,0.9,0.9\) >0708_default &
+#root -l -b -q tellmetruth.C+\(\"0708_default\",0,0,true,true,true,0.9,0.9\) >0708_default &
 # root -l -b -q tellmetruth.C+\(\"0708_notag\",0,0,false,true,true,0.9,0.9\) >0708_notag &
 # root -l -b -q tellmetruth.C+\(\"0708_XB\",0,0,true,false,true,0.9,0.9\) >0708_XB &
 # root -l -b -q tellmetruth.C+\(\"0708_BX\",0,0,true,true,false,0.9,0.9\) >0708_BX &

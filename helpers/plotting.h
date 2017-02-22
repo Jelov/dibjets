@@ -28,6 +28,8 @@ using namespace std;
 
 enum LegendPosition {TopRight, TopLeft, BottomRight, BottomLeft, None};
 
+const int kRainBow = 55; //just in case
+
 int darkred = TColor::GetColorDark(2);
 int darkgreen = TColor::GetColorDark(3);
 int darkblue = TColor::GetColorDark(4);
